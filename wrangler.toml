@@ -1,0 +1,26 @@
+# ============================================================
+# Quiz26 - Cloudflare Worker + D1 + AI (نسخه نهایی 2026)
+# Domain: https://quiz26.dpdns.org
+# ============================================================
+
+name = "quiz26-api"
+main = "worker.js"
+compatibility_date = "2025-03-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "quiz26-db"
+database_id = "083340bf-d201-4781-8a0a-c352936d9ee0"
+preview_database_id = "083340bf-d201-4781-8a0a-c352936d9ee0"
+
+routes = [
+  { pattern = "quiz26.dpdns.org/api/*", zone_name = "dpdns.org" }
+]
+
+# متغیرهای محیطی (در Cloudflare Dashboard یا با wrangler secret put)
+wrangler secret put JWT_SECRET
+wrangler secret put OPENROUTER_KEY
+
+# مدل هوش مصنوعی (از مدل فعلی شما استفاده می‌شود، نیازی به تغییر نیست)
+# AI_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
