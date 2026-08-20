@@ -1,0 +1,12 @@
+# Cloudflare Pages SPA fallbacks
+# /api/* is handled by the Worker route on the same hostname — do not rewrite it here.
+/quiz/*     /index.html   200
+/result/*   /index.html   200
+/login      /index.html   200
+/dashboard  /index.html   200
+/studio/*   /index.html   200
+/results/*  /index.html   200
+/exam/*     /index.html   200
+/bank       /index.html   200
+/settings   /index.html   200
+/ai         /index.html   200

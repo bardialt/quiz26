@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quiz26 — سامانه حرفه‌ای آزمون آنلاین با هوش مصنوعی" />
+  <meta name="theme-color" content="#020617" />
+  <title>Quiz26 | آزمون آنلاین هوشمند</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],svg:{fontCache:'global'}}};</script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script>
+    tailwind.config={theme:{extend:{fontFamily:{vazir:['Vazirmatn','Tahoma','sans-serif']},colors:{brand:{50:'#ecfdf5',100:'#d1fae5',400:'#34d399',500:'#10b981',600:'#059669'},accent:{50:'#eef2ff',100:'#e0e7ff',400:'#818cf8',500:'#6366f1',600:'#4f46e5'}}}}};
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
+    *{font-family:'Vazirmatn',Tahoma,sans-serif}
+    body{background:#020617;overflow-x:hidden}
+    .glass{background:rgba(15,23,42,.7);backdrop-filter:blur(20px);border:1px solid rgba(148,163,184,.08)}
+    .hide{display:none!important}
+    .fade-in{animation:fadeIn .3s ease-out}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(16,185,129,.15)}50%{box-shadow:0 0 40px rgba(16,185,129,.3)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .animate-float{animation:float 3s ease-in-out infinite}
+    .animate-glow{animation:pulse-glow 2s ease-in-out infinite}
+    .gradient-bg{background:linear-gradient(-45deg,#020617,#0f172a,#1e1b4b,#042f2e);background-size:400% 400%;animation:gradient-shift 15s ease infinite}
+    .hero-gradient{background:radial-gradient(ellipse at top,rgba(16,185,129,.12) 0%,transparent 60%)}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:#0f172a}
+    ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+    .no-select{user-select:none;-webkit-user-select:none}
+    .exam-timer{font-variant-numeric:tabular-nums}
+    input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 2px rgba(16,185,129,.3)}
+    @media print{
+      body{background:#fff !important;color:#000 !important}
+      .glass{background:#fff !important;border:1px solid #ddd !important;backdrop-filter:none !important}
+      .hide{display:none !important}
+      .no-print{display:none !important}
+      button,.btn-gradient,.nav-btn{display:none !important}
+      #teacher-shell header,#view-landing,#view-login,#view-exam-entry,#view-exam-room,#view-result,#modalQuestion,#modalAIGenerate,#modalAIGrade,#modalAIAnalyze{display:none !important}
+      #view-dashboard,#view-studio,#view-bank,#view-homework,#view-attendance,#view-ai{display:block !important}
+      table{border-collapse:collapse;width:100%}
+      th,td{border:1px solid #ccc;padding:6px 8px;font-size:11px}
+      th{background:#f0f0f0}
+    }
+    .card-hover{transition:all .3s ease}
+    .card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+    .btn-gradient{background:linear-gradient(135deg,#10b981,#6366f1);transition:all .3s ease}
+    .btn-gradient:hover{background:linear-gradient(135deg,#059669,#4f46e5);transform:scale(1.02);box-shadow:0 10px 30px rgba(16,185,129,.2)}
+    .stat-card{position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,rgba(255,255,255,.03) 0%,transparent 70%);pointer-events:none}
+    /* Enhanced print styles for report card */
+    @media print{
+      .no-print{display:none !important}
+      #view-report{display:block !important;background:#fff !important;color:#000 !important}
+      #view-report .glass{background:#fff !important;border:1px solid #ddd !important;backdrop-filter:none !important}
+      #view-report .text-emerald-400{color:#059669 !important}
+      #view-report .text-accent-400{color:#4f46e5 !important}
+      #view-report .text-rose-400{color:#e11d48 !important}
+      #view-report .text-white{color:#000 !important}
+      #view-report .bg-slate-900\\/50{background:#f5f5f5 !important}
+      #view-report .border-slate-800{border-color:#ddd !important}
+    }
+    /* Notification badge animation */
+    #notificationBadge:not(.hide){
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.1)}
+    }
+    /* Mobile responsive exam palette */
+    @media(max-width:640px){
+      #examPalette{grid-template-columns:repeat(6,1fr) !important;gap:4px !important}
+      .exam-timer{font-size:1rem !important}
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen selection:bg-emerald-500 selection:text-white">
+<div id="app">
+
+<section id="view-landing" class="view min-h-screen gradient-bg">
+  <header class="glass sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="showView('landing')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-accent-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+          <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="font-black text-lg tracking-tight bg-gradient-to-l from-emerald-300 to-accent-400 bg-clip-text text-transparent">Quiz26</div>
+          <div class="text-[10px] text-slate-500 -mt-0.5">سامانه آزمون هوشمند</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="showView('login')" class="px-4 py-2 text-sm rounded-lg text-slate-300 hover:bg-slate-800/80 transition">ورود معلم</button>
+        <button onclick="showView('login')" class="px-5 py-2 text-sm rounded-lg btn-gradient text-white font-bold shadow-lg">شروع رایگان</button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-16 md:py-24">
+    <div class="text-center max-w-3xl mx-auto mb-20 hero-gradient rounded-3xl py-12">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        مجهز به هوش مصنوعی Nemotron
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black leading-tight mb-6">آزمون آنلاین <span class="bg-gradient-to-l from-emerald-400 to-accent-400 bg-clip-text text-transparent">حرفه‌ای و هوشمند</span></h1>
+      <p class="text-slate-400 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">ساخت آزمون با هوش مصنوعی، تصحیح خودکار تشریحی، ضدتقلب پیشرفته و کارنامه آنی.</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <button onclick="showView('login')" class="px-10 py-4 rounded-2xl btn-gradient text-white font-black text-lg shadow-xl animate-glow"><i class="fa-solid fa-rocket ml-2"></i> ورود به پنل معلم</button>
+        <button onclick="promptQuizId()" class="px-8 py-4 rounded-2xl border-2 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50 text-slate-200 font-bold text-lg transition"><i class="fa-solid fa-pen-to-square ml-2"></i> شرکت در آزمون</button>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6 mb-20">
+      <div class="glass rounded-2xl p-7 card-hover group">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-emerald-400 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <h3 class="font-bold text-white text-lg mb-2">آزمون‌ساز هوشمند</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">ساخت خودکار سوالات با AI، چندگزینه‌ای، تشریحی، درست/نادرست و پاسخ کوتاه.</p>
+      </div>
+      <div class="glass rounded-2xl p-7 card-hover group">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-500/20 to-accent-500/5 text-accent-400 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition"><i class="fa-solid fa-brain"></i></div>
+        <h3 class="font-bold text-white text-lg mb-2">تصحیح با هوش مصنوعی</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">تصحیح خودکار پاسخ‌های تشریحی با هوش مصنوعی و تحلیل نتایج.</p>
+      </div>
+      <div class="glass rounded-2xl p-7 card-hover group">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 text-rose-400 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3 class="font-bold text-white text-lg mb-2">ضدتقلب پیشرفته</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">مسدود کپی، رصد تب، تایمر و ارسال خودکار.</p>
+      </div>
+    </div>
+
+    <!-- AI Chat Section -->
+    <div class="glass rounded-3xl p-8 mb-20">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center mb-4 shadow-lg animate-float">
+          <i class="fa-solid fa-robot text-white text-2xl"></i>
+        </div>
+        <h2 class="text-2xl font-black text-white mb-2">دستیار هوش مصنوعی Quiz26</h2>
+        <p class="text-slate-400 text-sm">سوالی دارید؟ از هوش مصنوعی بپرسید!</p>
+      </div>
+      <div id="aiChatBox" class="bg-slate-900/80 rounded-2xl p-4 mb-4 max-h-80 overflow-y-auto space-y-3" style="min-height:120px">
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-white text-xs"></i></div>
+          <div class="bg-slate-800 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-slate-200 max-w-md">سلام! 👋 من دستیار هوش مصنوعی Quiz26 هستم. هر سوالی درباره نحوه استفاده از سایت، ساخت آزمون، یا هر موضوع دیگری دارید، بپرسید.</div>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <input id="aiChatInput" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="سوال خود را بنویسید..." onkeydown="if(event.key==='Enter')sendAIChat()" />
+        <button onclick="sendAIChat()" id="aiChatBtn" class="px-5 py-3 rounded-xl btn-gradient text-white font-bold text-sm shrink-0"><i class="fa-solid fa-paper-plane ml-1"></i> ارسال</button>
+      </div>
+    </div>
+
+    <div class="text-center mb-12"><h2 class="text-2xl font-black text-white mb-3">در ۳ مرحله شروع کنید</h2></div>
+    <div class="grid md:grid-cols-3 gap-6 mb-16">
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-2xl font-black mb-4 shadow-lg shadow-emerald-500/30">1</div>
+        <h4 class="font-bold text-white mb-2">ثبت‌نام کنید</h4>
+        <p class="text-sm text-slate-400">با یک نام کاربری دلخواه حساب بسازید.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white text-2xl font-black mb-4 shadow-lg shadow-accent-500/30">2</div>
+        <h4 class="font-bold text-white mb-2">آزمون بسازید</h4>
+        <p class="text-sm text-slate-400">سوالات را وارد کنید یا با AI بسازید.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-2xl font-black mb-4 shadow-lg shadow-amber-500/30">3</div>
+        <h4 class="font-bold text-white mb-2">لینک بدهید</h4>
+        <p class="text-sm text-slate-400">لینک آزمون را با دانش‌آموزان به اشتراک بگذارید.</p>
+      </div>
+    </div>
+    <div class="glass rounded-2xl p-6 text-center">
+      <p class="text-slate-500 text-xs mb-1">دامنه اختصاصی شما</p>
+      <a href="https://quiz26.dpdns.org" class="text-emerald-400 font-mono text-lg hover:text-emerald-300">https://quiz26.dpdns.org</a>
+    </div>
+  </main>
+</section>
+
+<section id="view-login" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
+  <div class="glass rounded-3xl p-8 w-full max-w-md shadow-2xl">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-accent-500 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30 animate-float">
+        <i class="fa-solid fa-user-shield text-white text-2xl"></i>
+      </div>
+      <h2 class="text-xl font-bold text-white" id="authTitle">ورود معلم</h2>
+      <p class="text-xs text-slate-500 mt-1" id="authHint">هر کاربر فقط آزمون‌های خودش را می‌بیند</p>
+    </div>
+    <div class="flex gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800 mb-5">
+      <button type="button" id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-lg text-xs font-medium text-white bg-slate-800 transition">ورود</button>
+      <button type="button" id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">ثبت‌نام</button>
+    </div>
+    <form id="loginForm" class="space-y-4" onsubmit="return handleLogin(event)">
+      <div><label class="text-xs text-slate-400 mb-1.5 block">نام کاربری</label><input id="loginUser" type="text" required autocomplete="username" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="نام کاربری دلخواه" /></div>
+      <div><label class="text-xs text-slate-400 mb-1.5 block">رمز عبور</label><input id="loginPass" type="password" required minlength="6" autocomplete="current-password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="حداقل ۶ کاراکتر" /></div>
+      <button type="submit" id="loginBtn" class="w-full py-3.5 rounded-xl btn-gradient text-white font-bold text-sm">ورود</button>
+    </form>
+    <form id="registerForm" class="space-y-3 hide" onsubmit="return handleRegister(event)">
+      <div><label class="text-xs text-slate-400 mb-1.5 block">نام کاربری *</label><input id="regUser" type="text" required minlength="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" /></div>
+      <div><label class="text-xs text-slate-400 mb-1.5 block">نام نمایشی</label><input id="regName" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" /></div>
+      <div><label class="text-xs text-slate-400 mb-1.5 block">رمز عبور *</label><input id="regPass" type="password" required minlength="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" /></div>
+      <div><label class="text-xs text-slate-400 mb-1.5 block">تکرار رمز *</label><input id="regPass2" type="password" required minlength="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" /></div>
+      <button type="submit" id="regBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-sm transition">ساخت حساب</button>
+    </form>
+    <button onclick="showView('landing')" class="w-full mt-4 text-sm text-slate-500 hover:text-slate-300 transition">بازگشت</button>
+  </div>
+</section>
+
+<div id="teacher-shell" class="hide">
+  <header class="glass sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-accent-500 flex items-center justify-center"><i class="fa-solid fa-graduation-cap text-white"></i></div>
+        <span class="font-bold text-white hidden sm:inline">Quiz26</span>
+      </div>
+      <nav class="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+        <button data-nav="dashboard" onclick="showView('dashboard')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-slate-800"><i class="fa-solid fa-gauge-high ml-1.5"></i>داشبورد</button>
+        <button data-nav="studio" onclick="showView('studio')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-file-pen ml-1.5"></i>آزمون‌ساز</button>
+        <button data-nav="bank" onclick="showView('bank')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-database ml-1.5"></i>بانک سوال</button>
+        <button data-nav="homework" onclick="showView('homework')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-book ml-1.5"></i>تکالیف</button>
+        <button data-nav="attendance" onclick="showView('attendance')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-clipboard-check ml-1.5"></i>حضورغیاب</button>
+        <button data-nav="ai" onclick="showView('ai')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-brain ml-1.5"></i>هوش مصنوعی</button>
+        <button data-nav="settings" onclick="showView('settings')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition"><i class="fa-solid fa-gear ml-1.5"></i>تنظیمات</button>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="notificationsBtn" onclick="showNotifications()" class="relative w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center" title="اعلان‌ها">
+          <i class="fa-solid fa-bell text-sm"></i>
+          <span id="notificationBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center hide">0</span>
+        </button>
+        <span id="teacherName" class="text-xs text-slate-400 hidden md:inline"></span>
+        <button onclick="logout()" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition flex items-center justify-center" title="خروج"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Dashboard -->
+    <section id="view-dashboard" class="view hide space-y-6 fade-in">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="glass rounded-2xl p-4 flex items-center gap-3 stat-card card-hover">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 text-blue-400 flex items-center justify-center text-lg"><i class="fa-solid fa-file-lines"></i></div>
+          <div><p class="text-[11px] text-slate-500">کل آزمون‌ها</p><h3 id="statTotal" class="text-2xl font-black text-white">-</h3></div>
+        </div>
+        <div class="glass rounded-2xl p-4 flex items-center gap-3 stat-card card-hover">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-play"></i></div>
+          <div><p class="text-[11px] text-slate-500">فعال</p><h3 id="statActive" class="text-2xl font-black text-white">-</h3></div>
+        </div>
+        <div class="glass rounded-2xl p-4 flex items-center gap-3 stat-card card-hover">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 text-violet-400 flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+          <div><p class="text-[11px] text-slate-500">شرکت‌کننده</p><h3 id="statSubs" class="text-2xl font-black text-white">-</h3></div>
+        </div>
+        <div class="glass rounded-2xl p-4 flex items-center gap-3 stat-card card-hover">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-chart-simple"></i></div>
+          <div><p class="text-[11px] text-slate-500">میانگین نمره</p><h3 id="statAvg" class="text-2xl font-black text-white">-</h3></div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-list text-emerald-400"></i> آزمون‌های من</h2>
+          <button onclick="showView('studio')" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-plus ml-1"></i> آزمون جدید</button>
+        </div>
+        <div id="quizList" class="overflow-x-auto"><p class="text-slate-500 text-sm text-center py-8">در حال بارگذاری...</p></div>
+      </div>
+    </section>
+
+    <!-- Studio -->
+    <section id="view-studio" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-6">
+        <h2 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i> ساخت / ویرایش آزمون</h2>
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+          <div><label class="text-xs text-slate-400 mb-1 block">عنوان آزمون *</label><input id="qTitle" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="مثلاً آزمون میان‌ترم ریاضی" /></div>
+          <div><label class="text-xs text-slate-400 mb-1 block">مدت (دقیقه)</label><input id="qDuration" type="number" min="1" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
+          <div><label class="text-xs text-slate-400 mb-1 block">نمره قبولی (%)</label><input id="qPass" type="number" min="0" max="100" value="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
+          <div><label class="text-xs text-slate-400 mb-1 block">وضعیت</label><select id="qStatus" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm"><option value="draft">پیش‌نویس</option><option value="active">فعال</option><option value="closed">بسته</option></select></div>
+        </div>
+        <div><label class="text-xs text-slate-400 mb-1 block">توضیحات</label><textarea id="qDesc" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="دستورالعمل..."></textarea></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-emerald-500/30 transition"><input id="qShuffleQ" type="checkbox" checked class="rounded text-emerald-500" /> برهم‌زدن سوالات</label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-emerald-500/30 transition"><input id="qShuffleO" type="checkbox" checked class="rounded text-emerald-500" /> برهم‌زدن گزینه‌ها</label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-emerald-500/30 transition"><input id="qAntiCopy" type="checkbox" checked class="rounded text-emerald-500" /> مسدود کپی</label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-rose-500/30 transition"><input id="qAntiTab" type="checkbox" checked class="rounded text-rose-500" /> رصد ترک تب</label>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="resetStudio()" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-800">پاک کردن</button>
+          <button onclick="saveQuiz()" id="saveQuizBtn" class="px-6 py-2.5 rounded-xl btn-gradient text-white font-bold text-sm">ذخیره آزمون</button>
+        </div>
+      </div>
+      <div id="questionsPanel" class="glass rounded-2xl p-6 hide">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-white">سوالات آزمون <span id="editingQuizId" class="text-emerald-400 text-sm font-mono"></span></h3>
+          <div class="flex gap-2">
+            <button onclick="openAIGenerate()" class="px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 text-white font-medium"><i class="fa-solid fa-brain ml-1"></i> تولید با AI</button>
+            <button onclick="openAddQuestion()" class="px-4 py-2 text-sm rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium"><i class="fa-solid fa-plus ml-1"></i> افزودن سوال</button>
+          </div>
+        </div>
+        <div id="questionsList" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- Bank -->
+    <section id="view-bank" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-database text-emerald-400"></i> بانک سوالات هوشمند</h2>
+          <div class="flex gap-2">
+            <button onclick="openAIGenerate()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 text-white text-sm font-medium"><i class="fa-solid fa-brain ml-1"></i> تولید با AI</button>
+            <button onclick="printBankQuestions()" class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium"><i class="fa-solid fa-print ml-1"></i> چاپ</button>
+            <button onclick="openAddBankQuestion()" class="px-4 py-2.5 rounded-xl btn-gradient text-white text-sm font-medium"><i class="fa-solid fa-plus ml-1"></i> سوال جدید</button>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-5 gap-3 mb-3">
+          <div><label class="text-[10px] text-slate-500 mb-1 block">جستجو</label><input id="bankSearch" type="text" placeholder="جستجو..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" oninput="renderBank()" /></div>
+          <div><label class="text-[10px] text-slate-500 mb-1 block">پایه</label><select id="bankFilterGrade" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="onBankGradeChange()"><option value="">همه</option><option value="هفتم">هفتم</option><option value="هشتم">هشتم</option><option value="نهم">نهم</option></select></div>
+          <div><label class="text-[10px] text-slate-500 mb-1 block">درس</label><select id="bankFilterSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="onBankSubjectChange()"><option value="">همه</option></select></div>
+          <div><label class="text-[10px] text-slate-500 mb-1 block">فصل</label><select id="bankFilterChapter" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="renderBank()"><option value="">همه</option></select></div>
+          <div><label class="text-[10px] text-slate-500 mb-1 block">سطح</label><select id="bankFilterDiff" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="renderBank()"><option value="">همه</option><option value="easy">آسان</option><option value="medium">متوسط</option><option value="hard">سخت</option><option value="olympiad">المپیادی</option></select></div>
+        </div>
+        <div id="bankStats" class="flex gap-3 text-xs text-slate-400 mb-2"></div>
+      </div>
+      <div id="bankList" class="space-y-3"></div>
+    </section>
+
+    <!-- Homework -->
+    <section id="view-homework" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-book text-amber-400"></i> مدیریت تکالیف</h2>
+          <button onclick="openAddHomework()" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-plus ml-1"></i> تکلیف جدید</button>
+        </div>
+        <div id="homeworkList"><p class="text-slate-500 text-sm text-center py-8">در حال بارگذاری...</p></div>
+      </div>
+    </section>
+
+    <!-- Attendance -->
+    <section id="view-attendance" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-400"></i> حضور و غیاب</h2>
+          <div class="flex gap-2 items-center">
+            <input type="date" id="attDate" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" onchange="loadAttendance()" />
+            <button onclick="saveAttendance()" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-save ml-1"></i> ذخیره</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-emerald-400" id="attPresent">0</div><div class="text-[10px] text-slate-500">حاضر</div></div>
+          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-rose-400" id="attAbsent">0</div><div class="text-[10px] text-slate-500">غایب</div></div>
+          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-amber-400" id="attLate">0</div><div class="text-[10px] text-slate-500">تاخیر</div></div>
+          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-slate-400" id="attExcused">0</div><div class="text-[10px] text-slate-500">مرخصی</div></div>
+          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-white" id="attTotal">0</div><div class="text-[10px] text-slate-500">کل</div></div>
+        </div>
+        <div class="flex gap-2 mb-4">
+          <input id="attNewName" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام دانش‌آموز" />
+          <input id="attNewFamily" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام خانوادگی" />
+          <button onclick="addAttendanceRow()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div id="attendanceList" class="space-y-2"></div>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-history text-slate-400"></i> تاریخچه</h3>
+        <div id="attHistory"><p class="text-slate-500 text-sm text-center py-4">هنوز سابقه‌ای نیست.</p></div>
+      </div>
+    </section>
+
+    <!-- AI Panel -->
+    <section id="view-ai" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-6">
+        <h2 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-brain text-accent-400"></i> مرکز هوش مصنوعی</h2>
+        <p class="text-sm text-slate-400 mb-6">از قابلیت‌های AI برای بهبود آزمون‌های خود استفاده کنید.</p>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="glass rounded-xl p-5 card-hover cursor-pointer" onclick="openAIGenerate()">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-emerald-400 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <h3 class="font-bold text-white mb-1">تولید سوال</h3>
+            <p class="text-xs text-slate-400">ساخت خودکار سوالات با موضوع و سطح دلخواه</p>
+          </div>
+          <div class="glass rounded-xl p-5 card-hover cursor-pointer" onclick="openAIGrade()">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500/20 to-accent-500/5 text-accent-400 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-check-double"></i></div>
+            <h3 class="font-bold text-white mb-1">تصحیح تشریحی</h3>
+            <p class="text-xs text-slate-400">نمره‌دهی خودکار پاسخ‌های بلند با AI</p>
+          </div>
+          <div class="glass rounded-xl p-5 card-hover cursor-pointer" onclick="openAIAnalyze()">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 text-amber-400 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-chart-pie"></i></div>
+            <h3 class="font-bold text-white mb-1">تحلیل آزمون</h3>
+            <p class="text-xs text-slate-400">آنالیز نتایج و پیشنهاد بهبود</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="view-settings" class="view hide space-y-6 fade-in">
+      <div class="glass rounded-2xl p-6">
+        <h2 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-gear text-slate-400"></i> تنظیمات</h2>
+        <div class="space-y-6">
+          <div class="glass rounded-xl p-5">
+            <h3 class="font-bold text-white mb-3">برندینگ و ظاهر</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div><label class="text-xs text-slate-400 mb-1 block">نام سایت</label><input id="settBrandName" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="Quiz26" /></div>
+              <div><label class="text-xs text-slate-400 mb-1 block">رنگ اصلی</label><input id="settColor" type="color" value="#10b981" class="w-full h-10 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer" /></div>
+              <div><label class="text-xs text-slate-400 mb-1 block">لوگو (لینک تصویر)</label><input id="settLogo" type="url" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm dir-ltr" placeholder="https://..." /></div>
+              <div><label class="text-xs text-slate-400 mb-1 block">زیردامنه</label><input id="settSubdomain" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="مثلاً school1" /></div>
+            </div>
+            <button onclick="saveBranding()" class="mt-4 px-6 py-2 rounded-xl btn-gradient text-white text-sm font-bold">ذخیره تنظیمات</button>
+          </div>
+          <div class="glass rounded-xl p-5">
+            <h3 class="font-bold text-white mb-3">اطلاعات حساب</h3>
+            <div id="settAccountInfo"><p class="text-slate-500 text-sm">در حال بارگذاری...</p></div>
+          </div>
+          <div class="glass rounded-xl p-5">
+            <h3 class="font-bold text-white mb-3">خروجی اطلاعات</h3>
+            <p class="text-sm text-slate-400 mb-3">پشتیبان‌گیری کامل از تمام اطلاعات سیستم</p>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="exportAllData()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium"><i class="fa-solid fa-download ml-1"></i> دانلود پشتیبان کامل</button>
+              <label class="px-4 py-2 rounded-xl bg-accent-600 hover:bg-accent-500 text-white text-sm font-medium cursor-pointer">
+                <i class="fa-solid fa-upload ml-1"></i> بازیابی از پشتیبان
+                <input type="file" accept=".json" class="hidden" onchange="importData(this.files[0])" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Exam Entry -->
+<section id="view-exam-entry" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
+  <div class="glass rounded-3xl p-8 w-full max-w-md shadow-2xl">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-accent-500 flex items-center justify-center mb-4 shadow-lg"><i class="fa-solid fa-pen-to-square text-white text-xl"></i></div>
+      <h2 class="text-lg font-bold text-white" id="entryQuizTitle">شرکت در آزمون</h2>
+      <p class="text-xs text-slate-500 mt-1" id="entryQuizMeta"></p>
+    </div>
+    <form onsubmit="return startExam(event)" class="space-y-3">
+      <div><label class="text-xs text-slate-400 mb-1 block">نام *</label><input id="stName" required minlength="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="الزامی" /></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">نام خانوادگی *</label><input id="stFamily" required minlength="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="الزامی" /></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">مدرسه *</label><input id="stSchool" required minlength="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="الزامی" /></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">کلاس *</label><input id="stClass" required minlength="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="الزامی" /></div>
+      <button type="submit" class="w-full py-3.5 rounded-xl btn-gradient text-white font-bold mt-2">شروع آزمون</button>
+    </form>
+    <button onclick="location.hash=''; showView('landing')" class="w-full mt-3 text-sm text-slate-500 hover:text-slate-300">انصراف</button>
+  </div>
+</section>
+
+<!-- Exam Room -->
+<section id="view-exam-room" class="view hide fixed inset-0 z-[100] bg-slate-950 flex flex-col no-select">
+  <div class="h-14 bg-slate-900 border-b border-slate-800 flex justify-between items-center px-4 md:px-6 shrink-0">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="text-rose-400 font-bold font-mono text-lg exam-timer flex items-center gap-2 shrink-0"><i class="fa-regular fa-clock"></i> <span id="examTimer">00:00</span></span>
+      <div class="h-5 w-px bg-slate-700 hidden sm:block"></div>
+      <h2 id="examTitle" class="font-bold text-slate-200 text-sm truncate max-w-[120px] md:max-w-xs hidden sm:block"></h2>
+      <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer ml-2" title="حالت مرور">
+        <input type="checkbox" id="examReviewMode" onchange="toggleReviewMode()" class="rounded text-emerald-500" />
+        <span class="hidden md:inline">مرور</span>
+      </label>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button type="button" onclick="uploadAnswerSheet()" id="btnAnswerSheet" class="px-3 py-1.5 bg-accent-600/90 hover:bg-accent-500 text-white text-xs sm:text-sm rounded-lg font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-upload"></i><span class="hidden sm:inline">بارگذاری پاسخنامه</span><span class="sm:hidden">پاسخنامه</span>
+      </button>
+      <span id="sheetBadge" class="hide text-[10px] text-emerald-400 max-w-[80px] truncate"></span>
+      <div id="answerSheetList"></div>
+      <button type="button" onclick="toggleFocusMode()" class="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg font-medium" title="حالت تمرکز"><i class="fa-solid fa-expand"></i></button>
+      <button type="button" onclick="confirmEndExam()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm rounded-lg font-medium">پایان آزمون</button>
+    </div>
+  </div>
+  <div class="bg-slate-900/80 px-4 py-2 shrink-0">
+    <div class="max-w-3xl mx-auto flex items-center gap-3">
+      <span class="text-xs text-slate-500 whitespace-nowrap" id="examProgress">سوال 1 از 1</span>
+      <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden"><div id="examProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-accent-500 rounded-full transition-all duration-300" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+      <div class="max-w-3xl mx-auto" id="examQuestionArea"></div>
+    </div>
+    <div class="w-56 md:w-64 bg-slate-900/60 border-r border-slate-800 p-4 flex flex-col shrink-0 overflow-y-auto">
+      <h3 class="font-bold text-xs text-slate-400 mb-3">پالت سوالات</h3>
+      <div id="examPalette" class="grid grid-cols-4 gap-1.5 mb-4"></div>
+      <div class="mt-auto space-y-1.5 text-[10px] text-slate-400">
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-emerald-500/30 border border-emerald-500/40"></div> پاسخ‌داده</div>
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/40"></div> نشان‌دار</div>
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-slate-800 border border-slate-700"></div> بی‌پاسخ</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Result -->
+<section id="view-result" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
+  <div class="glass rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
+    <div id="resultIcon" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4"></div>
+    <h2 class="text-xl font-bold text-white mb-1" id="resultTitle">کارنامه</h2>
+    <p class="text-sm text-slate-400 mb-6" id="resultStudent"></p>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-slate-900/80 rounded-xl p-3"><div class="text-[10px] text-slate-500">نمره</div><div class="text-lg font-bold text-white" id="resultScore">-</div></div>
+      <div class="bg-slate-900/80 rounded-xl p-3"><div class="text-[10px] text-slate-500">درصد</div><div class="text-lg font-bold text-emerald-400" id="resultPercent">-</div></div>
+      <div class="bg-slate-900/80 rounded-xl p-3"><div class="text-[10px] text-slate-500">وضعیت</div><div class="text-lg font-bold" id="resultPass">-</div></div>
+    </div>
+    <div id="resultExtra" class="text-sm text-slate-400 text-right mb-4"></div>
+    <button onclick="window.print()" class="px-5 py-2 rounded-xl border border-slate-700 text-sm hover:bg-slate-800 ml-2"><i class="fa-solid fa-print ml-1"></i> چاپ</button>
+    <button onclick="location.hash=''; showView('landing')" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-medium">صفحه اصلی</button>
+  </div>
+</section>
+
+<div id="modalQuestion" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-white mb-4" id="modalQTitle">افزودن سوال</h3>
+    <div class="space-y-3">
+      <div><label class="text-xs text-slate-400 mb-1 block">نوع سوال</label>
+        <select id="mqType" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="toggleOptionsUI()">
+          <option value="mcq">چندگزینه‌ای (تک‌جواب)</option><option value="multi">چندگزینه‌ای (چندجواب)</option><option value="tf">درست / نادرست</option><option value="short">پاسخ کوتاه</option><option value="essay">تشریحی (پاسخ بلند)</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-slate-400 mb-1 block">متن سوال *</label><textarea id="mqContent" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="متن سوال (پشتیبانی LaTeX با $...$)"></textarea></div>
+      <div id="mqOptionsWrap">
+        <label class="text-xs text-slate-400 mb-1 block">گزینه‌ها — روی تیک سبز، گزینه صحیح را انتخاب کنید</label>
+        <div id="mqOptionsList" class="space-y-2"></div>
+        <button type="button" onclick="addOptionRow()" class="mt-2 text-xs text-emerald-400 hover:text-emerald-300"><i class="fa-solid fa-plus ml-1"></i> افزودن گزینه</button>
+        <p class="text-[11px] text-slate-500 mt-2">تک‌جوابی: یک تیک | چندجوابی: چند تیک</p>
+        <input type="hidden" id="mqCorrect" value="0" />
+      </div>
+      <div id="mqTfWrap" class="hide"><label class="text-xs text-slate-400 mb-1 block">پاسخ صحیح</label><select id="mqTf" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm"><option value="true">درست</option><option value="false">نادرست</option></select></div>
+      <div id="mqShortWrap" class="hide"><label class="text-xs text-slate-400 mb-1 block">پاسخ(های) قابل قبول (با کاما جدا کنید)</label><input id="mqShort" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+      <div id="mqEssayWrap" class="hide">
+        <p class="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 leading-relaxed">سوال تشریحی به‌صورت خودکار یا توسط AI تصحیح می‌شود.</p>
+        <label class="text-xs text-slate-400 mb-1 mt-2 block">کلید پاسخ / راهنمای تصحیح</label>
+        <textarea id="mqEssayKey" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نکات مهم برای تصحیح..."></textarea>
+      </div>
+      <div><label class="text-xs text-slate-400 mb-1 block">فایل پیوست سوال (عکس / فایل)</label><input type="file" id="mqFile" accept="image/*,.pdf,.doc,.docx" class="block w-full text-xs text-slate-400 file:ml-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:text-white file:text-xs file:cursor-pointer" onchange="previewQuestionFile()" /><div id="mqFilePreviewWrap" class="mt-2 hide"><div class="flex items-center gap-2"><img id="mqFilePreviewImg" class="h-16 rounded border border-slate-600 hide" /><div id="mqFilePreviewIcon" class="hidden"><i class="fa-solid fa-file text-accent-400"></i> <span id="mqFilePreviewName" class="text-xs text-slate-300"></span></div><button type="button" onclick="removeQuestionFile()" class="px-2 py-1 bg-rose-500/20 text-rose-400 text-[10px] rounded-lg hover:bg-rose-500/30"><i class="fa-solid fa-trash ml-1"></i> حذف</button></div></div></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">یا لینک رسانه (عکس / ویدیو / فایل)</label><input type="url" id="mqMediaUrl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm dir-ltr text-left" placeholder="https://..." /></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-400 mb-1 block">نمره</label><input id="mqScore" type="number" min="0.25" step="0.25" value="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+        <div><label class="text-xs text-slate-400 mb-1 block">توضیح (اختیاری)</label><input id="mqExplain" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button onclick="closeModal('modalQuestion')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
+      <button onclick="submitQuestion()" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-bold">ذخیره سوال</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications Modal -->
+<div id="modalNotifications" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bell text-amber-400"></i> اعلان‌ها</h3>
+      <button onclick="closeModal('modalNotifications')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="notificationsList" class="space-y-2"></div>
+    <button onclick="clearAllNotifications()" class="w-full mt-4 px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm hover:bg-slate-800">پاک کردن همه</button>
+  </div>
+</div>
+
+<!-- Report Card View -->
+<section id="view-report" class="view hide min-h-screen gradient-bg p-4">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6 no-print">
+      <button onclick="showView('dashboard')" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-sm hover:bg-slate-700"><i class="fa-solid fa-arrow-right ml-1"></i> بازگشت</button>
+      <button onclick="window.print()" class="px-4 py-2 rounded-xl btn-gradient text-white text-sm font-bold"><i class="fa-solid fa-print ml-1"></i> چاپ کارنامه</button>
+    </div>
+    <div id="reportCardContent" class="glass rounded-3xl p-8"></div>
+  </div>
+</section>
+
+<div id="modalAIGenerate" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-brain text-accent-400"></i> تولید سوال با هوش مصنوعی</h3>
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs text-slate-400 mb-1 block">پایه *</label>
+          <select id="aiGenGrade" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="updateBankSubjects()"><option value="">انتخاب کنید</option><option value="هفتم">هفتم</option><option value="هشتم">هشتم</option><option value="نهم">نهم</option></select>
+        </div>
+        <div><label class="text-xs text-slate-400 mb-1 block">درس *</label>
+          <select id="aiGenSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" onchange="updateChapters()"><option value="">انتخاب کنید</option></select>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="text-xs text-slate-400 mb-1 block">فصل (اختیاری)</label>
+          <select id="aiGenChapter" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm"><option value="">همه فصول</option></select>
+        </div>
+        <div><label class="text-xs text-slate-400 mb-1 block">تعداد</label><input id="aiGenCount" type="number" min="1" max="200" value="20" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+        <div><label class="text-xs text-slate-400 mb-1 block">سطح</label>
+          <select id="aiGenDiff" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm"><option value="easy">آسان</option><option value="medium" selected>متوسط</option><option value="hard">سخت</option></select>
+        </div>
+      </div>
+    </div>
+    <div id="aiGenResult2" class="mt-4 hide"></div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button onclick="closeModal('modalAIGenerate')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
+      <button onclick="generateBulkQuestions()" id="aiGenBtn2" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-bold"><i class="fa-solid fa-brain ml-1"></i> تولید سوالات</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalAIGrade" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-check-double text-accent-400"></i> تصحیح تشریحی با هوش مصنوعی</h3>
+    <div class="space-y-3">
+      <div><label class="text-xs text-slate-400 mb-1 block">متن سوال</label><textarea id="aiGradeQ" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="متن سوال..."></textarea></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">کلید پاسخ</label><textarea id="aiGradeKey" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="پاسخ صحیح..."></textarea></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">پاسخ دانش‌آموز</label><textarea id="aiGradeAns" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="پاسخ دانش‌آموز..."></textarea></div>
+      <div><label class="text-xs text-slate-400 mb-1 block">نمره maximum</label><input id="aiGradeMax" type="number" value="1" min="0.25" step="0.25" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" /></div>
+    </div>
+    <div id="aiGradeResult" class="mt-4 hide"></div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button onclick="closeModal('modalAIGrade')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
+      <button onclick="gradeWithAI()" id="aiGradeBtn" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-bold"><i class="fa-solid fa-brain ml-1"></i> تصحیح کن</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalAIAnalyze" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-amber-400"></i> تحلیل آزمون با هوش مصنوعی</h3>
+    <div class="space-y-3">
+      <div><label class="text-xs text-slate-400 mb-1 block">انتخاب آزمون</label><select id="aiAnalyzeQuiz" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm"><option value="">در حال بارگذاری...</option></select></div>
+    </div>
+    <div id="aiAnalyzeResult" class="mt-4 hide"></div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button onclick="closeModal('modalAIAnalyze')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
+      <button onclick="analyzeQuizAI()" id="aiAnalyzeBtn" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-bold"><i class="fa-solid fa-brain ml-1"></i> تحلیل کن</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================
+   Quiz26 SPA — API_BASE + State
+   ============================================================ */
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8787' : '';
+
+let state = {
+  token: localStorage.getItem('q26_token') || null,
+  teacher: JSON.parse(localStorage.getItem('q26_teacher') || 'null'),
+  editingQuizId: null,
+  quizzes: [],
+  bank: [],
+  exam: null,
+  questions: [],
+  answers: {},
+  marked: new Set(),
+  currentQ: 0,
+  timerInterval: null,
+  remainingSec: 0,
+  startedAt: null,
+  tabSwitches: 0,
+  isExam: false,
+};
+
+/* ---------- API helper ---------- */
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+  const res = await fetch(API_BASE + path, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || 'خطا ' + res.status);
+  return data;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function quizPublicUrl(id) { return location.origin + '/quiz/' + id; }
+
+/* ---------- Views ---------- */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
+  const shell = document.getElementById('teacher-shell');
+  const teacherViews = ['dashboard', 'studio', 'bank', 'ai', 'homework', 'attendance', 'settings'];
+  if (teacherViews.includes(name)) {
+    if (!state.token) { showView('login'); return; }
+    shell.classList.remove('hide');
+    document.getElementById('view-' + name).classList.remove('hide');
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      const active = b.dataset.nav === name;
+      b.classList.toggle('text-white', active);
+      b.classList.toggle('bg-slate-800', active);
+      b.classList.toggle('text-slate-400', !active);
+    });
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'bank') loadBank();
+    if (name === 'studio' && state.editingQuizId) loadQuestions(state.editingQuizId);
+    if (name === 'ai') loadQuizzesForAI();
+    if (name === 'homework') loadHomework();
+    if (name === 'attendance') { document.getElementById('attDate').value = new Date().toISOString().slice(0, 10); loadAttendance(); }
+    if (name === 'settings') loadSettings();
+  } else {
+    shell.classList.add('hide');
+    const el = document.getElementById('view-' + name);
+    if (el) el.classList.remove('hide');
+  }
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+/* ---------- Auth ---------- */
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').classList.toggle('hide', !isLogin);
+  document.getElementById('registerForm').classList.toggle('hide', isLogin);
+  document.getElementById('tabLogin').className = 'flex-1 py-2.5 rounded-lg text-xs font-medium ' + (isLogin ? 'text-white bg-slate-800' : 'text-slate-400 hover:text-white') + ' transition';
+  document.getElementById('tabRegister').className = 'flex-1 py-2.5 rounded-lg text-xs font-medium ' + (!isLogin ? 'text-white bg-slate-800' : 'text-slate-400 hover:text-white') + ' transition';
+  document.getElementById('authTitle').textContent = isLogin ? 'ورود معلم' : 'ثبت‌نام معلم';
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'در حال ورود...';
+  try {
+    const data = await api('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: document.getElementById('loginUser').value.trim(), password: document.getElementById('loginPass').value }),
+    });
+    state.token = data.token; state.teacher = data.teacher;
+    localStorage.setItem('q26_token', data.token);
+    localStorage.setItem('q26_teacher', JSON.stringify(data.teacher));
+    document.getElementById('teacherName').textContent = data.teacher.full_name || data.teacher.username;
+    showView('dashboard');
+    Swal.fire({ icon: 'success', title: 'خوش آمدید', text: data.teacher.full_name || data.teacher.username, background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'خطا', text: err.message, background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+  } finally { btn.disabled = false; btn.textContent = 'ورود'; }
+  return false;
+}
+
+/* ---------- ثبت‌نام رایگان (بدون نیاز به ورود قبلی) ---------- */
+async function handleRegister(event) {
+  event.preventDefault();
+
+  const user = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value.trim();
+  const name = document.getElementById('regName').value.trim() || user;
+
+  if (!user || !pass) {
+    Swal.fire({ icon: 'error', title: 'نام کاربری و رمز عبور الزامی است.' });
+    return;
+  }
+  if (pass.length < 6) {
+    Swal.fire({ icon: 'error', title: 'رمز عبور حداقل ۶ کاراکتر باشد.' });
+    return;
+  }
+
+  try {
+    const data = await api('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username: user, password: pass, full_name: name })
+    });
+
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'حساب با موفقیت ساخته شد 🎉',
+        text: 'حالا می‌توانید با همان نام کاربری و رمز وارد شوید.',
+        confirmButtonText: 'ورود به پنل'
+      });
+
+      // به تب ورود برو و مقدارها را پر کن
+      document.getElementById('loginUser').value = user;
+      document.getElementById('loginPass').value = pass;
+      switchAuthTab('login');
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: err.message || 'خطا در ثبت‌نام' });
+  }
+}
+
+/* ---------- Dashboard ---------- */
+async function loadDashboard() {
+  try {
+    const data = await api('/api/dashboard');
+    document.getElementById('statTotal').textContent = data.stats.total_quizzes;
+    document.getElementById('statActive').textContent = data.stats.active_quizzes;
+    document.getElementById('statSubs').textContent = data.stats.total_submissions;
+    document.getElementById('statAvg').textContent = (data.stats.avg_score || 0) + '%';
+    state.quizzes = data.quizzes || [];
+    renderQuizList();
+  } catch (err) {
+    if (err.message.includes('Unauthorized')) logout();
+    else document.getElementById('quizList').innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + esc(err.message) + '</p>';
+  }
+}
+
+function renderQuizList() {
+  const el = document.getElementById('quizList');
+  if (!state.quizzes.length) {
+    el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">هنوز آزمونی نساخته‌اید.</p>'; return;
+  }
+  const statusMap = { draft: ['پیش‌نویس', 'bg-slate-800 text-slate-400'], active: ['فعال', 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'], closed: ['بسته', 'bg-rose-500/15 text-rose-400'] };
+  el.innerHTML = '<table class="w-full text-sm text-right"><thead class="text-xs text-slate-500 border-b border-slate-800"><tr><th class="pb-3 pr-2">عنوان</th><th class="pb-3">وضعیت</th><th class="pb-3">شرکت‌کننده</th><th class="pb-3">زمان</th><th class="pb-3 pl-2">عملیات</th></tr></thead><tbody>' +
+    state.quizzes.map(q => {
+      const [label, cls] = statusMap[q.status] || statusMap.draft;
+      const link = quizPublicUrl(q.id);
+      return '<tr class="border-b border-slate-800/50 hover:bg-slate-800/20"><td class="py-3 pr-2"><div class="font-medium text-white">' + esc(q.title) + '</div><div class="text-[10px] text-slate-500 mt-0.5 font-mono dir-ltr text-left truncate max-w-[220px]" title="' + link + '">' + link + '</div></td><td class="py-3"><span class="px-2 py-0.5 rounded text-xs ' + cls + '">' + label + '</span></td><td class="py-3 text-slate-400">' + (q.participants || 0) + '</td><td class="py-3 text-slate-400">' + q.duration_min + ' دقیقه</td><td class="py-3 pl-2"><div class="flex gap-1 flex-wrap"><button onclick="editQuiz(' + q.id + ')" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-emerald-300" title="ویرایش"><i class="fa-solid fa-pen"></i></button><button onclick="copyLink(' + q.id + ')" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-accent-500/20 text-accent-300" title="کپی لینک"><i class="fa-solid fa-link"></i></button><button onclick="viewResults(' + q.id + ')" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-300" title="نتایج"><i class="fa-solid fa-chart-bar"></i></button><button onclick="deleteQuiz(' + q.id + ')" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-300" title="حذف"><i class="fa-solid fa-trash"></i></button></div></td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+function copyLink(id) {
+  const url = quizPublicUrl(id);
+  navigator.clipboard.writeText(url).then(() => {
+    Swal.fire({ icon: 'success', title: 'لینک آزمون', html: '<code class="block text-xs bg-slate-900 border border-slate-700 rounded-lg p-3 text-emerald-300 break-all select-all dir-ltr text-left">' + url + '</code>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+  }).catch(() => { Swal.fire({ icon: 'info', title: 'لینک آزمون', text: url, background: '#1e293b', color: '#fff' }); });
+}
+
+async function deleteQuiz(id) {
+  const r = await Swal.fire({ title: 'حذف آزمون؟', text: 'این عمل غیرقابل بازگشت است.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', cancelButtonColor: '#334155', confirmButtonText: 'حذف', cancelButtonText: 'انصراف', background: '#1e293b', color: '#fff' });
+  if (!r.isConfirmed) return;
+  try { await api('/api/quizzes/' + id, { method: 'DELETE' }); loadDashboard(); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function viewResults(id) {
+  const quiz = state.quizzes.find(q => q.id === id);
+  const title = quiz ? quiz.title : 'آزمون';
+  try {
+    const data = await api('/api/quizzes/' + id + '/submissions');
+    const rows = data.submissions || [];
+    if (!rows.length) { Swal.fire({ icon: 'info', title: 'نتیجه‌ای نیست', text: 'هنوز کسی شرکت نکرده.', background: '#1e293b', color: '#fff' }); return; }
+    const csv = '\uFEFF' + 'نام,نام خانوادگی,مدرسه,کلاس,نمره,حداکثر,درصد,قبول,زمان(ثانیه),تاریخ\n' +
+      rows.map(s => [s.student_name, s.student_family, s.school, s.class_name, s.score, s.max_score, s.percent, s.passed ? 'بله' : 'خیر', s.duration_sec, s.finished_at].map(x => '"' + (x||'').toString().replace(/"/g,'""') + '"').join(',')).join('\n');
+    const avg = rows.reduce((s, x) => s + (x.percent || 0), 0) / rows.length;
+    const passRate = rows.filter(s => s.passed).length / rows.length * 100;
+    const highest = Math.max(...rows.map(s => s.percent || 0));
+    const dist = [0, 0, 0, 0, 0];
+    rows.forEach(s => { const p = s.percent || 0; dist[Math.min(4, Math.floor(p / 20))]++; });
+    const maxDist = Math.max(...dist, 1);
+    const chartBars = dist.map((c, i) => '<div class="flex items-center gap-2 text-[10px]"><span class="w-12 text-slate-400">' + (i*20) + '-' + ((i+1)*20) + '%</span><div class="flex-1 h-4 bg-slate-800 rounded overflow-hidden"><div class="h-full bg-gradient-to-l from-emerald-500 to-accent-500 rounded" style="width:' + (c/maxDist*100) + '%"></div></div><span class="w-6 text-center text-slate-400">' + c + '</span></div>').join('');
+    const top3 = [...rows].sort((a, b) => (b.percent || 0) - (a.percent || 0)).slice(0, 3);
+    const topHtml = top3.map((s, i) => '<div class="flex items-center gap-2 text-xs"><span class="text-lg">' + ['1st', '2nd', '3rd'][i] + '</span><span class="text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</span><span class="text-emerald-400 font-bold">' + s.percent + '%</span></div>').join('');
+    const html = '<div class="text-right max-h-[80vh] overflow-auto text-sm">' +
+      '<div class="grid grid-cols-4 gap-2 mb-3"><div class="bg-slate-900/80 rounded-lg p-2 text-center"><div class="text-[10px] text-slate-500">تعداد</div><div class="font-bold text-white">' + rows.length + '</div></div><div class="bg-slate-900/80 rounded-lg p-2 text-center"><div class="text-[10px] text-slate-500">میانگین</div><div class="font-bold text-emerald-400">' + avg.toFixed(1) + '%</div></div><div class="bg-slate-900/80 rounded-lg p-2 text-center"><div class="text-[10px] text-slate-500">قبولی</div><div class="font-bold text-accent-400">' + passRate.toFixed(0) + '%</div></div><div class="bg-slate-900/80 rounded-lg p-2 text-center"><div class="text-[10px] text-slate-500">بالاترین</div><div class="font-bold text-amber-400">' + highest + '%</div></div></div>' +
+      '<div class="bg-slate-900/80 rounded-lg p-3 mb-3"><div class="text-xs text-slate-400 font-bold mb-2">توزیع نمرات</div>' + chartBars + '</div>' +
+      (topHtml ? '<div class="bg-slate-900/80 rounded-lg p-3 mb-3"><div class="text-xs text-slate-400 font-bold mb-2">۳ نفر برتر</div>' + topHtml + '</div>' : '') +
+      '<table class="w-full"><thead><tr class="text-slate-400 text-xs border-b border-slate-700"><th class="p-1.5">دانش‌آموز</th><th class="p-1.5">مدرسه</th><th class="p-1.5">نمره</th><th class="p-1.5">%</th><th class="p-1.5">وضعیت</th><th class="p-1.5">عملیات</th></tr></thead><tbody>' +
+      rows.map(s => '<tr class="border-t border-slate-800 hover:bg-slate-800/40"><td class="p-1.5 font-medium text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</td><td class="p-1.5 text-slate-400 text-xs">' + esc(s.school) + '</td><td class="p-1.5">' + s.score + '/' + s.max_score + '</td><td class="p-1.5 text-emerald-300">' + s.percent + '</td><td class="p-1.5">' + (s.passed ? '<span class="text-emerald-400">قبول</span>' : '<span class="text-rose-400">مردود</span>') + '</td><td class="p-1.5"><button class="text-xs px-2 py-1 rounded bg-slate-800 text-accent-300 hover:bg-accent-500/20" onclick="Swal.close();setTimeout(()=>showTeacherReport(' + s.id + '),200)">کارنامه</button></td></tr>').join('') +
+      '</tbody></table></div>';
+    const r = await Swal.fire({ title: 'گزارش: ' + title, html, background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'دانلود CSV', cancelButtonText: 'بستن', confirmButtonColor: '#10b981', cancelButtonColor: '#334155', width: 750 });
+    if (r.isConfirmed) { const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'results-' + id + '.csv'; a.click(); }
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function showTeacherReport(submissionId) {
+  try {
+    const data = await api('/api/submissions/' + submissionId);
+    const s = data.submission;
+    const questions = data.questions || [];
+    let answers = {}; try { answers = JSON.parse(s.answers_json || '{}'); } catch {}
+    let essayGrades = {}; try { essayGrades = JSON.parse(s.essay_grades_json || '{}'); } catch {}
+    const mins = Math.floor((s.duration_sec || 0) / 60);
+    const secs = (s.duration_sec || 0) % 60;
+    window.__pendingEssayGrades = { ...essayGrades };
+    window.__gradingSubmissionId = submissionId;
+    window.__reportQuestions = questions;
+    window.__reportSubmission = s;
+    window.__reportAnswers = answers;
+
+    const qHtml = questions.map((q, i) => {
+      const ans = answers[String(q.id)];
+      let ansText = '—';
+      if (q.type === 'essay') {
+        if (ans && typeof ans === 'object') { ansText = esc(ans.text || ''); if (ans.fileName) ansText += ' <span class="text-emerald-400">[+ فایل: ' + esc(ans.fileName) + ']</span>'; }
+        else ansText = ans ? esc(String(ans)) : '—';
+      } else if (q.type === 'short') ansText = ans ? esc(String(ans)) : '—';
+      else if (q.type === 'tf') ansText = ans === 'true' ? 'درست' : (ans === 'false' ? 'نادرست' : '—');
+      else if (q.type === 'mcq' || q.type === 'multi') {
+        let opts = []; try { opts = JSON.parse(q.options_json || '[]'); } catch {}
+        if (Array.isArray(ans)) ansText = ans.map(ix => opts[ix] ?? ix).join('، ');
+        else if (ans !== undefined && ans !== null && ans !== '') ansText = opts[ans] ?? String(ans);
+      }
+      const typeLabel = { mcq: 'تستی', multi: 'چندجوابی', tf: 'ص/غ', short: 'کوتاه', essay: 'تشریحی' }[q.type] || q.type;
+      const g = essayGrades[String(q.id)];
+      const hasGrade = g && (g.accepted !== undefined || g.score !== undefined);
+      let gradeHtml = '';
+      if (q.type === 'essay') {
+        const gScore = g ? (g.score !== undefined ? g.score : (g.accepted ? q.score : 0)) : null;
+        const gColor = gScore !== null ? (gScore >= (q.score || 1) * 0.5 ? 'text-emerald-400' : 'text-rose-400') : 'text-amber-400';
+        const gLabel = gScore !== null ? (g.ai_graded ? 'AI: ' + gScore : 'نمره: ' + gScore) : 'در انتظار';
+        gradeHtml = '<div class="mt-2 flex flex-wrap items-center gap-2">' +
+          '<span class="' + gColor + ' text-[11px] font-bold">' + gLabel + '</span>' +
+          '<input type="number" min="0" max="' + q.score + '" step="0.25" value="' + (gScore !== null ? gScore : q.score) + '" class="w-16 px-2 py-1 text-[11px] bg-slate-800 border border-slate-600 rounded-lg text-white text-center" id="grade-' + q.id + '" onchange="updateQuestionGrade(' + submissionId + ',' + q.id + ',' + q.score + ')" />' +
+          '<span class="text-[10px] text-slate-500">از ' + q.score + '</span>' +
+          '<button type="button" class="px-2 py-1 text-[11px] rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white" onclick="updateQuestionGrade(' + submissionId + ',' + q.id + ',' + q.score + ')"><i class="fa-solid fa-check"></i></button>' +
+          (g && g.feedback ? '<div class="w-full text-[10px] text-slate-400 mt-1">نظر AI: ' + esc(g.feedback) + '</div>' : '') +
+          '</div>';
+      }
+      let correctText = '';
+      if (q.type !== 'essay') {
+        try {
+          const cd = JSON.parse(q.correct_json);
+          if (q.type === 'mcq') { let opts = []; try { opts = JSON.parse(q.options_json || '[]'); } catch {} correctText = '<span class="text-[10px] text-slate-600">پاسخ صحیح: ' + (opts[cd] ?? cd) + '</span>'; }
+          else if (q.type === 'tf') correctText = '<span class="text-[10px] text-slate-600">پاسخ صحیح: ' + (cd === 'true' ? 'درست' : 'نادرست') + '</span>';
+          else if (q.type === 'short') correctText = '<span class="text-[10px] text-slate-600">پاسخ صحیح: ' + (Array.isArray(cd) ? cd.join(' یا ') : cd) + '</span>';
+        } catch {}
+      }
+      const isCorrect = q.type !== 'essay' && (() => { try { const cd = JSON.parse(q.correct_json); if (q.type === 'mcq') return Number(ans) === Number(cd); if (q.type === 'tf') return String(ans).toLowerCase() === String(cd).toLowerCase(); } catch {} return false; })();
+      const borderClass = q.type === 'essay' ? (hasGrade ? 'border-accent-500/30' : 'border-slate-700') : (isCorrect ? 'border-emerald-500/30' : 'border-rose-500/30');
+      return '<div class="border ' + borderClass + ' rounded-lg p-3 mb-2 text-right"><div class="flex justify-between items-center text-[11px] text-slate-500 mb-1"><span>سوال ' + (i+1) + ' · ' + typeLabel + ' · نمره ' + q.score + '</span>' + (q.type !== 'essay' ? (isCorrect ? '<span class="text-emerald-400">✓ درست</span>' : '<span class="text-rose-400">✗ غلط</span>') : '') + '</div><div class="text-xs text-white mb-1 leading-relaxed">' + esc(q.content).slice(0, 200) + '</div><div class="text-xs text-slate-300 bg-slate-800/50 rounded-lg px-2 py-1 mb-1"><span class="text-slate-500">پاسخ:</span> ' + ansText + '</div>' + correctText + gradeHtml + '</div>';
+    }).join('');
+
+    const hasEssay = questions.some(q => q.type === 'essay');
+    const autoGradeBtn = hasEssay ? '<button onclick="Swal.close();setTimeout(()=>autoGradeEssay(' + submissionId + '),200)" class="px-3 py-1.5 text-[11px] rounded-lg bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 text-white font-medium"><i class="fa-solid fa-brain ml-1"></i> تصحیح خودکار همه تشریحی‌ها</button>' : '';
+
+    // Answer sheet display
+    let sheetHtml = '';
+    const sheet = answers.__answer_sheet;
+    if (sheet) {
+      const sheets = Array.isArray(sheet) ? sheet : [sheet];
+      sheetHtml = '<div class="border border-accent-500/30 bg-accent-500/5 rounded-lg p-3 mb-3"><div class="text-xs text-accent-400 font-bold mb-2"><i class="fa-solid fa-paperclip ml-1"></i> پاسخنامه آپلود شده (' + sheets.length + ' فایل)</div>';
+      sheets.forEach(s => {
+        if (s && s.file && String(s.file).startsWith('data:image')) {
+          sheetHtml += '<div class="mb-2"><span class="text-[11px] text-emerald-400">' + esc(s.fileName || 'فایل') + '</span><img src="' + s.file + '" class="max-h-40 rounded border border-slate-600 mt-1 cursor-pointer" onclick="window.open(this.src)" /></div>';
+        } else if (s && s.file) {
+          sheetHtml += '<div class="mb-1"><span class="text-[11px] text-emerald-400">' + esc(s.fileName || 'فایل') + '</span> <a class="text-accent-400 text-[11px] ml-2" href="' + s.file + '" download="' + esc(s.fileName || 'file') + '">دانلود</a></div>';
+        }
+      });
+      sheetHtml += '</div>';
+    }
+
+    await Swal.fire({
+      title: 'کارنامه دانش‌آموز',
+      html: '<div class="text-right text-sm space-y-2 max-h-[70vh] overflow-auto"><div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/80 rounded-xl p-3 border border-slate-700">' +
+        '<div><span class="text-slate-500">نام:</span> <span class="text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</span></div>' +
+        '<div><span class="text-slate-500">آزمون:</span> <span class="text-white">' + esc(s.quiz_title) + '</span></div>' +
+        '<div><span class="text-slate-500">مدرسه:</span> <span class="text-white">' + esc(s.school) + '</span></div>' +
+        '<div><span class="text-slate-500">کلاس:</span> <span class="text-white">' + esc(s.class_name) + '</span></div>' +
+        '<div><span class="text-slate-500">نمره:</span> <span class="text-emerald-300 font-bold" id="repScore">' + s.score + ' / ' + s.max_score + '</span></div>' +
+        '<div><span class="text-slate-500">درصد:</span> <span class="text-emerald-300 font-bold" id="repPercent">' + s.percent + '%</span></div>' +
+        '<div><span class="text-slate-500">وضعیت:</span> <span id="repPass">' + (s.passed ? '<span class="text-emerald-400">قبول</span>' : '<span class="text-rose-400">مردود</span>') + '</span></div>' +
+        '<div><span class="text-slate-500">مدت:</span> <span class="text-white">' + mins + ':' + String(secs).padStart(2,'0') + '</span></div></div>' +
+        sheetHtml +
+        '<div class="flex justify-between items-center pt-2"><div class="text-xs text-slate-400 font-bold">پاسخ‌ها</div>' + autoGradeBtn + '</div>' + qHtml + '</div>',
+      background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981', confirmButtonText: 'بستن', width: 680
+    });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function updateQuestionGrade(submissionId, questionId, maxScore) {
+  const input = document.getElementById('grade-' + questionId);
+  if (!input) return;
+  const score = Math.max(0, Math.min(maxScore, Number(input.value) || 0));
+  input.value = score;
+  window.__pendingEssayGrades = window.__pendingEssayGrades || {};
+  window.__pendingEssayGrades[String(questionId)] = { accepted: score >= maxScore * 0.5, score: score };
+  try {
+    const data = await api('/api/submissions/' + submissionId, { method: 'POST', body: JSON.stringify({ grades: window.__pendingEssayGrades }) });
+    window.__pendingEssayGrades = data.essay_grades || window.__pendingEssayGrades;
+    const scoreEl = document.getElementById('repScore');
+    const percentEl = document.getElementById('repPercent');
+    const passEl = document.getElementById('repPass');
+    if (scoreEl) scoreEl.textContent = data.score + ' / ' + data.max_score;
+    if (percentEl) percentEl.textContent = data.percent + '%';
+    if (passEl) passEl.innerHTML = data.passed ? '<span class="text-emerald-400">قبول</span>' : '<span class="text-rose-400">مردود</span>';
+  } catch (err) { console.error(err); }
+}
+
+async function gradeEssay(submissionId, questionId, accepted) {
+  try {
+    window.__pendingEssayGrades = window.__pendingEssayGrades || {};
+    window.__pendingEssayGrades[String(questionId)] = { accepted };
+    const data = await api('/api/submissions/' + submissionId, { method: 'POST', body: JSON.stringify({ grades: window.__pendingEssayGrades }) });
+    window.__pendingEssayGrades = data.essay_grades || window.__pendingEssayGrades;
+    const scoreEl = document.getElementById('repScore');
+    const percentEl = document.getElementById('repPercent');
+    const passEl = document.getElementById('repPass');
+    if (scoreEl) scoreEl.textContent = data.score + ' / ' + data.max_score;
+    if (percentEl) percentEl.textContent = data.percent + '%';
+    if (passEl) passEl.innerHTML = data.passed ? '<span class="text-emerald-400">قبول</span>' : '<span class="text-rose-400">مردود</span>';
+    setTimeout(() => showTeacherReport(submissionId), 800);
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- Studio ---------- */
+function resetStudio() {
+  state.editingQuizId = null;
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qDesc').value = '';
+  document.getElementById('qDuration').value = 30;
+  document.getElementById('qPass').value = 50;
+  document.getElementById('qStatus').value = 'draft';
+  document.getElementById('qShuffleQ').checked = true;
+  document.getElementById('qShuffleO').checked = true;
+  document.getElementById('qAntiCopy').checked = true;
+  document.getElementById('qAntiTab').checked = true;
+  document.getElementById('questionsPanel').classList.add('hide');
+  document.getElementById('editingQuizId').textContent = '';
+}
+
+async function saveQuiz() {
+  const title = document.getElementById('qTitle').value.trim();
+  if (!title) return Swal.fire({ icon: 'warning', title: 'عنوان الزامی است', background: '#1e293b', color: '#fff' });
+  const body = {
+    title, description: document.getElementById('qDesc').value,
+    duration_min: Number(document.getElementById('qDuration').value) || 30,
+    pass_score: Number(document.getElementById('qPass').value) || 50,
+    status: document.getElementById('qStatus').value,
+    shuffle_q: document.getElementById('qShuffleQ').checked,
+    shuffle_opt: document.getElementById('qShuffleO').checked,
+    anti_copy: document.getElementById('qAntiCopy').checked,
+    anti_tab: document.getElementById('qAntiTab').checked,
+  };
+  try {
+    if (state.editingQuizId) {
+      await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify(body) });
+      Swal.fire({ icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+    } else {
+      const data = await api('/api/quizzes', { method: 'POST', body: JSON.stringify(body) });
+      state.editingQuizId = data.id;
+      document.getElementById('editingQuizId').textContent = '#' + data.id;
+      document.getElementById('questionsPanel').classList.remove('hide');
+      Swal.fire({ icon: 'success', title: 'آزمون ساخته شد', html: '<p class="text-sm text-slate-300 mb-2">لینک اختصاصی:</p><code class="block text-xs bg-slate-900 border border-slate-700 rounded-lg p-3 text-emerald-300 break-all dir-ltr">' + quizPublicUrl(data.id) + '</code>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+    }
+    loadQuestions(state.editingQuizId);
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function editQuiz(id) {
+  try {
+    const data = await api('/api/quizzes/' + id);
+    const q = data.quiz;
+    state.editingQuizId = id;
+    document.getElementById('qTitle').value = q.title;
+    document.getElementById('qDesc').value = q.description || '';
+    document.getElementById('qDuration').value = q.duration_min;
+    document.getElementById('qPass').value = q.pass_score;
+    document.getElementById('qStatus').value = q.status;
+    document.getElementById('qShuffleQ').checked = !!q.shuffle_q;
+    document.getElementById('qShuffleO').checked = !!q.shuffle_opt;
+    document.getElementById('qAntiCopy').checked = !!q.anti_copy;
+    document.getElementById('qAntiTab').checked = !!q.anti_tab;
+    document.getElementById('editingQuizId').textContent = '#' + id;
+    document.getElementById('questionsPanel').classList.remove('hide');
+    showView('studio');
+    renderQuestions(data.questions || []);
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function loadQuestions(qid) {
+  try { const data = await api('/api/quizzes/' + qid + '/questions'); renderQuestions(data.questions || []); } catch {}
+}
+
+function renderQuestions(list) {
+  const el = document.getElementById('questionsList');
+  if (!list.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">سوالی اضافه نشده.</p>'; return; }
+  el.innerHTML = list.map((q, i) => '<div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex gap-3"><div class="text-emerald-400 font-bold text-sm w-6">' + (i+1) + '</div><div class="flex-1 min-w-0"><div class="text-sm text-white mb-1">' + esc(q.content).slice(0, 120) + '</div><div class="text-[11px] text-slate-500">' + ({mcq:'چندگزینه‌ای',multi:'چندجوابی',tf:'درست/نادرست',short:'کوتاه',essay:'تشریحی'}[q.type]||q.type) + ' · نمره ' + q.score + '</div></div><button onclick="deleteQuestion(' + q.id + ')" class="text-rose-400 hover:text-rose-300 text-sm"><i class="fa-solid fa-trash"></i></button></div>').join('');
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+let pendingQuestionFile = null;
+
+function previewQuestionFile() {
+  const input = document.getElementById('mqFile');
+  const f = input.files && input.files[0];
+  const wrap = document.getElementById('mqFilePreviewWrap');
+  const imgEl = document.getElementById('mqFilePreviewImg');
+  const iconEl = document.getElementById('mqFilePreviewIcon');
+  const nameEl = document.getElementById('mqFilePreviewName');
+  if (!f) { wrap.classList.add('hide'); return; }
+  if (f.size > 500 * 1024) {
+    Swal.fire({ icon: 'warning', title: 'حجم فایل زیاد است', text: 'حداکثر ۵۰۰ کیلوبایت.', background: '#1e293b', color: '#fff' });
+    input.value = '';
+    wrap.classList.add('hide');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingQuestionFile = reader.result;
+    wrap.classList.remove('hide');
+    if (f.type.startsWith('image/')) {
+      imgEl.src = reader.result;
+      imgEl.classList.remove('hide');
+      iconEl.classList.add('hidden');
+    } else {
+      imgEl.classList.add('hide');
+      iconEl.classList.remove('hidden');
+      nameEl.textContent = f.name;
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function removeQuestionFile() {
+  pendingQuestionFile = null;
+  const input = document.getElementById('mqFile');
+  if (input) input.value = '';
+  const wrap = document.getElementById('mqFilePreviewWrap');
+  if (wrap) wrap.classList.add('hide');
+  const imgEl = document.getElementById('mqFilePreviewImg');
+  if (imgEl) imgEl.classList.add('hide');
+}
+
+function openAddQuestion() {
+  if (!state.editingQuizId) return Swal.fire({ icon: 'info', title: 'ابتدا آزمون را ذخیره کنید', background: '#1e293b', color: '#fff' });
+  document.getElementById('mqType').value = 'mcq';
+  document.getElementById('mqContent').value = '';
+  document.getElementById('mqCorrect').value = '0';
+  document.getElementById('mqScore').value = '1';
+  document.getElementById('mqExplain').value = '';
+  document.getElementById('mqMediaUrl').value = '';
+  const fileInput = document.getElementById('mqFile');
+  if (fileInput) fileInput.value = '';
+  removeQuestionFile();
+  if (document.getElementById('mqEssayKey')) document.getElementById('mqEssayKey').value = '';
+  resetOptionRows(['', '', '', ''], [0]);
+  toggleOptionsUI();
+  document.getElementById('modalQuestion').classList.remove('hide');
+}
+
+function resetOptionRows(texts, correctIdxs) {
+  const list = document.getElementById('mqOptionsList');
+  if (!list) return;
+  list.innerHTML = '';
+  const arr = texts && texts.length ? texts : ['', '', '', ''];
+  arr.forEach((t, i) => addOptionRow(t, correctIdxs && correctIdxs.includes(i)));
+  if (!list.children.length) addOptionRow('', true);
+  syncCorrectFromUI();
+}
+
+function addOptionRow(text, isCorrect) {
+  const list = document.getElementById('mqOptionsList');
+  if (!list) return;
+  const idx = list.children.length;
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-2 option-row';
+  row.innerHTML = '<button type="button" class="opt-correct-btn shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center text-sm transition ' + (isCorrect ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-500 hover:border-emerald-500') + '" title="پاسخ صحیح"><i class="fa-solid fa-check"></i></button><input type="text" class="opt-text flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="گزینه ' + (idx+1) + '" value="' + esc(text || '') + '" /><button type="button" class="opt-remove shrink-0 w-8 h-8 rounded-lg text-rose-400 hover:bg-rose-500/10" title="حذف"><i class="fa-solid fa-xmark"></i></button>';
+  row.querySelector('.opt-correct-btn').addEventListener('click', () => {
+    const type = document.getElementById('mqType').value;
+    if (type === 'mcq') {
+      list.querySelectorAll('.opt-correct-btn').forEach(b => { b.className = 'opt-correct-btn shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center text-sm transition border-slate-700 text-slate-500 hover:border-emerald-500'; });
+      row.querySelector('.opt-correct-btn').className = 'opt-correct-btn shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center text-sm transition bg-emerald-500/20 border-emerald-500 text-emerald-400';
+    } else {
+      const btn = row.querySelector('.opt-correct-btn');
+      const on = btn.classList.contains('border-emerald-500');
+      btn.className = 'opt-correct-btn shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center text-sm transition ' + (on ? 'border-slate-700 text-slate-500 hover:border-emerald-500' : 'bg-emerald-500/20 border-emerald-500 text-emerald-400');
+    }
+    syncCorrectFromUI();
+  });
+  row.querySelector('.opt-remove').addEventListener('click', () => {
+    if (list.children.length <= 2) { Swal.fire({ icon: 'info', title: 'حداقل دو گزینه', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false }); return; }
+    row.remove(); syncCorrectFromUI();
+  });
+  list.appendChild(row);
+}
+
+function syncCorrectFromUI() {
+  const list = document.getElementById('mqOptionsList');
+  if (!list) return;
+  const idxs = [];
+  list.querySelectorAll('.option-row').forEach((row, i) => {
+    if (row.querySelector('.opt-correct-btn')?.classList.contains('border-emerald-500')) idxs.push(i);
+  });
+  document.getElementById('mqCorrect').value = idxs.length ? idxs.join(',') : '0';
+}
+
+function collectOptionsFromUI() {
+  const list = document.getElementById('mqOptionsList');
+  const opts = [], correct = [];
+  if (!list) return { opts, correct };
+  list.querySelectorAll('.option-row').forEach((row, i) => {
+    const t = row.querySelector('.opt-text')?.value.trim() || '';
+    if (t) { opts.push(t); if (row.querySelector('.opt-correct-btn')?.classList.contains('border-emerald-500')) correct.push(opts.length - 1); }
+  });
+  return { opts, correct };
+}
+
+function toggleOptionsUI() {
+  const t = document.getElementById('mqType').value;
+  document.getElementById('mqOptionsWrap').classList.toggle('hide', t === 'tf' || t === 'short' || t === 'essay');
+  document.getElementById('mqTfWrap').classList.toggle('hide', t !== 'tf');
+  document.getElementById('mqShortWrap').classList.toggle('hide', t !== 'short');
+  document.getElementById('mqEssayWrap').classList.toggle('hide', t !== 'essay');
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hide'); }
+
+async function submitQuestion() {
+  const type = document.getElementById('mqType').value;
+  const content = document.getElementById('mqContent').value.trim();
+  if (!content) return Swal.fire({ icon: 'warning', title: 'متن سوال الزامی است', background: '#1e293b', color: '#fff' });
+  let options_json = null, correct_json;
+  if (type === 'mcq' || type === 'multi') {
+    const { opts, correct } = collectOptionsFromUI();
+    if (opts.length < 2) return Swal.fire({ icon: 'warning', title: 'حداقل دو گزینه', background: '#1e293b', color: '#fff' });
+    if (!correct.length) return Swal.fire({ icon: 'warning', title: 'گزینه صحیح را انتخاب کنید', background: '#1e293b', color: '#fff' });
+    options_json = opts; correct_json = type === 'mcq' ? correct[0] : correct;
+  } else if (type === 'tf') correct_json = document.getElementById('mqTf').value;
+  else if (type === 'essay') { const key = (document.getElementById('mqEssayKey').value || '').trim(); correct_json = key ? [key] : []; }
+  else { correct_json = document.getElementById('mqShort').value.split(',').map(s => s.trim()).filter(Boolean); if (!correct_json.length) return Swal.fire({ icon: 'warning', title: 'پاسخ صحیح را وارد کنید', background: '#1e293b', color: '#fff' }); }
+  const mediaUrl = (document.getElementById('mqMediaUrl').value || '').trim();
+  try {
+    await api('/api/quizzes/' + state.editingQuizId + '/questions', {
+      method: 'POST', body: JSON.stringify({ type, content, options_json, correct_json, score: Number(document.getElementById('mqScore').value) || 1, explanation: document.getElementById('mqExplain').value, image_url: pendingQuestionFile || mediaUrl || null }),
+    });
+    pendingQuestionFile = null; closeModal('modalQuestion'); loadQuestions(state.editingQuizId);
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function deleteQuestion(id) {
+  try { await api('/api/questions/' + id, { method: 'DELETE' }); loadQuestions(state.editingQuizId); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- Bank ---------- */
+async function loadBank() {
+  try {
+    const data = await api('/api/bank');
+    state.bank = data.questions || [];
+    renderBank();
+  } catch (err) {
+    document.getElementById('bankList').innerHTML = '<p class="text-rose-400 text-sm text-center">' + esc(err.message) + '</p>';
+  }
+}
+
+// Curriculum data for grades 7-9
+const CURRICULUM = {
+  'هفتم': {
+    'ریاضی': ['اعداد صحیح', 'کسرها', 'اعشار و درصد', 'هندسه', 'آمار و احتمال', 'جبر و معادله'],
+    'علوم': ['آزمایشگاه', 'ذره‌های سازنده مواد', 'انرژی', 'نیرو', 'ماشین‌ها', 'زیست‌بوم‌ها', 'زمین‌شناسی'],
+    'فارسی': ['دستور زبان', 'املاء', 'قلمرو زبانی', 'قلمرو ادبی', 'قلمرو فرهنگی'],
+    'عربی': ['حروف عربی', 'اسم', 'فعل', 'حروف جار', 'جمله‌سازی'],
+    'زبان انگلیسی': ['School', 'Family', 'Friends', 'Daily Routines', 'Food'],
+    'مطالعات اجتماعی': ['تاریخ ایران', 'جغرافیا', 'شهروندی', 'اقتصاد'],
+    'پیام‌های آسمان': ['اخلاق', 'عبادت', 'تاریخ اسلام', 'انقلاب']
+  },
+  'هشتم': {
+    'ریاضی': ['عدد و الگو', 'حساب اعداد صحیح', 'کسرها و اعشار', 'هندسه', 'آمار', 'معادله'],
+    'علوم': ['حرکت و نیرو', 'انرژی و تبدیل‌ها', 'ماده و ترکیب‌ها', 'زیست تک‌سلولی‌ها', 'گیاهان', 'انسان و محیط زیست'],
+    'فارسی': ['دستور زبان', 'املاء', 'قلمرو زبانی', 'قلمرو ادبی', 'قلمرو فرهنگی'],
+    'عربی': ['فعل مضارع', 'اسم‌های اشاره', 'اسم موصول', 'حروف ربط', 'ترجمه'],
+    'زبان انگلیسی': ['Shopping', 'Health', 'Travel', 'Technology', 'Environment'],
+    'مطالعات اجتماعی': ['جغرافیای ایران', 'تاریخ معاصر', 'نظام سیاسی', 'اقتصاد'],
+    'پیام‌های آسمان': ['اخلاق کاربردی', 'نماز و روزه', 'انقلاب اسلامی', 'دفاع مقدس']
+  },
+  'نهم': {
+    'ریاضی': ['عدد و الگو', 'جمله و معادله', 'نامعادله', 'توابع', 'هندسه تحلیلی', 'احتمال'],
+    'علوم': ['شیمی', 'فیزیک', 'زیست‌شناسی', 'زمین‌شناسی', 'آزمایشگاه'],
+    'فارسی': ['آرایه‌های ادبی', 'قلمرو ادبی', 'دستور زبان', 'املاء', 'نگارش'],
+    'عربی': ['فعل ماضی', 'اسم فاعل', 'اسم مفعول', 'نکره و معرفه', 'مکالمه'],
+    'زبان انگلیسی': ['Life Skills', 'Careers', 'Culture', 'Science', 'Media'],
+    'مطالعات اجتماعی': ['جغرافیای جهان', 'تاریخ جهان', 'حقوق شهروندی', 'جهان سوم'],
+    'پیام‌های آسمان': ['اخلاق اجتماعی', 'مهدویت', 'دین و زندگی', 'ارزش‌ها']
+  }
+};
+
+// Update subjects based on grade selection in AI modal
+function updateBankSubjects() {
+  const grade = document.getElementById('aiGenGrade')?.value;
+  const subSel = document.getElementById('aiGenSubject');
+  if (!subSel) return;
+  subSel.innerHTML = '<option value="">انتخاب کنید</option>';
+  if (grade && CURRICULUM[grade]) {
+    Object.keys(CURRICULUM[grade]).forEach(s => {
+      const o = document.createElement('option'); o.value = s; o.textContent = s;
+      subSel.appendChild(o);
+    });
+  }
+}
+
+// Generate questions with AI for bank
+async function generateBulkQuestions() {
+  const grade = document.getElementById('aiGenGrade')?.value;
+  const subject = document.getElementById('aiGenSubject')?.value;
+  const chapter = document.getElementById('aiGenChapter')?.value || '';
+  const count = document.getElementById('aiGenCount')?.value || 10;
+  const diff = document.getElementById('aiGenDiff')?.value || 'medium';
+  if (!grade || !subject) return Swal.fire({ icon: 'warning', title: 'پایه و درس را انتخاب کنید', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('aiGenBtn2');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال تولید...'; }
+  const resultEl = document.getElementById('aiGenResult2');
+  if (resultEl) { resultEl.classList.remove('hide'); resultEl.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin text-2xl text-accent-400"></i><p class="text-sm text-slate-400 mt-2">در حال تولید ' + count + ' سوال... لطفاً صبر کنید.</p></div>'; }
+  try {
+    const data = await api('/api/ai/generate-bank', {
+      method: 'POST', body: JSON.stringify({ grade, subject, chapter, count: Number(count), difficulty: diff })
+    });
+    if (resultEl) {
+      resultEl.innerHTML = '<div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20"><div class="text-emerald-400 font-bold mb-1"><i class="fa-solid fa-check-circle ml-1"></i> ' + data.generated + ' سوال تولید شد</div><div class="text-sm text-slate-300">' + data.saved + ' سوال در بانک ذخیره شد</div></div>';
+    }
+    loadBank();
+  } catch (err) {
+    if (resultEl) resultEl.innerHTML = '<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">' + esc(err.message) + '</div>';
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-brain ml-1"></i> تولید سوالات'; }
+}
+
+// Update chapter dropdown based on grade and subject
+function updateChapters() {
+  const grade = document.getElementById('aiGenGrade')?.value;
+  const subject = document.getElementById('aiGenSubject')?.value;
+  const chapterSel = document.getElementById('aiGenChapter');
+  if (!chapterSel) return;
+  chapterSel.innerHTML = '<option value="">همه فصول</option>';
+  if (grade && subject && CURRICULUM[grade] && CURRICULUM[grade][subject]) {
+    CURRICULUM[grade][subject].forEach(ch => {
+      const o = document.createElement('option'); o.value = ch; o.textContent = ch;
+      chapterSel.appendChild(o);
+    });
+  }
+}
+
+// Print bank questions
+function printBankQuestions() {
+  const list = state.bank;
+  if (!list.length) return Swal.fire({ icon: 'info', title: 'سوالی نیست', background: '#1e293b', color: '#fff' });
+  const printWin = window.open('', '_blank');
+  printWin.document.write('<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>سوالات بانک</title><style>*{font-family:Vazirmatn,Tahoma,sans-serif;margin:0;padding:0;box-sizing:border-box}body{padding:20px;color:#333}.q{border:1px solid #ccc;border-radius:8px;padding:12px;margin-bottom:12px;page-break-inside:avoid}.q-num{font-weight:bold;color:#6366f1;margin-bottom:4px}.q-text{font-size:14px;margin-bottom:8px}.opts{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#555}.opts div{padding:2px 8px;background:#f5f5f5;border-radius:4px}.meta{font-size:10px;color:#999;margin-top:4px}</style></head><body><h2 style="text-align:center;margin-bottom:20px">بانک سوالات Quiz26</h2>');
+  list.forEach((q, i) => {
+    let opts = []; try { opts = JSON.parse(q.options_json || '[]'); } catch {}
+    printWin.document.write('<div class="q"><div class="q-num">سوال ' + (i+1) + '</div><div class="q-text">' + q.content + '</div>');
+    if (opts.length) printWin.document.write('<div class="opts">' + opts.map((o, j) => '<div>' + String.fromCharCode(65+j) + '. ' + o + '</div>').join('') + '</div>');
+    printWin.document.write('<div class="meta">' + (q.subject||'') + ' | ' + (q.grade||'') + ' | ' + (q.chapter||'') + '</div></div>');
+  });
+  printWin.document.write('</body></html>');
+  printWin.document.close();
+  printWin.print();
+}
+
+// Generate PDF report
+function printReport() {
+  window.print();
+}
+
+function renderBank() {
+  const q = (document.getElementById('bankSearch')?.value || '').trim().toLowerCase();
+  const subject = document.getElementById('bankFilterSubject')?.value || '';
+  const gradeName = document.getElementById('bankFilterGrade')?.value || '';
+  const chapter = document.getElementById('bankFilterChapter')?.value || '';
+  const diff = document.getElementById('bankFilterDiff')?.value || '';
+  // Map Persian grade names to numbers
+  const gradeMap = { 'هفتم': '7', 'هشتم': '8', 'نهم': '9' };
+  const grade = gradeMap[gradeName] || gradeName;
+  let list = state.bank;
+  if (q) list = list.filter(x => (x.content || '').toLowerCase().includes(q));
+  if (grade) list = list.filter(x => String(x.grade) === String(grade));
+  if (subject) list = list.filter(x => x.subject === subject);
+  if (chapter) list = list.filter(x => x.chapter === chapter);
+  if (diff) list = list.filter(x => x.difficulty === diff);
+  // Stats
+  const statsEl = document.getElementById('bankStats');
+  if (statsEl) {
+    const easy = state.bank.filter(x => x.difficulty === 'easy').length;
+    const med = state.bank.filter(x => x.difficulty === 'medium').length;
+    const hard = state.bank.filter(x => x.difficulty === 'hard').length;
+    const olym = state.bank.filter(x => x.difficulty === 'olympiad').length;
+    statsEl.innerHTML = '<span>کل: ' + state.bank.length + '</span><span class="text-emerald-400">آسان: ' + easy + '</span><span class="text-amber-400">متوسط: ' + med + '</span><span class="text-rose-400">سخت: ' + hard + '</span><span class="text-accent-400">المپیاد: ' + olym + '</span>';
+  }
+  const el = document.getElementById('bankList');
+  if (!list.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">بانک سوال خالی است.</p>'; return; }
+  const diffMap = { easy: ['آسان', 'text-emerald-400'], medium: ['متوسط', 'text-amber-400'], hard: ['سخت', 'text-rose-400'], olympiad: ['المپیاد', 'text-accent-400'] };
+  el.innerHTML = list.map(item => {
+    const [diffLabel, diffClass] = diffMap[item.difficulty] || ['متوسط', 'text-amber-400'];
+    return '<div class="glass rounded-xl p-4 border-r-4 border-emerald-500 card-hover"><div class="flex gap-2 mb-2 text-[11px] flex-wrap"><span class="px-2 py-0.5 rounded bg-slate-800 ' + diffClass + '">' + diffLabel + '</span>' + (item.subject ? '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">' + esc(item.subject) + '</span>' : '') + (item.grade ? '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">' + esc(item.grade) + '</span>' : '') + '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">' + item.type + '</span></div><p class="text-sm text-white leading-relaxed">' + esc(item.content) + '</p></div>';
+  }).join('');
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+function openAddBankQuestion() {
+  Swal.fire({
+    title: 'سوال جدید در بانک',
+    html: '<div class="text-right space-y-2">' +
+      '<textarea id="bqContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="3" placeholder="متن سوال *"></textarea>' +
+      '<input id="bqOpts" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="گزینه‌ها با | جدا (اختیاری)" />' +
+      '<input id="bqCorrect" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="ایندکس صحیح (0)" value="0" />' +
+      '<div class="grid grid-cols-2 gap-2">' +
+      '<input id="bqSubject" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="درس (مثلاً ریاضی)" />' +
+      '<input id="bqGrade" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="پایه (مثلاً دهم)" />' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+      '<select id="bqDiff" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white"><option value="easy">آسان</option><option value="medium" selected>متوسط</option><option value="hard">سخت</option><option value="olympiad">المپیادی</option></select>' +
+      '<input id="bqTags" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="تگ‌ها (اختیاری)" />' +
+      '</div>' +
+      '</div>',
+    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'ذخیره', cancelButtonText: 'انصراف', confirmButtonColor: '#10b981', width: 500,
+    preConfirm: () => {
+      const content = document.getElementById('bqContent').value.trim();
+      if (!content) { Swal.showValidationMessage('متن الزامی'); return false; }
+      const opts = document.getElementById('bqOpts').value.split('|').map(s => s.trim()).filter(Boolean);
+      return {
+        content, options_json: opts.length ? opts : null,
+        correct_json: Number(document.getElementById('bqCorrect').value) || 0,
+        type: opts.length ? 'mcq' : 'short',
+        subject: document.getElementById('bqSubject').value.trim(),
+        grade: document.getElementById('bqGrade').value.trim(),
+        difficulty: document.getElementById('bqDiff').value,
+        tags: document.getElementById('bqTags').value.trim()
+      };
+    }
+  }).then(async (r) => {
+    if (!r.isConfirmed) return;
+    try { await api('/api/bank', { method: 'POST', body: JSON.stringify(r.value) }); loadBank(); Swal.fire({ icon: 'success', title: 'سوال ذخیره شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' }); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  });
+}
+
+/* ---------- AI Functions ---------- */
+async function loadQuizzesForAI() {
+  if (!state.quizzes.length) {
+    try { const data = await api('/api/dashboard'); state.quizzes = data.quizzes || []; } catch {}
+  }
+}
+
+// Tree filter handlers for bank
+function onBankGradeChange() {
+  const gradeName = document.getElementById('bankFilterGrade')?.value || '';
+  const gradeMap = { 'هفتم': '7', 'هشتم': '8', 'نهم': '9' };
+  const grade = gradeMap[gradeName] || gradeName;
+  const subSel = document.getElementById('bankFilterSubject');
+  const chSel = document.getElementById('bankFilterChapter');
+  if (subSel) { subSel.innerHTML = '<option value="">همه</option>'; }
+  if (chSel) { chSel.innerHTML = '<option value="">همه</option>'; }
+  if (gradeName && CURRICULUM[gradeName]) {
+    Object.keys(CURRICULUM[gradeName]).forEach(s => {
+      const o = document.createElement('option'); o.value = s; o.textContent = s;
+      subSel.appendChild(o);
+    });
+  } else {
+    // Add all subjects from bank data for selected grade
+    const subjects = [...new Set(state.bank.filter(x => grade ? String(x.grade) === String(grade) : true).map(x => x.subject).filter(Boolean))];
+    subjects.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; subSel.appendChild(o); });
+  }
+  renderBank();
+}
+
+function onBankSubjectChange() {
+  const gradeName = document.getElementById('bankFilterGrade')?.value || '';
+  const gradeMap = { 'هفتم': '7', 'هشتم': '8', 'نهم': '9' };
+  const grade = gradeMap[gradeName] || gradeName;
+  const subject = document.getElementById('bankFilterSubject')?.value || '';
+  const chSel = document.getElementById('bankFilterChapter');
+  if (chSel) { chSel.innerHTML = '<option value="">همه</option>'; }
+  if (gradeName && subject && CURRICULUM[gradeName] && CURRICULUM[gradeName][subject]) {
+    CURRICULUM[gradeName][subject].forEach(ch => {
+      const o = document.createElement('option'); o.value = ch; o.textContent = ch;
+      chSel.appendChild(o);
+    });
+  } else {
+    const chapters = [...new Set(state.bank.filter(x => x.subject === subject && (grade ? String(x.grade) === String(grade) : true)).map(x => x.chapter).filter(Boolean))];
+    chapters.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; chSel.appendChild(o); });
+  }
+  renderBank();
+}
+
+/* ---------- Homework ---------- */
+async function loadHomework() {
+  try {
+    const data = await api('/api/homework');
+    const el = document.getElementById('homeworkList');
+    const hw = data.homework || [];
+    if (!hw.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">هنوز تکلیفی نیست.</p>'; return; }
+    el.innerHTML = hw.map(h => '<div class="glass rounded-xl p-4 flex items-center justify-between card-hover"><div class="flex-1"><div class="font-bold text-white">' + esc(h.title) + '</div><div class="text-xs text-slate-400">' + (h.subject || '—') + ' · ' + (h.due_date || 'بدون مهلت') + '</div></div><div class="flex items-center gap-2"><button onclick="showHomeworkSubmissions(' + h.id + ')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs" title="مشاهده تحویل‌ها"><i class="fa-solid fa-eye ml-1"></i> ' + (h.submission_count || 0) + ' تحویل</button><span class="text-xs text-emerald-400">' + (h.graded_count || 0) + ' تصحیح</span><button onclick="deleteHomework(' + h.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2"><i class="fa-solid fa-trash"></i></button></div></div>').join('');
+  } catch (err) { document.getElementById('homeworkList').innerHTML = '<p class="text-rose-400 text-sm text-center">' + esc(err.message) + '</p>'; }
+}
+
+function openAddHomework() {
+  Swal.fire({
+    title: 'تکلیف جدید',
+    html: '<div class="text-right space-y-2"><input id="hwTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="عنوان تکلیف *" /><input id="hwSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="درس" /><textarea id="hwDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="2" placeholder="توضیحات"></textarea><div class="grid grid-cols-2 gap-2"><input id="hwDue" type="date" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" /><input id="hwScore" type="number" value="10" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="حداکثر نمره" /></div></div>',
+    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'ذخیره', confirmButtonColor: '#10b981',
+    preConfirm: () => {
+      const title = document.getElementById('hwTitle').value.trim();
+      if (!title) { Swal.showValidationMessage('عنوان الزامی'); return false; }
+      return { title, subject: document.getElementById('hwSubject').value, description: document.getElementById('hwDesc').value, due_date: document.getElementById('hwDue').value || null, max_score: Number(document.getElementById('hwScore').value) || 10 };
+    }
+  }).then(async (r) => {
+    if (!r.isConfirmed) return;
+    try { await api('/api/homework', { method: 'POST', body: JSON.stringify(r.value) }); loadHomework(); Swal.fire({ icon: 'success', title: 'تکلیف ساخته شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' }); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  });
+}
+
+async function deleteHomework(id) {
+  const r = await Swal.fire({ title: 'حذف تکلیف؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'حذف', background: '#1e293b', color: '#fff' });
+  if (!r.isConfirmed) return;
+  try { await api('/api/homework/' + id, { method: 'DELETE' }); loadHomework(); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- Attendance ---------- */
+let attendanceStudents = [];
+
+function addAttendanceRow(name, family, status) {
+  attendanceStudents.push({ name: name || '', family: family || '', status: status || 'present', note: '' });
+  renderAttendanceList();
+}
+
+function removeAttendanceRow(idx) {
+  attendanceStudents.splice(idx, 1);
+  renderAttendanceList();
+}
+
+function setAttStatus(idx, status) {
+  attendanceStudents[idx].status = status;
+  renderAttendanceList();
+}
+
+function renderAttendanceList() {
+  const el = document.getElementById('attendanceList');
+  if (!attendanceStudents.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">دانش‌آموزی اضافه نشده.</p>'; updateAttStats(); return; }
+  const statusMap = { present: ['حاضر', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'], absent: ['غایب', 'bg-rose-500/20 text-rose-400 border-rose-500/30'], late: ['تاخیر', 'bg-amber-500/20 text-amber-400 border-amber-500/30'], excused: ['مرخصی', 'bg-slate-700/50 text-slate-400 border-slate-600'] };
+  el.innerHTML = attendanceStudents.map((s, i) => {
+    const [label, cls] = statusMap[s.status] || statusMap.present;
+    return '<div class="flex items-center gap-2 p-2 rounded-xl bg-slate-900/50 border border-slate-800"><span class="text-sm text-white font-medium min-w-[120px]">' + esc(s.name) + ' ' + esc(s.family) + '</span><div class="flex gap-1">' +
+      Object.entries(statusMap).map(([k, [l, c]]) => '<button onclick="setAttStatus(' + i + ',\'' + k + '\')" class="px-2 py-1 text-[10px] rounded-lg border ' + (s.status === k ? c : 'border-slate-700 text-slate-500') + '">' + l + '</button>').join('') +
+      '</div><button onclick="removeAttendanceRow(' + i + ')" class="text-rose-400 hover:text-rose-300 text-xs mr-auto"><i class="fa-solid fa-xmark"></i></button></div>';
+  }).join('');
+  updateAttStats();
+}
+
+function updateAttStats() {
+  updateAttendanceStats();
+}
+
+async function loadAttendance() {
+  const date = document.getElementById('attDate')?.value || new Date().toISOString().slice(0, 10);
+  try {
+    const data = await api('/api/attendance?date=' + date);
+    attendanceStudents = (data.attendance || []).map(a => ({ name: a.student_name, family: a.student_family, status: a.status, note: a.note || '' }));
+    renderAttendanceList();
+  } catch {}
+  // Load enhanced history
+  loadAttendanceHistory();
+}
+
+async function saveAttendance() {
+  const date = document.getElementById('attDate')?.value || new Date().toISOString().slice(0, 10);
+  if (!attendanceStudents.length) return Swal.fire({ icon: 'warning', title: 'دانش‌آموزی نیست', background: '#1e293b', color: '#fff' });
+  try {
+    await api('/api/attendance', { method: 'POST', body: JSON.stringify({ date, class_name: '', students: attendanceStudents }) });
+    Swal.fire({ icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- Settings ---------- */
+async function loadSettings() {
+  try {
+    const data = await api('/api/auth/me');
+    const t = data.teacher || {};
+    document.getElementById('settAccountInfo').innerHTML = '<div class="grid grid-cols-2 gap-3 text-sm"><div><span class="text-slate-500">نام کاربری:</span> <span class="text-white">' + esc(t.username) + '</span></div><div><span class="text-slate-500">نام نمایشی:</span> <span class="text-white">' + esc(t.full_name) + '</span></div><div><span class="text-slate-500">مدرسه:</span> <span class="text-white">' + esc(t.school_name || '—') + '</span></div><div><span class="text-slate-500">عضویت:</span> <span class="text-white">' + (t.created_at || '—') + '</span></div></div>';
+  } catch {}
+  try {
+    const data = await api('/api/branding');
+    const b = data.branding || {};
+    document.getElementById('settBrandName').value = b.brand_name || 'Quiz26';
+    document.getElementById('settColor').value = b.primary_color || '#10b981';
+    document.getElementById('settLogo').value = b.logo_url || '';
+    document.getElementById('settSubdomain').value = b.subdomain || '';
+  } catch {}
+}
+
+async function saveBranding() {
+  try {
+    await api('/api/branding', { method: 'POST', body: JSON.stringify({
+      brand_name: document.getElementById('settBrandName').value,
+      primary_color: document.getElementById('settColor').value,
+      logo_url: document.getElementById('settLogo').value,
+      subdomain: document.getElementById('settSubdomain').value
+    })});
+    Swal.fire({ icon: 'success', title: 'ذخیره شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function exportData() {
+  try {
+    const dash = await api('/api/dashboard');
+    const bank = await api('/api/bank');
+    const exportObj = {
+      export_date: new Date().toISOString(),
+      stats: dash.stats,
+      quizzes: dash.quizzes || [],
+      bank_questions: bank.questions || []
+    };
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'quiz26-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    Swal.fire({ icon: 'success', title: 'فایل پشتیبان دانلود شد', timer: 1500, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- AI Chat (Public) ---------- */
+async function sendAIChat() {
+  const input = document.getElementById('aiChatInput');
+  const box = document.getElementById('aiChatBox');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  // User message
+  box.innerHTML += '<div class="flex gap-3 flex-row-reverse"><div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-user text-white text-xs"></i></div><div class="bg-emerald-600/20 border border-emerald-500/20 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-white max-w-md">' + esc(msg) + '</div></div>';
+  // Loading
+  const loadingId = 'chat-loading-' + Date.now();
+  box.innerHTML += '<div id="' + loadingId + '" class="flex gap-3"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-white text-xs"></i></div><div class="bg-slate-800 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-slate-400"><i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال پاسخ...</div></div>';
+  box.scrollTop = box.scrollHeight;
+  try {
+    const data = await api('/api/ai/chat', { method: 'POST', body: JSON.stringify({ message: msg }) });
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) loadingEl.remove();
+    box.innerHTML += '<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-white text-xs"></i></div><div class="bg-slate-800 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-slate-200 max-w-md">' + esc(data.reply || 'پاسخی دریافت نشد.') + '</div></div>';
+  } catch (err) {
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) loadingEl.remove();
+    box.innerHTML += '<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-robot text-white text-xs"></i></div><div class="bg-rose-500/10 border border-rose-500/20 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-rose-300 max-w-md">خطا: ' + esc(err.message) + '</div></div>';
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------- AI Auto-Grade ---------- */
+async function autoGradeEssay(submissionId) {
+  const r = await Swal.fire({ title: 'تصحیح خودکار با AI', text: 'تمام سوالات تشریحی این دانش‌آموز توسط هوش مصنوعی تصحیح می‌شوند.', icon: 'question', showCancelButton: true, confirmButtonColor: '#6366f1', cancelButtonColor: '#334155', confirmButtonText: 'شروع تصحیح', cancelButtonText: 'انصراف', background: '#1e293b', color: '#fff' });
+  if (!r.isConfirmed) return;
+  Swal.fire({ title: 'در حال تصحیح...', html: '<i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>', background: '#1e293b', color: '#fff', showConfirmButton: false, allowOutsideClick: false });
+  try {
+    const data = await api('/api/ai/auto-grade/' + submissionId, { method: 'POST' });
+    Swal.fire({ icon: 'success', title: 'تصحیح انجام شد', html: '<div class="text-sm"><p>' + data.graded + ' سوال تصحیح شد</p><p class="text-emerald-400 font-bold mt-2">نمره نهایی: ' + data.score + ' از ' + data.max_score + ' (' + data.percent + '%)</p></div>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(() => { showTeacherReport(submissionId); });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+function openAIGenerate() {
+  if (!state.editingQuizId) {
+    showView('ai');
+  }
+  document.getElementById('aiGenGrade').value = '';
+  updateBankSubjects();
+  document.getElementById('aiGenChapter').innerHTML = '<option value="">همه فصول</option>';
+  document.getElementById('aiGenCount').value = '20';
+  const resultEl = document.getElementById('aiGenResult2');
+  if (resultEl) { resultEl.classList.add('hide'); resultEl.innerHTML = ''; }
+  document.getElementById('modalAIGenerate').classList.remove('hide');
+}
+
+async function generateAIQuestions() {
+  const topic = document.getElementById('aiTopic').value.trim();
+  if (!topic) return Swal.fire({ icon: 'warning', title: 'موضوع را وارد کنید', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('aiGenBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال تولید...';
+  try {
+    const data = await api('/api/ai/generate-questions', {
+      method: 'POST', body: JSON.stringify({
+        topic, count: Number(document.getElementById('aiCount').value) || 5,
+        type: document.getElementById('aiType').value,
+        difficulty: document.getElementById('aiDiff').value,
+        grade_level: document.getElementById('aiGrade').value || undefined,
+      }),
+    });
+    const questions = data.questions || [];
+    if (!questions.length) { Swal.fire({ icon: 'info', title: 'سوالی تولید نشد', background: '#1e293b', color: '#fff' }); return; }
+    const resultEl = document.getElementById('aiGenResult');
+    resultEl.classList.remove('hide');
+    let html = '<div class="space-y-2 max-h-60 overflow-auto mb-3">';
+    questions.forEach((q, i) => {
+      html += '<div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-xs text-emerald-400 mb-1">سوال ' + (i+1) + ' (' + (q.type || 'mcq') + ')</div><div class="text-sm text-white mb-1">' + esc(q.content) + '</div>';
+      if (q.options) html += '<div class="text-[11px] text-slate-400">' + q.options.map((o, j) => '<span class="mr-2">' + String.fromCharCode(65 + j) + '. ' + esc(o) + '</span>').join('') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    if (state.editingQuizId) {
+      html += '<button onclick="saveAIGeneratedQuestions()" class="w-full py-2 rounded-xl btn-gradient text-white text-sm font-bold"><i class="fa-solid fa-save ml-1"></i> ذخیره همه در آزمون</button>';
+    }
+    resultEl.innerHTML = html;
+    window.__aiGeneratedQuestions = questions;
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-brain ml-1"></i> تولید سوالات'; }
+}
+
+async function saveAIGeneratedQuestions() {
+  const questions = window.__aiGeneratedQuestions || [];
+  if (!questions.length || !state.editingQuizId) return;
+  let saved = 0;
+  for (const q of questions) {
+    try {
+      await api('/api/quizzes/' + state.editingQuizId + '/questions', {
+        method: 'POST', body: JSON.stringify({
+          type: q.type || 'mcq', content: q.content, options_json: q.options || null,
+          correct_json: q.correct !== undefined ? q.correct : 0, score: 1, explanation: q.explanation || '',
+        }),
+      });
+      saved++;
+    } catch {}
+  }
+  Swal.fire({ icon: 'success', title: saved + ' سوال ذخیره شد', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+  closeModal('modalAIGenerate');
+  loadQuestions(state.editingQuizId);
+}
+
+function openAIGrade() {
+  document.getElementById('aiGradeQ').value = '';
+  document.getElementById('aiGradeKey').value = '';
+  document.getElementById('aiGradeAns').value = '';
+  document.getElementById('aiGradeMax').value = '1';
+  document.getElementById('aiGradeResult').classList.add('hide');
+  document.getElementById('modalAIGrade').classList.remove('hide');
+}
+
+async function gradeWithAI() {
+  const q = document.getElementById('aiGradeQ').value.trim();
+  const ans = document.getElementById('aiGradeAns').value.trim();
+  if (!q || !ans) return Swal.fire({ icon: 'warning', title: 'سوال و پاسخ الزامی است', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('aiGradeBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال تصحیح...';
+  try {
+    const data = await api('/api/ai/grade-essay', {
+      method: 'POST', body: JSON.stringify({
+        question_content: q, student_answer: ans,
+        answer_key: document.getElementById('aiGradeKey').value.trim(),
+        max_score: Number(document.getElementById('aiGradeMax').value) || 1,
+      }),
+    });
+    const g = data.grade || {};
+    const resultEl = document.getElementById('aiGradeResult');
+    resultEl.classList.remove('hide');
+    resultEl.innerHTML = '<div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20"><div class="text-lg font-bold text-emerald-400 mb-1">نمره: ' + (g.score || 0) + ' / ' + (document.getElementById('aiGradeMax').value || 1) + '</div><div class="text-sm text-slate-300">' + esc(g.feedback || '') + '</div></div>';
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-brain ml-1"></i> تصحیح کن'; }
+}
+
+async function aiGradeFromReport(submissionId, questionId) {
+  const questions = window.__reportQuestions || [];
+  const answers = window.__reportAnswers || {};
+  const q = questions.find(x => x.id === questionId);
+  if (!q) return;
+  const ans = answers[String(questionId)];
+  const studentAnswer = (typeof ans === 'object' && ans !== null) ? (ans.text || JSON.stringify(ans)) : String(ans || '');
+  const answerKey = (() => { try { const c = JSON.parse(q.correct_json); return Array.isArray(c) ? c.join(' یا ') : String(c); } catch { return ''; } })();
+
+  Swal.fire({
+    title: 'تصحیح با AI',
+    html: '<div class="text-right text-sm space-y-2">' +
+      '<div class="bg-slate-800 rounded-lg p-2 text-xs"><b>سوال:</b> ' + esc(q.content).slice(0, 200) + '</div>' +
+      '<div class="bg-slate-800 rounded-lg p-2 text-xs"><b>پاسخ دانش‌آموز:</b> ' + esc(studentAnswer).slice(0, 300) + '</div>' +
+      '<div class="bg-slate-800 rounded-lg p-2 text-xs"><b>کلید پاسخ:</b> ' + esc(answerKey) + '</div></div>',
+    background: '#1e293b', color: '#fff',
+    showCancelButton: true, confirmButtonText: 'تصحیح کن', confirmButtonColor: '#6366f1',
+    didOpen: () => { Swal.showLoading(); }
+  }).then(async (r) => {
+    if (!r.isConfirmed) return;
+    try {
+      const data = await api('/api/ai/grade-essay', {
+        method: 'POST', body: JSON.stringify({ question_content: q.content, student_answer: studentAnswer, answer_key: answerKey, max_score: q.score })
+      });
+      const g = data.grade || {};
+      const score = Math.max(0, Math.min(q.score, Number(g.score) || 0));
+      window.__pendingEssayGrades = window.__pendingEssayGrades || {};
+      window.__pendingEssayGrades[String(questionId)] = { accepted: score >= q.score * 0.5, score: score, feedback: g.feedback, ai_graded: true };
+      await api('/api/submissions/' + submissionId, { method: 'POST', body: JSON.stringify({ grades: window.__pendingEssayGrades }) });
+      Swal.fire({ icon: 'success', title: 'نمره: ' + score + ' از ' + q.score, text: g.feedback || '', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' })
+        .then(() => showTeacherReport(submissionId));
+    } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  });
+}
+
+function openAIAnalyze() {
+  const select = document.getElementById('aiAnalyzeQuiz');
+  select.innerHTML = '<option value="">انتخاب کنید...</option>';
+  state.quizzes.forEach(q => { select.innerHTML += '<option value="' + q.id + '">' + esc(q.title) + '</option>'; });
+  document.getElementById('aiAnalyzeResult').classList.add('hide');
+  document.getElementById('modalAIAnalyze').classList.remove('hide');
+}
+
+async function analyzeQuizAI() {
+  const qid = document.getElementById('aiAnalyzeQuiz').value;
+  if (!qid) return Swal.fire({ icon: 'warning', title: 'آزمون را انتخاب کنید', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('aiAnalyzeBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال تحلیل...';
+  try {
+    const data = await api('/api/ai/analyze-quiz/' + qid);
+    const resultEl = document.getElementById('aiAnalyzeResult');
+    resultEl.classList.remove('hide');
+    const a = data.analysis || {};
+    const s = data.stats || {};
+    let html = '<div class="space-y-3">';
+    html += '<div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-xs text-emerald-400 mb-1 font-bold">آمار کلی</div><div class="text-sm text-white">تعداد شرکت‌کننده: ' + (s.count || 0) + ' | میانگین: ' + (s.avg || 0) + '% | میانگین زمان: ' + (s.avgDuration || 0) + ' ثانیه</div></div>';
+    if (a.summary) html += '<div class="p-3 rounded-xl bg-accent-500/10 border border-accent-500/20"><div class="text-xs text-accent-400 mb-1 font-bold">تحلیل AI</div><div class="text-sm text-slate-300 leading-relaxed">' + esc(a.summary) + '</div></div>';
+    if (a.hardIssues) html += '<div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20"><div class="text-xs text-rose-400 mb-1 font-bold">مشکلات</div><div class="text-sm text-slate-300">' + esc(a.hardIssues) + '</div></div>';
+    if (a.recommendations) html += '<div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20"><div class="text-xs text-emerald-400 mb-1 font-bold">پیشنهادات</div><div class="text-sm text-slate-300">' + esc(a.recommendations) + '</div></div>';
+    if (s.hardest && s.hardest.length) {
+      html += '<div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-xs text-amber-400 mb-1 font-bold">سوالات سخت</div>';
+      s.hardest.forEach(q => { html += '<div class="text-xs text-slate-300 mb-1">• ' + esc(q.content) + ' <span class="text-rose-400">(' + q.correctRate + '% درست)</span></div>'; });
+      html += '</div>';
+    }
+    html += '</div>';
+    resultEl.innerHTML = html;
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-brain ml-1"></i> تحلیل کن'; }
+}
+
+/* ---------- Exam State Management ---------- */
+function saveExamState() {
+  if (!state.exam || !state.isExam) return;
+  try {
+    const examState = {
+      exam: state.exam,
+      questions: state.questions,
+      answers: state.answers,
+      marked: [...state.marked],
+      currentQ: state.currentQ,
+      remainingSec: state.remainingSec,
+      startedAt: state.startedAt,
+      tabSwitches: state.tabSwitches,
+      studentInfo: {
+        name: document.getElementById('stName')?.value || '',
+        family: document.getElementById('stFamily')?.value || '',
+        school: document.getElementById('stSchool')?.value || '',
+        class: document.getElementById('stClass')?.value || ''
+      },
+      timestamp: Date.now()
+    };
+    localStorage.setItem('q26_exam_state', JSON.stringify(examState));
+  } catch {}
+}
+
+function restoreExamState() {
+  try {
+    const saved = localStorage.getItem('q26_exam_state');
+    if (!saved) return false;
+    const examState = JSON.parse(saved);
+    if (!examState || !examState.exam) return false;
+    
+    // Check if exam state is too old (more than 3 hours)
+    if (Date.now() - examState.timestamp > 3 * 60 * 60 * 1000) {
+      localStorage.removeItem('q26_exam_state');
+      return false;
+    }
+    
+    state.exam = examState.exam;
+    state.questions = examState.questions;
+    state.answers = examState.answers || {};
+    state.marked = new Set(examState.marked || []);
+    state.currentQ = examState.currentQ || 0;
+    state.remainingSec = examState.remainingSec || 0;
+    state.startedAt = examState.startedAt;
+    state.tabSwitches = examState.tabSwitches || 0;
+    state.isExam = true;
+    state.examFinished = false;
+    state.answerSheet = [];
+    
+    // Restore student info
+    if (examState.studentInfo) {
+      if (examState.studentInfo.name) document.getElementById('stName').value = examState.studentInfo.name;
+      if (examState.studentInfo.family) document.getElementById('stFamily').value = examState.studentInfo.family;
+      if (examState.studentInfo.school) document.getElementById('stSchool').value = examState.studentInfo.school;
+      if (examState.studentInfo.class) document.getElementById('stClass').value = examState.studentInfo.class;
+    }
+    
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearExamState() {
+  localStorage.removeItem('q26_exam_state');
+  // Also clear auto-save
+  if (state.exam) {
+    localStorage.removeItem('q26_autosave_' + state.exam.id);
+  }
+}
+
+function cleanupExamListeners() {
+  try {
+    document.removeEventListener('contextmenu', blockCtx);
+    document.removeEventListener('copy', blockCopy);
+    document.removeEventListener('selectstart', blockSelect);
+    document.removeEventListener('visibilitychange', onTabSwitch);
+  } catch {}
+}
+
+/* ---------- Exam Functions ---------- */
+function promptQuizId() {
+  Swal.fire({ title: 'کد آزمون', input: 'text', inputPlaceholder: 'شناسه عددی آزمون', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981', showCancelButton: true, cancelButtonText: 'انصراف', confirmButtonText: 'ادامه' }).then(r => { if (r.isConfirmed && r.value) location.hash = '#/quiz/' + r.value.trim(); });
+}
+
+async function loadPublicQuiz(id) {
+  try {
+    const data = await api('/api/public/quiz/' + id);
+    state.exam = data.quiz; state.questions = data.questions;
+    state.answers = {}; state.marked = new Set(); state.currentQ = 0; state.tabSwitches = 0;
+    document.getElementById('entryQuizTitle').textContent = data.quiz.title;
+    document.getElementById('entryQuizMeta').textContent = data.quiz.question_count + ' سوال · ' + data.quiz.duration_min + ' دقیقه';
+    showView('exam-entry');
+  } catch (err) { Swal.fire({ icon: 'error', title: 'خطا', text: err.message, background: '#1e293b', color: '#fff' }).then(() => { location.hash = ''; showView('landing'); }); }
+}
+
+function startExam(e) {
+  e.preventDefault();
+  const name = document.getElementById('stName').value.trim();
+  const family = document.getElementById('stFamily').value.trim();
+  const school = document.getElementById('stSchool').value.trim();
+  const cls = document.getElementById('stClass').value.trim();
+  if (!name || !family || !school || !cls) { Swal.fire({ icon: 'warning', title: 'همه فیلدها الزامی است', background: '#1e293b', color: '#fff' }); return false; }
+  state.isExam = true; state.examFinished = false; state.answerSheet = []; state.examSubmitting = false;
+  state.startedAt = new Date().toISOString();
+  state.remainingSec = (state.exam.duration_min || 30) * 60;
+  document.getElementById('examTitle').textContent = state.exam.title;
+  const badge = document.getElementById('sheetBadge');
+  if (badge) { badge.textContent = ''; badge.classList.add('hide'); }
+  saveExamState();
+  showView('exam-room');
+  renderExamQuestion(); renderPalette(); startTimer();
+  if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
+  if (state.exam.anti_tab) document.addEventListener('visibilitychange', onTabSwitch);
+  try { document.documentElement.requestFullscreen?.(); } catch {}
+  return false;
+}
+
+function blockCtx(e) { if (!state.isExam) return; const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return; e.preventDefault(); }
+function blockCopy(e) { if (!state.isExam) return; const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return; e.preventDefault(); }
+function blockSelect(e) { if (!state.isExam) return; const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return; e.preventDefault(); }
+
+function onTabSwitch() {
+  if (!state.isExam || state.examSubmitting) return;
+  if (!document.hidden) return;
+  state.tabSwitches++;
+  saveExamState();
+  try {
+    Swal.fire({ title: 'هشدار تقلب!', text: 'خروج از صفحه ثبت شد (' + state.tabSwitches + ' از ۳)', icon: 'error', background: '#4c0519', color: '#fff', confirmButtonColor: '#e11d48', confirmButtonText: 'متوجه شدم', allowOutsideClick: false });
+  } catch {}
+  if (state.tabSwitches >= 3) { try { submitExam(true); } catch {} }
+}
+
+function startTimer() {
+  clearInterval(state.timerInterval);
+  const timerEl = document.getElementById('examTimer');
+  const timerWrapper = timerEl?.parentElement;
+  const totalSec = (state.exam.duration_min || 30) * 60;
+  const tick = () => {
+    if (state.remainingSec <= 0) { clearInterval(state.timerInterval); submitExam(true); return; }
+    state.remainingSec--;
+    const m = Math.floor(state.remainingSec / 60);
+    const s = state.remainingSec % 60;
+    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    // Timer color and effects
+    if (state.remainingSec <= 60) {
+      timerEl.className = 'text-red-500 font-bold font-mono text-lg exam-timer flex items-center gap-2 shrink-0 animate-pulse';
+      if (state.remainingSec === 60) {
+        playWarningSound();
+        Swal.fire({ title: 'فقط ۱ دقیقه مانده!', icon: 'warning', background: '#4c0519', color: '#fff', timer: 3000, showConfirmButton: false });
+      }
+      if (state.remainingSec % 10 === 0 && state.remainingSec <= 30) playWarningSound();
+    } else if (state.remainingSec <= 300) {
+      timerEl.className = 'text-amber-400 font-bold font-mono text-lg exam-timer flex items-center gap-2 shrink-0';
+      if (state.remainingSec === 300) {
+        playWarningSound();
+        Swal.fire({ title: '۵ دقیقه باقی مانده', icon: 'info', background: '#1e293b', color: '#fff', timer: 2000, showConfirmButton: false });
+      }
+    }
+    // Auto-save every 30 seconds
+    if (state.remainingSec % 30 === 0 && state.isExam) {
+      try { localStorage.setItem('q26_autosave_' + state.exam.id, JSON.stringify({ answers: state.answers, marked: [...state.marked], remaining: state.remainingSec })); } catch {}
+    }
+  };
+  // Restore auto-saved answers
+  try {
+    const saved = JSON.parse(localStorage.getItem('q26_autosave_' + state.exam.id) || 'null');
+    if (saved && saved.answers) {
+      state.answers = saved.answers;
+      state.marked = new Set(saved.marked || []);
+      if (saved.remaining > 0 && saved.remaining < totalSec) state.remainingSec = saved.remaining;
+    }
+  } catch {}
+  tick(); state.timerInterval = setInterval(tick, 1000);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (!state.isExam) return;
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); navQ(-1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); navQ(1); }
+  else if (e.key >= '1' && e.key <= '4') {
+    const q = state.questions[state.currentQ];
+    if (q && (q.type === 'mcq' || q.type === 'multi')) {
+      const idx = parseInt(e.key) - 1;
+      if (q.options && idx < q.options.length) setAnswer(q.id, idx, q.type);
+    }
+  }
+  else if (e.key === ' ') { e.preventDefault(); toggleMark(); }
+});
+
+// Focus mode
+function toggleFocusMode() {
+  const sidebar = document.querySelector('#view-exam-room .w-56');
+  const header = document.querySelector('#view-exam-room > div:first-child');
+  const progress = document.querySelector('#view-exam-room > div:nth-child(2)');
+  state.focusMode = !state.focusMode;
+  if (state.focusMode) {
+    if (sidebar) sidebar.classList.add('hide');
+    if (header) header.classList.add('hide');
+    if (progress) progress.classList.add('hide');
+  } else {
+    if (sidebar) sidebar.classList.remove('hide');
+    if (header) header.classList.remove('hide');
+    if (progress) progress.classList.remove('hide');
+  }
+}
+
+function renderExamQuestion() {
+  const q = state.questions[state.currentQ];
+  if (!q) return;
+  const area = document.getElementById('examQuestionArea');
+  let mediaHtml = '';
+  if (q.image_url) {
+    const u = q.image_url;
+    if (/.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
+    else if (u.startsWith('data:image') || /.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900" />';
+    else mediaHtml = '<a href="' + esc(u) + '" target="_blank" class="inline-flex items-center gap-2 text-sm text-emerald-400 mb-4"><i class="fa-solid fa-paperclip"></i> فایل پیوست</a>';
+  }
+  let optsHtml = '';
+  if (q.type === 'mcq' || q.type === 'multi') {
+    optsHtml = (q.options || []).map((o, i) => {
+      const checked = q.type === 'mcq' ? (state.answers[q.id] === i ? 'checked' : '') : (Array.isArray(state.answers[q.id]) && state.answers[q.id].includes(i) ? 'checked' : '');
+      const inputType = q.type === 'mcq' ? 'radio' : 'checkbox';
+      return '<label class="flex items-center p-3.5 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="' + inputType + '" name="eq_' + q.id + '" value="' + i + '" ' + checked + ' class="ml-3 text-emerald-500" onchange="setAnswer(' + q.id + ',' + i + ',\'' + q.type + '\')" /><span class="text-slate-200 text-sm">' + esc(String(o)) + '</span></label>';
+    }).join('');
+  } else if (q.type === 'tf') {
+    ['true', 'false'].forEach(v => {
+      const label = v === 'true' ? 'درست' : 'نادرست';
+      const checked = state.answers[q.id] === v ? 'checked' : '';
+      optsHtml += '<label class="flex items-center p-3.5 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="eq_' + q.id + '" value="' + v + '" ' + checked + ' class="ml-3" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'' + 'tf' + '\')" /><span class="text-slate-200 text-sm">' + label + '</span></label>';
+    });
+  } else if (q.type === 'essay') {
+    const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: state.answers[q.id] || '', file: null, fileName: '' };
+    const textVal = ansObj.text || (typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '');
+    optsHtml = '<textarea id="essayInput" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm leading-relaxed text-white" placeholder="پاسخ تشریحی خود را بنویسید..." style="user-select:text;-webkit-user-select:text">' + esc(textVal) + '</textarea><p class="text-[11px] text-slate-500 mt-2">پاسخ شما پس از آزمون توسط AI یا معلم بررسی می‌شود.</p>';
+  } else {
+    optsHtml = '<input id="shortInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="پاسخ خود را بنویسید..." value="' + esc(typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '') + '" style="user-select:text;-webkit-user-select:text" />';
+  }
+  const progress = state.questions.length > 1 ? ((state.currentQ + 1) / state.questions.length * 100) : 100;
+  document.getElementById('examProgress').textContent = 'سوال ' + (state.currentQ + 1) + ' از ' + state.questions.length;
+  document.getElementById('examProgressBar').style.width = progress + '%';
+  area.innerHTML = '<div class="flex justify-between text-sm text-slate-400 border-b border-slate-800 pb-2 mb-4"><span class="font-bold text-white text-lg">' + (state.currentQ + 1) + '</span><button type="button" onclick="toggleMark()" class="text-amber-400 hover:text-amber-300 text-sm"><i class="fa-regular fa-bookmark ml-1"></i>' + (state.marked.has(state.currentQ) ? 'برداشتن نشان' : 'نشان‌دار') + '</button></div><div class="text-base leading-loose text-white mb-4">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div><div class="flex justify-between pt-8"><button type="button" onclick="navQ(-1)" class="px-5 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-sm ' + (state.currentQ === 0 ? 'opacity-40 pointer-events-none' : '') + '">قبلی</button><button type="button" onclick="navQ(1)" class="px-5 py-2 btn-gradient text-white rounded-lg text-sm font-medium">' + (state.currentQ === state.questions.length - 1 ? 'پایان لیست' : 'بعدی') + '</button></div>';
+  const essayEl = document.getElementById('essayInput');
+  if (essayEl) essayEl.addEventListener('input', () => { const prev = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : {}; state.answers[q.id] = { text: essayEl.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); });
+  const shortEl = document.getElementById('shortInput');
+  if (shortEl) shortEl.addEventListener('input', () => { state.answers[q.id] = shortEl.value; renderPalette(); });
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+function setAnswer(qid, val, type) {
+  if (type === 'multi') { let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : []; const idx = arr.indexOf(val); if (idx >= 0) arr.splice(idx, 1); else arr.push(val); state.answers[qid] = arr; }
+  else if (type === 'essay' || type === 'short') { state.answers[qid] = val; renderPalette(); return; }
+  else state.answers[qid] = type === 'mcq' ? Number(val) : val;
+  renderPalette(); renderExamQuestion();
+}
+
+function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delete(state.currentQ); else state.marked.add(state.currentQ); renderPalette(); renderExamQuestion(); }
+function navQ(d) { const n = state.currentQ + d; if (n < 0 || n >= state.questions.length) return; state.currentQ = n; renderExamQuestion(); renderPalette(); }
+
+function renderPalette() {
+  document.getElementById('examPalette').innerHTML = state.questions.map((q, i) => {
+    const a = state.answers[q.id];
+    // Check if answer is truly set (not undefined, not null, not empty string, not empty array, not empty object)
+    let answered = false;
+    if (a !== undefined && a !== null && a !== '') {
+      if (Array.isArray(a)) { answered = a.length > 0; }
+      else if (typeof a === 'object') { answered = !!(a.text || a.file); }
+      else { answered = true; }
+    }
+    const marked = state.marked.has(i);
+    const current = i === state.currentQ;
+    let cls = 'bg-slate-800 text-slate-400 border-slate-700';
+    if (answered) cls = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    if (marked) cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+    if (current) cls += ' ring-2 ring-emerald-500';
+    return '<button onclick="state.currentQ=' + i + ';renderExamQuestion();renderPalette()" class="aspect-square rounded-lg text-xs font-medium border ' + cls + '">' + (i+1) + '</button>';
+  }).join('');
+}
+
+function confirmEndExam() {
+  Swal.fire({ title: 'پایان آزمون؟', text: 'پاسخ‌ها ثبت نهایی می‌شوند.', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#334155', confirmButtonText: 'ثبت نهایی', cancelButtonText: 'ادامه', background: '#1e293b', color: '#fff' }).then(r => { if (r.isConfirmed) submitExam(false); });
+}
+
+function uploadAnswerSheet() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*,.pdf,.doc,.docx'; input.multiple = true;
+  input.onchange = async () => {
+    const files = input.files;
+    if (!files || !files.length) return;
+    if (!state.answerSheet) state.answerSheet = [];
+    for (const f of files) {
+      if (f.size > 500 * 1024) { Swal.fire({ icon: 'warning', title: 'حجم زیاد', text: f.name + ' بیشتر از ۵۰۰ کیلوبایت است. لطفاً فایل کوچکتری انتخاب کنید.', background: '#1e293b', color: '#fff' }); continue; }
+      try {
+        const dataUrl = await readFileAsDataURL(f);
+        state.answerSheet.push({ file: dataUrl, fileName: f.name });
+      } catch (err) { Swal.fire({ icon: 'warning', title: f.name, text: err.message || 'خطا در بارگذاری', background: '#1e293b', color: '#fff' }); }
+    }
+    updateSheetBadge();
+    renderAnswerSheetList();
+  };
+  input.click();
+}
+
+function removeAnswerSheetFile(idx) {
+  if (!state.answerSheet || !state.answerSheet[idx]) return;
+  state.answerSheet.splice(idx, 1);
+  updateSheetBadge();
+  renderAnswerSheetList();
+}
+
+function updateSheetBadge() {
+  const badge = document.getElementById('sheetBadge');
+  if (badge && state.answerSheet && state.answerSheet.length) { badge.textContent = '✓ ' + state.answerSheet.length + ' فایل'; badge.classList.remove('hide'); }
+  else if (badge) { badge.textContent = ''; badge.classList.add('hide'); }
+}
+
+function renderAnswerSheetList() {
+  const el = document.getElementById('answerSheetList');
+  if (!el) return;
+  if (!state.answerSheet || !state.answerSheet.length) { el.innerHTML = ''; return; }
+  let html = '<div class="flex flex-wrap gap-2 mt-2">';
+  state.answerSheet.forEach((s, i) => {
+    if (s.file && String(s.file).startsWith('data:image')) {
+      html += '<div class="relative group"><img src="' + s.file + '" class="h-16 rounded border border-slate-600" /><button onclick="removeAnswerSheetFile(' + i + ')" class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-xmark"></i></button><div class="text-[9px] text-slate-500 truncate max-w-16">' + esc(s.fileName) + '</div></div>';
+    } else if (s.file) {
+      html += '<div class="relative group flex items-center gap-1 px-2 py-1 rounded bg-slate-800 border border-slate-700"><i class="fa-solid fa-file text-accent-400 text-xs"></i><span class="text-[10px] text-slate-300 truncate max-w-20">' + esc(s.fileName) + '</span><button onclick="removeAnswerSheetFile(' + i + ')" class="text-rose-400 hover:text-rose-300 text-[10px] ml-1"><i class="fa-solid fa-xmark"></i></button></div>';
+    }
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX = 800;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) { const ratio = Math.min(MAX/w, MAX/h); w *= ratio; h *= ratio; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL('image/jpeg', 0.6);
+          if (compressed.length > 600000) { reject(new Error('فایل هنوز بزرگ است. تصویر کوچکتری انتخاب کنید.')); return; }
+          resolve(compressed);
+        };
+        img.onerror = () => reject(new Error('خطا در خواندن تصویر'));
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result.length > 600000) { reject(new Error('فایل بیشتر از ۵۰۰ کیلوبایت است. فایل کوچکتری انتخاب کنید.')); return; }
+        resolve(reader.result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+async function submitExam(auto) {
+  if (state.examSubmitting) return;
+  state.examSubmitting = true;
+  try { clearInterval(state.timerInterval); } catch {}
+  state.isExam = false;
+  cleanupExamListeners();
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
+  clearExamState();
+  const duration = Math.max(0, (state.exam.duration_min * 60) - state.remainingSec);
+  const answersPayload = { ...state.answers };
+  if (state.answerSheet && state.answerSheet.length) answersPayload.__answer_sheet = state.answerSheet;
+  try {
+    const data = await api('/api/public/quiz/' + state.exam.id + '/submit', {
+      method: 'POST', body: JSON.stringify({
+        student_name: document.getElementById('stName').value.trim(), student_family: document.getElementById('stFamily').value.trim(),
+        school: document.getElementById('stSchool').value.trim(), class_name: document.getElementById('stClass').value.trim(),
+        answers: answersPayload, duration_sec: duration, tab_switches: state.tabSwitches, started_at: state.startedAt,
+      }),
+    });
+    try { history.replaceState(null, '', '/result/' + data.submission_id); } catch {}
+    state.examFinished = true; showResult(data);
+    if (data.essay_pending) setTimeout(() => { Swal.fire({ icon: 'info', title: 'سوال تشریحی', text: 'پاسخ تشریحی شما ذخیره شد و پس از بررسی AI/معلم در نمره لحاظ می‌شود.', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }); }, 600);
+  } catch (err) { state.examSubmitting = false; Swal.fire({ icon: 'error', title: 'خطا در ارسال', text: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+function fillStudentReportCard({ title, student, score, maxScore, percent, passed, message, extraHtml }) {
+  document.getElementById('resultTitle').textContent = title || 'کارنامه';
+  document.getElementById('resultStudent').textContent = student || '';
+  if (message) { document.getElementById('resultScore').textContent = '—'; document.getElementById('resultPercent').textContent = '—'; document.getElementById('resultPass').textContent = message; document.getElementById('resultPass').className = 'text-sm font-medium text-slate-300'; }
+  else {
+    document.getElementById('resultScore').textContent = score + ' / ' + maxScore;
+    document.getElementById('resultPercent').textContent = percent + '%';
+    const passEl = document.getElementById('resultPass');
+    passEl.textContent = passed ? 'قبول' : 'مردود';
+    passEl.className = 'text-lg font-bold ' + (passed ? 'text-emerald-400' : 'text-rose-400');
+  }
+  const icon = document.getElementById('resultIcon');
+  const ok = !!passed && !message;
+  icon.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 ' + (message ? 'bg-slate-800 text-slate-400' : (ok ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'));
+  icon.innerHTML = message ? '<i class="fa-solid fa-file-lines"></i>' : (ok ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>');
+  document.getElementById('resultExtra').innerHTML = extraHtml || '';
+  showView('result');
+}
+
+function showResult(data) {
+  const name = (document.getElementById('stName')?.value || '') + ' ' + (document.getElementById('stFamily')?.value || '');
+  const school = document.getElementById('stSchool')?.value || '';
+  const cls = document.getElementById('stClass')?.value || '';
+  let extra = '<div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700 text-xs space-y-1 mb-2"><div><span class="text-slate-500">مدرسه:</span> ' + esc(school) + '</div><div><span class="text-slate-500">کلاس:</span> ' + esc(cls) + '</div><div><span class="text-slate-500">کد کارنامه:</span> <span class="font-mono text-emerald-300">' + (data.submission_id || '—') + '</span></div></div>';
+  if (data.essay_pending) extra += '<p class="text-amber-400/90 text-xs">پاسخ تشریحی پس از بررسی AI/معلم در نمره لحاظ می‌شود.</p>';
+  // Show uploaded answer sheets
+  if (state.answerSheet && state.answerSheet.length) {
+    extra += '<div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700 text-xs mb-2"><div class="text-accent-400 font-bold mb-2"><i class="fa-solid fa-paperclip ml-1"></i> فایل‌های آپلود شده (' + state.answerSheet.length + ' فایل)</div>';
+    state.answerSheet.forEach(s => {
+      if (s.file && String(s.file).startsWith('data:image')) {
+        extra += '<div class="mb-2"><span class="text-emerald-400">' + esc(s.fileName) + '</span><img src="' + s.file + '" class="max-h-32 rounded border border-slate-600 mt-1" /></div>';
+      } else if (s.file) {
+        extra += '<div class="mb-1"><span class="text-emerald-400">' + esc(s.fileName) + '</span></div>';
+      }
+    });
+    extra += '</div>';
+  }
+  extra += '<p class="text-[11px] text-slate-500 mt-2">کارنامه: <code class="dir-ltr text-emerald-300 text-[10px] break-all">' + location.origin + '/result/' + data.submission_id + '</code></p>';
+  fillStudentReportCard({ title: state.exam?.title || 'کارنامه', student: name.trim(), score: data.score, maxScore: data.max_score, percent: data.percent, passed: data.passed, extraHtml: extra });
+}
+
+async function loadResult(id) {
+  try {
+    const data = await api('/api/public/result/' + id);
+    const r = data.result;
+    if (r.message) { fillStudentReportCard({ title: r.quiz_title || 'کارنامه', student: (r.student_name || '') + ' ' + (r.student_family || ''), message: r.message }); return; }
+    const extra = '<div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700 text-xs space-y-1"><div><span class="text-slate-500">مدرسه:</span> ' + esc(r.school || '') + '</div><div><span class="text-slate-500">کلاس:</span> ' + esc(r.class_name || '') + '</div></div>';
+    fillStudentReportCard({ title: r.quiz_title || 'کارنامه', student: (r.student_name || '') + ' ' + (r.student_family || ''), score: r.score, maxScore: r.max_score, percent: r.percent, passed: r.passed, extraHtml: extra });
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }).then(() => { location.hash = ''; showView('landing'); }); }
+}
+
+/* ---------- Notifications System ---------- */
+let notifications = [];
+
+function loadNotifications() {
+  try {
+    const saved = localStorage.getItem('q26_notifications');
+    notifications = saved ? JSON.parse(saved) : [];
+    updateNotificationBadge();
+  } catch { notifications = []; }
+}
+
+function saveNotifications() {
+  try {
+    localStorage.setItem('q26_notifications', JSON.stringify(notifications));
+    updateNotificationBadge();
+  } catch {}
+}
+
+function addNotification(type, title, message) {
+  const notif = {
+    id: Date.now(),
+    type: type, // 'success', 'warning', 'info', 'error'
+    title: title,
+    message: message,
+    time: new Date().toISOString(),
+    read: false
+  };
+  notifications.unshift(notif);
+  if (notifications.length > 50) notifications = notifications.slice(0, 50);
+  saveNotifications();
+  // Show browser notification if permitted
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body: message, icon: '/favicon.ico' });
+    }
+  } catch {}
+}
+
+function updateNotificationBadge() {
+  const unread = notifications.filter(n => !n.read).length;
+  const badge = document.getElementById('notificationBadge');
+  if (badge) {
+    badge.textContent = unread;
+    badge.classList.toggle('hide', unread === 0);
+  }
+}
+
+function showNotifications() {
+  loadNotifications();
+  const el = document.getElementById('notificationsList');
+  if (!notifications.length) {
+    el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">اعلانی وجود ندارد.</p>';
+  } else {
+    el.innerHTML = notifications.map(n => {
+      const iconMap = { success: 'fa-check-circle text-emerald-400', warning: 'fa-exclamation-triangle text-amber-400', info: 'fa-info-circle text-accent-400', error: 'fa-times-circle text-rose-400' };
+      const icon = iconMap[n.type] || iconMap.info;
+      const timeStr = new Date(n.time).toLocaleString('fa-IR');
+      return '<div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 ' + (!n.read ? 'border-emerald-500/30' : '') + ' cursor-pointer hover:bg-slate-800/50" onclick="markNotificationRead(' + n.id + ')"><div class="flex items-start gap-2"><i class="fa-solid ' + icon + ' mt-0.5"></i><div class="flex-1"><div class="text-sm font-bold text-white">' + esc(n.title) + '</div><div class="text-xs text-slate-400">' + esc(n.message) + '</div><div class="text-[10px] text-slate-500 mt-1">' + timeStr + '</div></div></div></div>';
+    }).join('');
+  }
+  document.getElementById('modalNotifications').classList.remove('hide');
+}
+
+function markNotificationRead(id) {
+  const notif = notifications.find(n => n.id === id);
+  if (notif) { notif.read = true; saveNotifications(); showNotifications(); }
+}
+
+function clearAllNotifications() {
+  notifications = [];
+  saveNotifications();
+  showNotifications();
+}
+
+/* ---------- Enhanced Homework Functions ---------- */
+async function loadHomeworkSubmissions(homeworkId) {
+  try {
+    const data = await api('/api/homework/' + homeworkId + '/submissions');
+    return data.submissions || [];
+  } catch { return []; }
+}
+
+async function gradeHomework(submissionId, grade, comments) {
+  try {
+    await api('/api/homework/submissions/' + submissionId + '/grade', {
+      method: 'POST',
+      body: JSON.stringify({ grade, comments })
+    });
+    addNotification('success', 'تصحیح تکلیف', 'تکلیف با موفقیت تصحیح شد');
+    return true;
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' });
+    return false;
+  }
+}
+
+function showHomeworkSubmissions(homeworkId) {
+  Swal.fire({ title: 'تحویل‌های تکلیف', html: '<i class="fa-solid fa-spinner fa-spin text-emerald-400"></i>', background: '#1e293b', color: '#fff', showConfirmButton: false, allowOutsideClick: false });
+  loadHomeworkSubmissions(homeworkId).then(subs => {
+    if (!subs.length) { Swal.fire({ title: 'تحویلی نیست', icon: 'info', background: '#1e293b', color: '#fff' }); return; }
+    let html = '<div class="text-right space-y-3 max-h-96 overflow-y-auto">';
+    subs.forEach(s => {
+      const files = JSON.parse(s.files_json || '[]');
+      html += '<div class="p-3 rounded-xl bg-slate-800 border border-slate-700">';
+      html += '<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</div><div class="text-xs text-slate-400">' + (s.submitted_at || '') + '</div></div>';
+      html += '<div class="text-sm"><span class="text-emerald-400 font-bold">' + (s.score || '—') + '</span> / ' + (s.max_score || '—') + '</div></div>';
+      if (files.length) {
+        html += '<div class="flex flex-wrap gap-2 mt-2">';
+        files.forEach(f => {
+          if (f.file && String(f.file).startsWith('data:image')) {
+            html += '<img src="' + f.file + '" class="h-20 rounded border border-slate-600 cursor-pointer" onclick="window.open(this.src)" />';
+          } else if (f.file) {
+            html += '<a href="' + f.file + '" target="_blank" class="px-3 py-1 rounded bg-slate-700 text-emerald-400 text-xs hover:bg-slate-600"><i class="fa-solid fa-download ml-1"></i>' + esc(f.fileName || 'فایل') + '</a>';
+          }
+        });
+        html += '</div>';
+      }
+      if (s.comments) html += '<div class="text-xs text-slate-400 mt-2 italic">' + esc(s.comments) + '</div>';
+      html += '<div class="flex gap-2 mt-2"><input type="number" id="hw_grade_' + s.id + '" placeholder="نمره" class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm text-white" value="' + (s.score || '') + '" /><input id="hw_comment_' + s.id + '" placeholder="نظر" class="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm text-white" value="' + esc(s.comments || '') + '" /><button onclick="submitHomeworkGrade(' + s.id + ')" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs hover:bg-emerald-500">ذخیره</button></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    Swal.fire({ title: 'تحویل‌ها (' + subs.length + ')', html: html, width: 700, background: '#1e293b', color: '#fff', showConfirmButton: false });
+  });
+}
+
+async function submitHomeworkGrade(submissionId) {
+  const grade = document.getElementById('hw_grade_' + submissionId)?.value;
+  const comments = document.getElementById('hw_comment_' + submissionId)?.value;
+  if (grade !== undefined) {
+    const success = await gradeHomework(submissionId, Number(grade) || null, comments || '');
+    if (success) Swal.fire({ icon: 'success', title: 'ذخیره شد', timer: 1000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+  }
+}
+
+/* ---------- Enhanced Attendance Functions ---------- */
+function updateAttendanceStats() {
+  const present = attendanceStudents.filter(s => s.status === 'present').length;
+  const absent = attendanceStudents.filter(s => s.status === 'absent').length;
+  const late = attendanceStudents.filter(s => s.status === 'late').length;
+  const excused = attendanceStudents.filter(s => s.status === 'excused').length;
+  const total = attendanceStudents.length;
+  
+  document.getElementById('attPresent').textContent = present;
+  document.getElementById('attAbsent').textContent = absent;
+  document.getElementById('attLate').textContent = late;
+  document.getElementById('attTotal').textContent = total;
+  
+  // Add excused count if element exists
+  const excusedEl = document.getElementById('attExcused');
+  if (excusedEl) excusedEl.textContent = excused;
+}
+
+async function loadAttendanceHistory() {
+  try {
+    const data = await api('/api/attendance/history');
+    const el = document.getElementById('attHistory');
+    const h = data.history || [];
+    if (!h.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">هنوز سابقه‌ای نیست.</p>'; return; }
+    el.innerHTML = '<div class="space-y-2">' + h.map(r => {
+      const total = r.present_count + r.absent_count + r.late_count + (r.leave_count || 0);
+      const presentRate = total > 0 ? Math.round((r.present_count / total) * 100) : 0;
+      return '<div class="flex justify-between items-center text-xs p-3 rounded-xl bg-slate-900/50 border border-slate-800 card-hover"><div><div class="text-white font-medium">' + esc(r.date) + ' - ' + esc(r.class_name || '') + '</div><div class="text-slate-400 mt-1">درصد حضور: <span class="text-emerald-400 font-bold">' + presentRate + '%</span></div></div><div class="flex gap-2"><span class="text-emerald-400">حاضر: ' + r.present_count + '</span><span class="text-rose-400">غایب: ' + r.absent_count + '</span><span class="text-amber-400">تاخیر: ' + r.late_count + '</span>' + ((r.leave_count || 0) > 0 ? '<span class="text-slate-400">مرخصی: ' + r.leave_count + '</span>' : '') + '</div></div>';
+    }).join('') + '</div>';
+  } catch {}
+}
+
+function getStudentAttendancePercentage(studentName) {
+  // This would need API call to calculate - placeholder for now
+  return null;
+}
+
+/* ---------- Report Card Functions ---------- */
+async function showFullReportCard(submissionId) {
+  try {
+    const data = await api('/api/public/result/' + submissionId);
+    const r = data.result;
+    if (r.message) { Swal.fire({ icon: 'info', title: r.message, background: '#1e293b', color: '#fff' }); return; }
+    
+    const el = document.getElementById('reportCardContent');
+    let html = '<div class="text-center mb-6"><h1 class="text-2xl font-black text-white">' + esc(r.quiz_title || 'کارنامه') + '</h1><p class="text-slate-400">' + esc(r.student_name || '') + ' ' + esc(r.student_family || '') + '</p></div>';
+    
+    // Score summary
+    html += '<div class="grid grid-cols-3 gap-4 mb-6">';
+    html += '<div class="text-center p-4 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-3xl font-black text-emerald-400">' + r.score + '</div><div class="text-xs text-slate-400">نمره از ' + r.max_score + '</div></div>';
+    html += '<div class="text-center p-4 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-3xl font-black text-accent-400">' + r.percent + '%</div><div class="text-xs text-slate-400">درصد</div></div>';
+    html += '<div class="text-center p-4 rounded-xl bg-slate-900/50 border border-slate-800"><div class="text-3xl font-black ' + (r.passed ? 'text-emerald-400' : 'text-rose-400') + '">' + (r.passed ? 'قبول' : 'مردود') + '</div><div class="text-xs text-slate-400">وضعیت</div></div>';
+    html += '</div>';
+    
+    // Info
+    html += '<div class="grid grid-cols-2 gap-4 mb-6 text-sm"><div><span class="text-slate-500">مدرسه:</span> <span class="text-white">' + esc(r.school || '—') + '</span></div><div><span class="text-slate-500">کلاس:</span> <span class="text-white">' + esc(r.class_name || '—') + '</span></div><div><span class="text-slate-500">زمان:</span> <span class="text-white">' + (r.duration_sec ? Math.round(r.duration_sec / 60) + ' دقیقه' : '—') + '</span></div><div><span class="text-slate-500">تاریخ:</span> <span class="text-white">' + (r.submitted_at || '—') + '</span></div></div>';
+    
+    el.innerHTML = html;
+    showView('report');
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ---------- Sound Warning for Exam ---------- */
+let _audioCtx = null;
+function playWarningSound() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const oscillator = _audioCtx.createOscillator();
+    const gainNode = _audioCtx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(_audioCtx.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.value = 0.3;
+    
+    oscillator.start();
+    setTimeout(() => {
+      oscillator.stop();
+    }, 200);
+  } catch {}
+}
+
+/* ---------- Exam Review Mode ---------- */
+function toggleReviewMode() {
+  const isReviewMode = document.getElementById('examReviewMode')?.checked;
+  if (isReviewMode) {
+    showExamReview();
+  } else {
+    renderExamQuestion();
+    renderPalette();
+  }
+}
+
+function showExamReview() {
+  const area = document.getElementById('examQuestionArea');
+  let html = '<div class="space-y-4"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-list-check ml-2 text-emerald-400"></i> مرور سوالات</h3>';
+  
+  state.questions.forEach((q, i) => {
+    const answered = state.answers[q.id] !== undefined && state.answers[q.id] !== '';
+    const marked = state.marked.has(i);
+    let statusClass = 'border-slate-700';
+    if (answered) statusClass = 'border-emerald-500/50';
+    if (marked) statusClass = 'border-amber-500/50';
+    
+    html += '<div class="p-4 rounded-xl bg-slate-900/50 border ' + statusClass + '">';
+    html += '<div class="flex items-center justify-between mb-2"><span class="text-emerald-400 font-bold">سوال ' + (i + 1) + '</span><div class="flex gap-2">';
+    if (answered) html += '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">پاسخ داده</span>';
+    else html += '<span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">بی‌پاسخ</span>';
+    if (marked) html += '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">نشان‌دار</span>';
+    html += '</div></div>';
+    html += '<div class="text-sm text-slate-300 mb-2">' + esc(q.content).slice(0, 150) + (q.content.length > 150 ? '...' : '') + '</div>';
+    html += '<button onclick="state.currentQ=' + i + ';document.getElementById(\'examReviewMode\').checked=false;renderExamQuestion();renderPalette()" class="text-xs text-accent-400 hover:text-accent-300">رفتن به سوال</button>';
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+/* ---------- Enhanced Backup Functions ---------- */
+async function exportAllData() {
+  try {
+    Swal.fire({ title: 'در حال آماده‌سازی پشتیبان...', html: '<i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>', background: '#1e293b', color: '#fff', showConfirmButton: false, allowOutsideClick: false });
+    
+    const [dashData, bankData, homeworkData, attendanceData] = await Promise.all([
+      api('/api/dashboard').catch(() => ({})),
+      api('/api/bank').catch(() => ({})),
+      api('/api/homework').catch(() => ({})),
+      api('/api/attendance/history').catch(() => ({}))
+    ]);
+    
+    const exportObj = {
+      export_date: new Date().toISOString(),
+      version: '2.0',
+      stats: dashData.stats || {},
+      quizzes: dashData.quizzes || [],
+      bank_questions: bankData.questions || [],
+      homework: homeworkData.homework || [],
+      attendance_history: attendanceData.history || [],
+      notifications: notifications,
+      settings: {
+        branding: {
+          brand_name: document.getElementById('settBrandName')?.value || '',
+          primary_color: document.getElementById('settColor')?.value || '',
+          logo_url: document.getElementById('settLogo')?.value || '',
+          subdomain: document.getElementById('settSubdomain')?.value || ''
+        }
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'quiz26-full-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    
+    Swal.fire({ icon: 'success', title: 'پشتیبان کامل دانلود شد', timer: 2000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+    
+    // Set auto-backup reminder
+    localStorage.setItem('q26_last_backup', Date.now().toString());
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' });
+  }
+}
+
+async function importData(file) {
+  if (!file) return;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        // Import notifications
+        if (data.notifications && Array.isArray(data.notifications)) {
+          notifications = data.notifications;
+          saveNotifications();
+        }
+        // Import settings/branding
+        if (data.settings && data.settings.branding) {
+          const b = data.settings.branding;
+          try {
+            await api('/api/branding', { method: 'POST', body: JSON.stringify(b) });
+          } catch {}
+        }
+        Swal.fire({ icon: 'success', title: 'فایل پشتیبان بارگذاری شد', text: 'داده‌ها بازیابی شدند.', background: '#1e293b', color: '#fff' });
+        resolve(data);
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'خطا در بازیابی', text: err.message, background: '#1e293b', color: '#fff' });
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+function checkAutoBackupReminder() {
+  try {
+    const lastBackup = localStorage.getItem('q26_last_backup');
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    
+    if (!lastBackup || isNaN(parseInt(lastBackup)) || (Date.now() - parseInt(lastBackup)) > oneWeek) {
+      setTimeout(() => {
+        Swal.fire({
+          title: 'یادآوری پشتیبان‌گیری',
+          html: '<p class="text-sm">از آخرین پشتیبان‌گیری شما بیش از یک هفته گذشته است.</p><p class="text-sm mt-2">آیا می‌خواهید پشتیبان جدیدی تهیه کنید؟</p>',
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'تهیه پشتیبان',
+          cancelButtonText: 'بعداً',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#10b981'
+        }).then(r => { if (r.isConfirmed) exportAllData(); });
+      }, 5000);
+    }
+  } catch {}
+}
+
+/* ---------- Router ---------- */
+function route() {
+  const h = (location.hash || '').replace(/^#\/?/, '');
+  const hashParts = h.split('/').filter(Boolean);
+  if (hashParts[0] === 'result' && hashParts[1]) { loadResult(hashParts[1]); return; }
+  let parts = [];
+  const path = location.pathname.replace(/\/+$/, '') || '/';
+  const pathMatch = path.match(/^\/(quiz|result|login|dashboard)(?:\/([^/]+))?/i);
+  if (pathMatch) parts = [pathMatch[1].toLowerCase(), pathMatch[2]].filter(Boolean);
+  else if (hashParts.length) parts = hashParts;
+  if (parts[0] === 'quiz' && parts[1] && state.examFinished) return;
+  if (parts[0] === 'quiz' && parts[1]) loadPublicQuiz(parts[1]);
+  else if (parts[0] === 'result' && parts[1]) loadResult(parts[1]);
+  else if (parts[0] === 'login') showView('login');
+  else if (parts[0] === 'dashboard' && state.token) showView('dashboard');
+  else if (state.token && !parts[0]) showView('dashboard');
+  else if (!parts[0]) showView('landing');
+  else showView('landing');
+}
+
+window.addEventListener('hashchange', route);
+window.addEventListener('popstate', route);
+document.addEventListener('DOMContentLoaded', () => {
+  if (state.token && state.teacher) document.getElementById('teacherName').textContent = state.teacher.full_name || state.teacher.username;
+  loadNotifications();
+  checkAutoBackupReminder();
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  route();
+});
+</script>
+</body>
+</html>
