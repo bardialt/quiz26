@@ -817,14 +817,15 @@
 </section>
 
 <!-- Upload Import Modal -->
-<div id="modalUploadImport" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
-  <div class="glass rounded-2xl p-6 w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+<div id="modalUploadImport" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modalUploadImport')">
+  <div class="glass rounded-2xl p-6 w-full max-w-3xl max-h-[92vh] overflow-y-auto relative">
+    <button type="button" onclick="closeModal('modalUploadImport')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-rose-500/80 text-slate-400 hover:text-white flex items-center justify-center transition" title="بستن (Esc)"><i class="fa-solid fa-xmark"></i></button>
     <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i> آپلود فایل سوالات</h3>
     <p class="text-[11px] text-slate-500 mb-4">فایل متنی سوالات را آپلود یا متن را بچسبانید؛ سوالات استخراج می‌شوند، بعد جواب‌ها را علامت می‌زنید و به آزمون اضافه می‌کنید.</p>
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <label class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition">
-        <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (txt / csv / md)
-        <input type="file" id="importFile" accept=".txt,.csv,.md,text/plain" class="hidden" onchange="handleImportFile(this.files[0])" />
+        <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)
+        <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
       </label>
       <button type="button" onclick="loadImportSample()" class="px-3 py-2 text-xs rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles ml-1"></i> نمونه ببین</button>
       <span id="importFileInfo" class="text-[11px] text-slate-500"></span>
@@ -843,8 +844,10 @@
     </div>
     <div id="importReview" class="hide mt-4"></div>
     <div id="importActions" class="hide flex justify-end gap-2 mt-4">
-      <button onclick="closeModal('modalUploadImport')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
       <button onclick="saveImportedQuestions()" id="saveImportBtn" class="px-5 py-2.5 rounded-xl btn-emerald text-white text-sm font-bold"><i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون</button>
+    </div>
+    <div class="flex justify-start mt-4 pt-3 border-t border-slate-800">
+      <button onclick="closeModal('modalUploadImport')" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-800 transition"><i class="fa-solid fa-arrow-right ml-1"></i> بستن</button>
     </div>
   </div>
 </div>
@@ -1278,9 +1281,24 @@ async function viewResults(id) {
       '<table class="w-full"><thead><tr class="text-slate-400 text-xs border-b border-slate-700"><th class="p-1.5">دانش‌آموز</th><th class="p-1.5">مدرسه</th><th class="p-1.5">نمره</th><th class="p-1.5">%</th><th class="p-1.5">وضعیت</th><th class="p-1.5">عملیات</th></tr></thead><tbody>' +
       rows.map(s => '<tr class="border-t border-slate-800 hover:bg-slate-800/40"><td class="p-1.5 font-medium text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</td><td class="p-1.5 text-slate-400 text-xs">' + esc(s.school) + '</td><td class="p-1.5">' + s.score + '/' + s.max_score + '</td><td class="p-1.5 text-emerald-300">' + s.percent + '</td><td class="p-1.5">' + (s.passed ? '<span class="text-emerald-400">قبول</span>' : '<span class="text-rose-400">مردود</span>') + '</td><td class="p-1.5"><button class="text-xs px-2 py-1 rounded bg-slate-800 text-accent-300 hover:bg-accent-500/20" onclick="Swal.close();setTimeout(()=>showTeacherReport(' + s.id + '),200)">کارنامه</button></td></tr>').join('') +
       '</tbody></table></div>';
-    const r = await Swal.fire({ title: 'گزارش: ' + title, html, background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'دانلود CSV', cancelButtonText: 'بستن', confirmButtonColor: '#10b981', cancelButtonColor: '#334155', width: 750 });
+    const r = await Swal.fire({
+      title: 'گزارش: ' + title, html, background: '#1e293b', color: '#fff',
+      showCancelButton: false, showDenyButton: true,
+      confirmButtonText: '<i class="fa-solid fa-file-csv ml-1"></i> دانلود CSV',
+      denyButtonText: '<i class="fa-solid fa-file-excel ml-1"></i> دانلود Excel',
+      confirmButtonColor: '#10b981', denyButtonColor: '#217346', width: 750,
+      didOpen: () => {
+        const close = document.createElement('button');
+        close.className = 'swal2-styled swal2-cancel';
+        close.style.cssText = 'background:#334155;color:#fff';
+        close.innerHTML = 'بستن';
+        close.onclick = () => Swal.close();
+        const actions = Swal.getActions();
+        if (actions) actions.appendChild(close);
+      }
+    });
     if (r.isConfirmed) { const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'results-' + id + '.csv'; a.click(); }
-    if (r.isDismissed && r.dismiss === Swal.DismissReason.cancel) { const blob = new Blob([xls], { type: 'application/vnd.ms-excel;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'results-' + id + '.xls'; a.click(); }
+    if (r.isDenied) { const blob = new Blob([xls], { type: 'application/vnd.ms-excel;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'results-' + id + '.xls'; a.click(); }
   } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
 }
 
@@ -1844,14 +1862,38 @@ function openUploadImport() {
   document.getElementById('importActions').classList.add('hide');
   const fi = document.getElementById('importFile'); if (fi) fi.value = '';
   document.getElementById('modalUploadImport').classList.remove('hide');
+  __importEscHandler = (e) => { if (e.key === 'Escape') { closeModal('modalUploadImport'); document.removeEventListener('keydown', __importEscHandler); } };
+  document.addEventListener('keydown', __importEscHandler);
 }
+
+let __importEscHandler = null;
+const _origCloseModal = closeModal;
+closeModal = function (id) {
+  _origCloseModal(id);
+  if (id === 'modalUploadImport' && __importEscHandler) { document.removeEventListener('keydown', __importEscHandler); __importEscHandler = null; }
+};
 
 function handleImportFile(file) {
   if (!file) return;
-  if (file.size > 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۱ مگابایت (فایل متنی).', background: '#1e293b', color: '#fff' }); return; }
+  if (file.size > 5 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۵ مگابایت.', background: '#1e293b', color: '#fff' }); return; }
   const reader = new FileReader();
   reader.onload = () => {
-    document.getElementById('importText').value = reader.result || '';
+    const text = String(reader.result || '');
+    // Binary sniff: null bytes or too many replacement chars → not a text format (docx/pdf/xlsx…)
+    const sample = text.slice(0, 3000);
+    const nulls = (sample.match(/\u0000/g) || []).length;
+    const repl = (sample.match(/\uFFFD/g) || []).length;
+    if (nulls > 2 || repl > sample.length * 0.08) {
+      const ext = (file.name.split('.').pop() || '').toUpperCase();
+      document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' — فرمت باینری (قابل پارس خودکار نیست)';
+      Swal.fire({
+        icon: 'info', title: 'این فایل متنی (خوانا) نیست',
+        html: '<p class="text-xs text-slate-300 text-right leading-relaxed">فایل <b dir="ltr">' + esc(ext || '؟') + '</b> باینری است و استخراج خودکار ندارند.<br/>برای انتقال سوالات: فایل را باز کنید → <b>Select All</b> → <b>Copy</b> → متن را در کادر پایین <b>Paste</b> کنید و «استخراج سوالات» را بزنید.</p>',
+        background: '#1e293b', color: '#fff', confirmButtonText: 'متوجه شدم', confirmButtonColor: '#10b981'
+      });
+      return;
+    }
+    document.getElementById('importText').value = text;
     document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' (' + Math.round(file.size / 1024) + 'KB)';
     parseImportedText();
   };
