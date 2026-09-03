@@ -15,3 +15,4 @@ Thumbs.db
 
 # Wrangler build artifacts
 .wrangler/
+desc.json
