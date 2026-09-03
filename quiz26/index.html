@@ -493,6 +493,7 @@
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-rose-500/30 transition"><input id="qAntiTab" type="checkbox" checked class="rounded text-rose-500" /> رصد ترک تب</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-accent-500/30 transition"><input id="qRequireLogin" type="checkbox" class="rounded text-accent-500" /> ورود فقط با حساب دانش‌آموزی</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 cursor-pointer text-sm hover:border-amber-500/40 transition" title="نمره دانش‌آموز تا پایان تاریخ آزمون مخفی می‌ماند و بعد از آن کارنامه منتشر می‌شود"><input id="qReportAfterEnd" type="checkbox" class="rounded text-amber-500" /> <i class="fa-solid fa-hourglass-half text-amber-400"></i> نمایش کارنامه پس از پایان تاریخ آزمون</label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 cursor-pointer text-sm hover:border-blue-500/40 transition" title="همه سوالات زیر هم در یک صفحه نمایش داده می‌شوند"><input id="qStackedView" type="checkbox" class="rounded text-blue-500" /> <i class="fa-solid fa-layer-group text-blue-400"></i> نمایش سوالات زیر هم (تک‌صفحه‌ای)</label>
         </div>
         <div class="flex justify-end gap-2 mt-6">
           <button onclick="resetStudio()" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-800">پاک کردن</button>
@@ -504,6 +505,7 @@
           <h3 class="font-bold text-white">سوالات آزمون <span id="editingQuizId" class="text-emerald-400 text-sm font-mono"></span></h3>
           <div class="flex gap-2">
             <button onclick="openAIGenerate()" class="px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 text-white font-medium"><i class="fa-solid fa-brain ml-1"></i> تولید با AI</button>
+            <button onclick="openUploadImport()" class="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium"><i class="fa-solid fa-file-import ml-1"></i> آپلود فایل سوالات</button>
             <button onclick="openAddQuestion()" class="px-4 py-2 text-sm rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium"><i class="fa-solid fa-plus ml-1"></i> افزودن سوال</button>
           </div>
         </div>
@@ -813,6 +815,39 @@
     <div id="reportCardContent" class="glass rounded-3xl p-8"></div>
   </div>
 </section>
+
+<!-- Upload Import Modal -->
+<div id="modalUploadImport" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+    <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i> آپلود فایل سوالات</h3>
+    <p class="text-[11px] text-slate-500 mb-4">فایل متنی سوالات را آپلود یا متن را بچسبانید؛ سوالات استخراج می‌شوند، بعد جواب‌ها را علامت می‌زنید و به آزمون اضافه می‌کنید.</p>
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <label class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition">
+        <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (txt / csv / md)
+        <input type="file" id="importFile" accept=".txt,.csv,.md,text/plain" class="hidden" onchange="handleImportFile(this.files[0])" />
+      </label>
+      <button type="button" onclick="loadImportSample()" class="px-3 py-2 text-xs rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles ml-1"></i> نمونه ببین</button>
+      <span id="importFileInfo" class="text-[11px] text-slate-500"></span>
+    </div>
+    <div><label class="text-xs text-slate-400 mb-1 block">متن سوالات (یا محتوای فایل)</label><textarea id="importText" rows="7" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm leading-relaxed font-mono" placeholder="مثال:
+1) پایتخت ایران کدام است؟
+الف) اصفهان
+ب) تهران
+ج) شیراز
+د) تبریز
+
+2) جرم مولکول آب چند گرم است؟ (پاسخ کوتاه)"></textarea></div>
+    <div class="flex flex-wrap items-center gap-3 mt-3">
+      <button onclick="parseImportedText()" id="parseImportBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-l from-blue-600 to-cyan-500 text-white text-sm font-bold hover:brightness-110 transition"><i class="fa-solid fa-list-check ml-1"></i> استخراج سوالات</button>
+      <span id="parseSummary" class="text-xs text-slate-400"></span>
+    </div>
+    <div id="importReview" class="hide mt-4"></div>
+    <div id="importActions" class="hide flex justify-end gap-2 mt-4">
+      <button onclick="closeModal('modalUploadImport')" class="px-4 py-2 rounded-xl border border-slate-700 text-sm">انصراف</button>
+      <button onclick="saveImportedQuestions()" id="saveImportBtn" class="px-5 py-2.5 rounded-xl btn-emerald text-white text-sm font-bold"><i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون</button>
+    </div>
+  </div>
+</div>
 
 <div id="modalAIGenerate" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4">
   <div class="glass rounded-2xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
@@ -1393,6 +1428,7 @@ function resetStudio() {
   document.getElementById('qAntiTab').checked = true;
   document.getElementById('qRequireLogin').checked = false;
   document.getElementById('qReportAfterEnd').checked = false;
+  document.getElementById('qStackedView').checked = false;
   document.getElementById('questionsPanel').classList.add('hide');
   document.getElementById('editingQuizId').textContent = '';
 }
@@ -1424,6 +1460,7 @@ async function saveQuiz() {
     anti_tab: document.getElementById('qAntiTab').checked,
     require_login: document.getElementById('qRequireLogin').checked,
     report_after_end: document.getElementById('qReportAfterEnd').checked,
+    stacked_view: document.getElementById('qStackedView').checked,
     start_at: startDate ? startDate.toISOString() : null,
     end_at: endDate ? endDate.toISOString() : null,
   };
@@ -1460,6 +1497,7 @@ async function editQuiz(id) {
     document.getElementById('qAntiTab').checked = !!q.anti_tab;
     document.getElementById('qRequireLogin').checked = !!q.require_login;
     document.getElementById('qReportAfterEnd').checked = !!q.report_after_end;
+    document.getElementById('qStackedView').checked = !!q.stacked_view;
     document.getElementById('editingQuizId').textContent = '#' + id;
     document.getElementById('questionsPanel').classList.remove('hide');
     showView('studio');
@@ -1625,6 +1663,42 @@ function showImageLightbox(src) {
   document.body.appendChild(overlay);
 }
 
+/* Full viewer for ANY attachment type (image / pdf / video / doc / data: or http) */
+function fileLabelFor(u) {
+  if (/\.pdf(\?|$)/i.test(u) || u.startsWith('data:application/pdf')) return { icon: 'fa-file-pdf', color: '#f87171', label: 'PDF' };
+  if (/\.docx?(\?|$)/i.test(u)) return { icon: 'fa-file-word', color: '#60a5fa', label: 'Word' };
+  if (/\.(xlsx?|csv)(\?|$)/i.test(u)) return { icon: 'fa-file-excel', color: '#34d399', label: 'Excel' };
+  if (/\.(mp4|webm|ogg)(\?|$)/i.test(u) || u.startsWith('data:video')) return { icon: 'fa-file-video', color: '#a78bfa', label: 'ویدیو' };
+  if (/\.(zip|rar|7z)(\?|$)/i.test(u)) return { icon: 'fa-file-zipper', color: '#fbbf24', label: 'آرشیو' };
+  return { icon: 'fa-file-lines', color: '#94a3b8', label: 'فایل' };
+}
+
+function showFileLightbox(qid) {
+  const q = (state.questions || []).find(x => String(x.id) === String(qid));
+  const u = q ? q.image_url : '';
+  if (!u) return;
+  const meta = fileLabelFor(u);
+  const isImg = u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u);
+  const isPdf = /\.pdf(\?|$)/i.test(u) || u.startsWith('data:application/pdf');
+  const isVid = /\.(mp4|webm|ogg)(\?|$)/i.test(u) || u.startsWith('data:video');
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  let inner;
+  if (isImg) {
+    inner = '<img src="' + esc(u) + '" style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65);display:block;object-fit:contain" />';
+  } else if (isPdf) {
+    inner = '<iframe src="' + esc(u) + '" style="width:min(94vw,1000px);height:86vh;border:0;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.65)"></iframe>';
+  } else if (isVid) {
+    inner = '<video src="' + esc(u) + '" controls autoplay style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65)"></video>';
+  } else {
+    inner = '<div style="text-align:center;color:#e2e8f0;padding:40px 60px;background:rgba(15,23,42,.9);border:1px solid rgba(148,163,184,.2);border-radius:20px"><i class="fa-solid ' + meta.icon + '" style="font-size:56px;color:' + meta.color + '"></i><div style="margin-top:14px;font-weight:800">فایل ' + meta.label + '</div><div style="color:#64748b;font-size:12px;margin-top:4px">این نوع فایل داخل صفحه قابل نمایش نیست — دانلود کنید</div></div>';
+  }
+  const dlBtn = '<a href="' + esc(u) + '" download style="position:absolute;bottom:-16px;right:50%;transform:translateX(50%);display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#4f46e5,#059669);color:#fff;border:0;border-radius:999px;padding:10px 22px;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:inherit"><i class="fa-solid fa-download"></i> دانلود فایل</a>';
+  overlay.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%"><button style="position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:50%;background:#e11d48;color:#fff;border:0;cursor:pointer;font-size:15px;z-index:2" title="بستن">✕</button>' + inner + dlBtn + '</div>';
+  overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName === 'BUTTON') overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 async function submitQuestion() {
   const type = document.getElementById('mqType').value;
   const content = document.getElementById('mqContent').value.trim();
@@ -1754,6 +1828,227 @@ async function deleteBankQuestion(id) {
   const r = await Swal.fire({ title: 'حذف از بانک سوال؟', text: 'این سوال از بانک شخصی شما حذف می‌شود (سوالات آزمون‌های ساخته‌شده باقی می‌مانند).', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', cancelButtonColor: '#334155', confirmButtonText: 'حذف', cancelButtonText: 'انصراف', background: '#1e293b', color: '#fff' });
   if (!r.isConfirmed) return;
   try { await api('/api/bank/' + id, { method: 'DELETE' }); loadBank(); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+/* ===== Upload & Import Questions ===== */
+let importedQuestions = [];
+
+function openUploadImport() {
+  if (!state.editingQuizId) return Swal.fire({ icon: 'info', title: 'ابتدا آزمون را ذخیره کنید', text: 'برای افزودن سوالات آپلودی، اول اطلاعات آزمون را ذخیره کنید.', background: '#1e293b', color: '#fff' });
+  importedQuestions = [];
+  document.getElementById('importText').value = '';
+  document.getElementById('importFileInfo').textContent = '';
+  document.getElementById('parseSummary').textContent = '';
+  document.getElementById('importReview').classList.add('hide');
+  document.getElementById('importReview').innerHTML = '';
+  document.getElementById('importActions').classList.add('hide');
+  const fi = document.getElementById('importFile'); if (fi) fi.value = '';
+  document.getElementById('modalUploadImport').classList.remove('hide');
+}
+
+function handleImportFile(file) {
+  if (!file) return;
+  if (file.size > 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۱ مگابایت (فایل متنی).', background: '#1e293b', color: '#fff' }); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('importText').value = reader.result || '';
+    document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' (' + Math.round(file.size / 1024) + 'KB)';
+    parseImportedText();
+  };
+  reader.onerror = () => Swal.fire({ icon: 'error', title: 'خطا در خواندن فایل', background: '#1e293b', color: '#fff' });
+  reader.readAsText(file, 'utf-8');
+}
+
+function loadImportSample() {
+  document.getElementById('importText').value = '1) پایتخت ایران کدام است؟\nالف) اصفهان\nب) تهران\nج) شیراز\nد) تبریز\n\n2) حاصل ۱۲ × ۵ چند است؟\n۱) ۵۰\n۲) ۶۰\n۳) ۷۰\n۴) ۸۰\n\n3) نیروی وارد بر جسم را در واحد سطح چه می‌نامند؟ (پاسخ کوتاه)\n\n4) حرکت شنازه در لبه چرخ‌دنده از نوع کدام حرکت است؟\nالف) انتقالی\nب) نوسانی\nج) دورانی\nد) رفت و برگشتی';
+  document.getElementById('importFileInfo').textContent = '📝 نمونه آماده';
+}
+
+const FA_DIGITS = { '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9' };
+function faToEn(s) { return String(s || '').replace(/[۰-۹]/g, d => FA_DIGITS[d]); }
+
+function parseImportedText() {
+  const raw = document.getElementById('importText').value;
+  if (!raw.trim()) return Swal.fire({ icon: 'warning', title: 'متنی وارد کنید یا فایل بدهید', background: '#1e293b', color: '#fff' });
+  const lines = raw.split(/\r?\n/);
+  // CSV mode: header with content column
+  const isCsv = lines[0] && /,/.test(lines[0]) && /(content|سوال|متن|question)/i.test(lines[0]);
+  let qs = [];
+  if (isCsv) {
+    qs = parseCsvQuestions(lines);
+  } else {
+    qs = parsePlainTextQuestions(lines);
+  }
+  qs = qs.filter(q => q.content && q.content.trim().length >= 3);
+  if (!qs.length) {
+    return Swal.fire({ icon: 'error', title: 'سوالی پیدا نشد', html: '<p class="text-xs text-slate-300 text-right">هر سوال باید با شماره شروع شود (مثل <b dir="ltr">1)</b> یا <b dir="ltr">۱.</b>) و گزینه‌ها با الف) ب) ج) د) یا 1) 2) 3) 4) در خطوط جدا باشند.</p>', background: '#1e293b', color: '#fff' });
+  }
+  importedQuestions = qs;
+  renderImportReview();
+}
+
+function parseCsvQuestions(lines) {
+  const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const ci = header.findIndex(h => /content|سوال|متن|question/.test(h));
+  const oi = header.findIndex(h => /option|گزینه/.test(h));
+  const coi = header.findIndex(h => /correct|جواب|پاسخ|answer/.test(h));
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = lines[i].split(',').map(c => c.trim());
+    const content = cols[ci] || '';
+    if (!content) continue;
+    const opts = oi >= 0 && cols[oi] ? cols[oi].split('|').map(x => x.trim()).filter(Boolean) : [];
+    const corRaw = coi >= 0 ? faToEn(cols[coi] || '').trim() : '';
+    const q = { type: 'short', content, options: null, correct: corRaw };
+    if (opts.length >= 2) {
+      q.type = 'mcq'; q.options = opts;
+      const m = corRaw.match(/^\d+$/);
+      q.correct = m ? Number(corRaw) : 0;
+    }
+    out.push(q);
+  }
+  return out;
+}
+
+function parsePlainTextQuestions(lines) {
+  const optLetterMap = { 'الف': 0, 'ب': 1, 'ج': 2, 'د': 3, 'ه': 4, 'و': 5 };
+  const faToEn = s => String(s || '').replace(/[۰-۹]/g, d => FA_DIGITS[d]);
+  const qStart = /^(\d{1,3})\s*[\.\-\)\u066B\u2013\u066C:：]\s*/;
+  const optStartFa = /^(الف|ب|ج|د|ه|و)\s*[\.\-\)]\s*/;
+  const optStartNum = /^([1-9])\s*[\.\-\)]\s*/;
+  const qs = [];
+  let cur = null, answerLine = null, expectQ = 1;
+  const flush = () => {
+    if (!cur) return;
+    if (answerLine) {
+      const m = faToEn(answerLine).match(/(?:پاسخ|جواب|answer)\s*[:=\-]?\s*([1-4]|الف|ب|ج|د)/i);
+      if (m) {
+        const t = m[1];
+        if (/^[1-4]$/.test(t)) cur.correct = Number(t) - 1;
+        else cur.correct = optLetterMap[t] !== undefined ? optLetterMap[t] : null;
+      }
+    }
+    if (cur.options && cur.options.filter(o => o !== undefined).length >= 2) cur.type = 'mcq';
+    else { cur.type = 'short'; cur.options = null; }
+    qs.push(cur); cur = null; answerLine = null;
+  };
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (/^(پاسخ|جواب|answer)\s*[:=\-]/i.test(line)) { answerLine = line; continue; }
+    const faLine = faToEn(line);
+    const qm = faLine.match(qStart);
+    const omFa = line.match(optStartFa);
+    const omNum = faLine.match(optStartNum);
+    let handled = false;
+    if (omNum && cur) {
+      const n = Number(omNum[1]);
+      const optsSoFar = cur.options.filter(o => o !== undefined).length;
+      const nextOpt = optsSoFar + 1;
+      // N) line continues the options when it's the next expected option number.
+      // Only treat it as a NEW question if the line itself ends with ؟/? (questions
+      // end with question marks; option texts normally don't).
+      if (n === nextOpt && !/[؟?]\s*$/.test(line)) {
+        cur.options[n - 1] = line.slice(omNum[0].length).trim();
+        handled = true;
+      }
+    }
+    if (!handled && qm) {
+      const n = Number(qm[1]);
+      flush();
+      expectQ = n + 1;
+      cur = { type: 'short', content: line.slice(qm[0].length).trim(), options: [], correct: null };
+      handled = true;
+    }
+    if (!handled && omFa && cur) {
+      const idx = optLetterMap[omFa[1]];
+      cur.options[idx] = line.slice(omFa[0].length).trim();
+      handled = true;
+    }
+    if (!handled && omNum && !cur) {
+      const n = Number(omNum[1]);
+      expectQ = n + 1;
+      cur = { type: 'short', content: line.slice(omNum[0].length).trim(), options: [], correct: null };
+      handled = true;
+    }
+    if (!handled && cur) {
+      if (cur.options && cur.options.filter(o => o !== undefined).length) {
+        const last = cur.options.reduce((a,v,i)=>v!==undefined?i:a, 0);
+        cur.options[last] = (cur.options[last] || '') + ' ' + line;
+      } else cur.content += ' ' + line;
+    }
+  }
+  flush();
+  return qs;
+}
+
+function renderImportReview() {
+  const wrap = document.getElementById('importReview');
+  const actions = document.getElementById('importActions');
+  const n = importedQuestions.length;
+  document.getElementById('parseSummary').innerHTML = '<b class="text-emerald-400">' + n + '</b> سوال استخراج شد — جواب‌ها را علامت بزنید (برای سوال کوتاه، پاسخ را بنویسید).';
+  if (!n) { wrap.classList.add('hide'); actions.classList.add('hide'); return; }
+  wrap.classList.remove('hide');
+  actions.classList.remove('hide');
+  const letters = ['الف', 'ب', 'ج', 'د', 'ه', 'و'];
+  wrap.innerHTML = importedQuestions.map((q, i) => {
+    let body;
+    if (q.options && q.options.length >= 2) {
+      const opts = q.options.map((o, oi) => o === undefined ? '' :
+        '<label class="imp-opt flex items-center gap-2 p-2 rounded-lg border border-slate-700 cursor-pointer hover:border-blue-500/50 transition ' + (q.correct === oi ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" /><span class="text-[11px] text-slate-500 w-5 shrink-0">' + letters[oi] + '</span><span class="text-xs text-slate-200 flex-1">' + esc(String(o)) + '</span></label>'
+      ).join('');
+      body = '<div class="grid sm:grid-cols-2 gap-1.5 mt-2">' + opts + '</div>';
+    } else {
+      body = '<input type="text" value="' + escAttr(q.correct !== null && typeof q.correct === 'string' ? q.correct : '') + '" oninput="markImportShort(' + i + ', this.value)" placeholder="پاسخ صحیح (با کاما جدا کنید برای چند پاسخ)" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />';
+    }
+    return '<div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-2"><div class="flex items-start gap-2"><span class="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">' + (i + 1) + '</span><div class="flex-1 min-w-0"><div class="text-xs text-slate-100 leading-relaxed">' + esc(q.content) + '</div>' + body + '</div><button onclick="removeImported(' + i + ')" class="text-rose-400/60 hover:text-rose-400 px-1 shrink-0" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div></div>';
+  }).join('');
+}
+
+function markImportAnswer(qi, oi) {
+  importedQuestions[qi].correct = oi;
+  renderImportReview();
+}
+
+function markImportShort(qi, val) {
+  importedQuestions[qi].correct = val.trim();
+}
+
+function removeImported(i) {
+  importedQuestions.splice(i, 1);
+  renderImportReview();
+}
+
+async function saveImportedQuestions() {
+  const valid = importedQuestions.filter(q => {
+    if (!q.content) return false;
+    if (q.type === 'mcq') return q.options && q.options.length >= 2 && q.correct !== null && q.correct !== undefined;
+    return q.correct !== null && q.correct !== undefined && String(q.correct).trim() !== '';
+  });
+  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'هیچ سوالی بدون جواب نمی‌ماند', text: 'برای هر سوال، گزینه صحیح را علامت بزنید یا پاسخ کوتاه بنویسید.', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('saveImportBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ذخیره...';
+  let saved = 0;
+  for (const q of valid) {
+    try {
+      await api('/api/quizzes/' + state.editingQuizId + '/questions', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: q.type,
+          content: q.content,
+          options_json: q.type === 'mcq' ? q.options : null,
+          correct_json: q.type === 'mcq' ? q.correct : String(q.correct).split(',').map(s => s.trim()).filter(Boolean),
+          score: 1,
+        }),
+      });
+      saved++;
+    } catch (err) { console.error(err); }
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون';
+  closeModal('modalUploadImport');
+  loadQuestions(state.editingQuizId);
+  Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: valid.length - saved ? (valid.length - saved) + ' سوال ذخیره نشد' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
 }
 
 function printBankQuestions() {
@@ -2545,6 +2840,7 @@ function startExam(e) {
   e.preventDefault();
   const resumed = !!localStorage.getItem('q26_exam_state');
   state.examResumed = resumed;
+  state.stackedMode = !!state.exam.stacked_view;
   const name = document.getElementById('stName').value.trim();
   const family = document.getElementById('stFamily').value.trim();
   const school = document.getElementById('stSchool').value.trim();
@@ -2560,12 +2856,14 @@ function startExam(e) {
   state.isExam = true; state.examFinished = false; state.answerSheet = []; state.examSubmitting = false;
   state.startedAt = new Date().toISOString();
   state.remainingSec = (state.exam.duration_min || 30) * 60;
+  state.stackedMode = !!state.exam.stacked_view;
   document.getElementById('examTitle').textContent = state.exam.title;
   const badge = document.getElementById('sheetBadge');
   if (badge) { badge.textContent = ''; badge.classList.add('hide'); }
   saveExamState();
   showView('exam-room');
-  renderExamQuestion(); renderPalette(); startTimer();
+  if (state.stackedMode) renderExamStacked(); else renderExamQuestion();
+  renderPalette(); startTimer();
   if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
   if (state.exam.anti_tab) document.addEventListener('visibilitychange', onTabSwitch);
   try { document.documentElement.requestFullscreen?.(); } catch {}
@@ -2675,9 +2973,9 @@ function renderExamQuestion() {
   let mediaHtml = '';
   if (q.image_url) {
     const u = q.image_url;
-    if (/.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
-    else if (u.startsWith('data:image') || /.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900" />';
-    else mediaHtml = '<a href="' + esc(u) + '" target="_blank" class="inline-flex items-center gap-2 text-sm text-emerald-400 mb-4"><i class="fa-solid fa-paperclip"></i> فایل پیوست</a>';
+    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
+    else if (u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" onclick="showFileLightbox(\'' + q.id + '\')" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900 cursor-zoom-in" />';
+    else mediaHtml = '<button type="button" onclick="showFileLightbox(\'' + q.id + '\')" class="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl bg-accent-600/90 hover:bg-accent-500 text-white mb-4 transition shadow-lg shadow-accent-500/20"><i class="fa-solid fa-file-arrow-down"></i> مشاهده و دانلود فایل پیوست</button>';
   }
   let optsHtml = '';
   if (q.type === 'mcq' || q.type === 'multi') {
@@ -2714,7 +3012,91 @@ function setAnswer(qid, val, type) {
   if (type === 'multi') { let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : []; const idx = arr.indexOf(val); if (idx >= 0) arr.splice(idx, 1); else arr.push(val); state.answers[qid] = arr; }
   else if (type === 'essay' || type === 'short') { state.answers[qid] = val; renderPalette(); return; }
   else state.answers[qid] = type === 'mcq' ? Number(val) : val;
-  renderPalette(); renderExamQuestion();
+  renderPalette();
+  if (state.stackedMode) refreshStackedQuestion(qid); else renderExamQuestion();
+}
+
+/* ===== Stacked (all-in-one-page) exam view ===== */
+function renderExamStacked() {
+  const area = document.getElementById('examQuestionArea');
+  if (!state.questions.length) { area.innerHTML = '<p class="text-slate-400 text-center py-10">سوالی وجود ندارد.</p>'; return; }
+  area.innerHTML = state.questions.map((q, i) => '<div id="sq_' + q.id + '" class="stacked-q glass rounded-2xl p-5 mb-5 scroll-mt-4">' + buildQuestionBlock(q, i) + '</div>').join('') +
+    '<div class="flex justify-center pt-4"><button type="button" onclick="confirmEndExam()" class="px-8 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-500/25"><i class="fa-solid fa-flag-checkered ml-1"></i> پایان آزمون و ثبت نهایی</button></div>';
+  // bind live inputs
+  state.questions.forEach(q => {
+    if (q.type === 'essay') {
+      const el = document.getElementById('essayInput_' + q.id);
+      if (el) el.addEventListener('input', () => { const prev = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : {}; state.answers[q.id] = { text: el.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); });
+    } else if (q.type === 'short') {
+      const el = document.getElementById('shortInput_' + q.id);
+      if (el) el.addEventListener('input', () => { state.answers[q.id] = el.value; renderPalette(); });
+    }
+  });
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+function buildQuestionBlock(q, i) {
+  let mediaHtml = '';
+  if (q.image_url) {
+    const u = q.image_url;
+    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
+    else if (u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" onclick="showFileLightbox(\'' + q.id + '\')" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900 cursor-zoom-in" />';
+    else mediaHtml = '<button type="button" onclick="showFileLightbox(\'' + q.id + '\')" class="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl bg-accent-600/90 hover:bg-accent-500 text-white mb-4 transition shadow-lg shadow-accent-500/20"><i class="fa-solid fa-file-arrow-down"></i> مشاهده و دانلود فایل پیوست</button>';
+  }
+  let optsHtml = '';
+  if (q.type === 'mcq' || q.type === 'multi') {
+    optsHtml = (q.options || []).map((o, ix) => {
+      const checked = q.type === 'mcq' ? (state.answers[q.id] === ix ? 'checked' : '') : (Array.isArray(state.answers[q.id]) && state.answers[q.id].includes(ix) ? 'checked' : '');
+      const inputType = q.type === 'mcq' ? 'radio' : 'checkbox';
+      return '<label class="exam-opt flex items-center p-3 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="' + inputType + '" name="sq_' + q.id + '" value="' + ix + '" ' + checked + ' class="ml-2 text-emerald-500 shrink-0" onchange="setAnswer(' + q.id + ',' + ix + ',\'' + q.type + '\')" /><span class="text-slate-200 text-sm">' + esc(String(o)) + '</span></label>';
+    }).join('');
+  } else if (q.type === 'tf') {
+    ['true', 'false'].forEach(v => {
+      const checked = state.answers[q.id] === v ? 'checked' : '';
+      optsHtml += '<label class="exam-opt flex items-center p-3 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="sq_' + q.id + '" value="' + v + '" ' + checked + ' class="ml-2 shrink-0" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" /><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></label>';
+    });
+  } else if (q.type === 'essay') {
+    const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: '', file: null };
+    const textVal = ansObj.text || (typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '');
+    optsHtml = '<textarea id="essayInput_' + q.id + '" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm leading-relaxed text-white" placeholder="پاسخ تشریحی خود را بنویسید..." style="user-select:text;-webkit-user-select:text">' + esc(textVal) + '</textarea>';
+  } else {
+    optsHtml = '<input id="shortInput_' + q.id + '" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="پاسخ خود را بنویسید..." value="' + escAttr(typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '') + '" style="user-select:text;-webkit-user-select:text" />';
+  }
+  const answered = isQuestionAnswered(q);
+  const marked = state.marked.has(i);
+  return '<div class="flex justify-between items-center text-sm mb-3"><div class="flex items-center gap-2"><span class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-accent-500 text-white font-black text-sm flex items-center justify-center">' + (i + 1) + '</span>' + ({ mcq: '<span class="text-[10px] text-slate-500">تستی</span>', multi: '<span class="text-[10px] text-slate-500">چندجوابی</span>', tf: '<span class="text-[10px] text-slate-500">ص/غ</span>', short: '<span class="text-[10px] text-slate-500">کوتاه</span>', essay: '<span class="text-[10px] text-slate-500">تشریحی</span>' }[q.type] || '') + (answered ? '<span class="text-[10px] text-emerald-400"><i class="fa-solid fa-check"></i> پاسخ داده شد</span>' : '') + '</div><button type="button" onclick="toggleMarkStacked(' + i + ')" class="text-xs ' + (marked ? 'text-amber-400' : 'text-slate-500 hover:text-amber-400') + ' transition"><i class="fa-' + (marked ? 'solid' : 'regular') + ' fa-bookmark ml-1"></i>' + (marked ? 'نشان‌دار' : 'نشان‌دار کن') + '</button></div><div class="text-base leading-loose text-white mb-3">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div>';
+}
+
+function refreshStackedQuestion(qid) {
+  const q = state.questions.find(x => x.id === qid);
+  if (!q) return;
+  const i = state.questions.indexOf(q);
+  const el = document.getElementById('sq_' + qid);
+  if (!el) return;
+  el.innerHTML = buildQuestionBlock(q, i);
+  if (q.type === 'essay') {
+    const inp = document.getElementById('essayInput_' + qid);
+    if (inp) inp.addEventListener('input', () => { const prev = (typeof state.answers[qid] === 'object' && state.answers[qid]) ? state.answers[qid] : {}; state.answers[qid] = { text: inp.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); });
+  } else if (q.type === 'short') {
+    const inp = document.getElementById('shortInput_' + qid);
+    if (inp) inp.addEventListener('input', () => { state.answers[qid] = inp.value; renderPalette(); });
+  }
+  if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+function isQuestionAnswered(q) {
+  const a = state.answers[q.id];
+  if (a === undefined || a === null || a === '') return false;
+  if (Array.isArray(a)) return a.length > 0;
+  if (typeof a === 'object') return !!(a.text || a.file);
+  return true;
+}
+
+function toggleMarkStacked(i) {
+  if (state.marked.has(i)) state.marked.delete(i); else state.marked.add(i);
+  const q = state.questions[i];
+  if (q) refreshStackedQuestion(q.id);
+  renderPalette();
 }
 
 function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delete(state.currentQ); else state.marked.add(state.currentQ); renderPalette(); renderExamQuestion(); }

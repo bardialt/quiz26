@@ -132,6 +132,7 @@ async function ensureStudentSchema(env) {
   try { await env.DB.prepare('ALTER TABLE submissions ADD COLUMN student_user_id INTEGER').run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE submissions ADD COLUMN student_phone TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN report_after_end INTEGER NOT NULL DEFAULT 0').run(); } catch {}
+  try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN stacked_view INTEGER NOT NULL DEFAULT 0').run(); } catch {}
   try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_students_teacher ON students(teacher_id)').run(); } catch {}
   try {
     const t = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='quizzes'").first();
@@ -168,6 +169,7 @@ async function ensureStudentSchema(env) {
           start_at        TEXT,
           end_at          TEXT,
           report_after_end INTEGER NOT NULL DEFAULT 0,
+          stacked_view    INTEGER NOT NULL DEFAULT 0,
           created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
           updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
         )`,
@@ -676,8 +678,8 @@ export default {
           INSERT INTO quizzes (
             teacher_id, title, description, duration_min, pass_score,
             shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab,
-            max_attempts, status, start_at, end_at, require_login, report_after_end
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
           payload.sub,
           b.title,
@@ -695,7 +697,8 @@ export default {
           b.start_at || null,
           b.end_at || null,
           b.require_login ? 1 : 0,
-          b.report_after_end ? 1 : 0
+          b.report_after_end ? 1 : 0,
+          b.stacked_view ? 1 : 0
         ).run();
         return json({ success: true, id: r.meta.last_row_id }, 201, origin);
       }
@@ -736,6 +739,7 @@ export default {
               status = COALESCE(?, status),
               require_login = COALESCE(?, require_login),
               report_after_end = COALESCE(?, report_after_end),
+              stacked_view = COALESCE(?, stacked_view),
               start_at = ?,
               end_at = ?,
               updated_at = datetime('now')
@@ -755,6 +759,7 @@ export default {
             b.status ?? null,
             b.require_login !== undefined ? (b.require_login ? 1 : 0) : null,
             b.report_after_end !== undefined ? (b.report_after_end ? 1 : 0) : null,
+            b.stacked_view !== undefined ? (b.stacked_view ? 1 : 0) : null,
             b.start_at ?? null,
             b.end_at ?? null,
             qid, payload.sub
@@ -882,7 +887,7 @@ export default {
       if (publicQuizMatch && method === 'GET') {
         const qid = Number(publicQuizMatch[1]);
         const quiz = await env.DB.prepare(
-          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, max_attempts, status, start_at, end_at, require_login, report_after_end FROM quizzes WHERE id = ?'
+          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view FROM quizzes WHERE id = ?'
         ).bind(qid).first();
         if (!quiz) return error('آزمون یافت نشد.', 404, origin);
         if (quiz.status !== 'active') return error('این آزمون در حال حاضر فعال نیست.', 403, origin);
@@ -977,6 +982,7 @@ export default {
             show_result: !!quiz.show_result,
             require_login: !!quiz.require_login,
             report_after_end: !!quiz.report_after_end,
+            stacked_view: !!quiz.stacked_view,
             question_count: questions.length,
             start_at: quiz.start_at,
             end_at: quiz.end_at,
