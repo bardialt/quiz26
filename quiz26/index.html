@@ -735,6 +735,40 @@
   </div>
 </section>
 
+<!-- Homework Public View (student) -->
+<section id="view-homework-public" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
+  <div class="glass rounded-3xl p-8 w-full max-w-2xl shadow-2xl my-8">
+    <div id="hwPubLoading" class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-emerald-400"></i><p class="text-sm text-slate-400 mt-3">در حال بارگذاری تکلیف...</p></div>
+    <div id="hwPubError" class="hide text-center py-10"></div>
+    <div id="hwPubContent" class="hide">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-3 shadow-lg"><i class="fa-solid fa-book-open text-white text-xl"></i></div>
+        <h2 class="text-xl font-bold text-white" id="hwPubTitle"></h2>
+        <p class="text-xs text-slate-500 mt-1" id="hwPubMeta"></p>
+      </div>
+      <div id="hwPubDesc" class="text-sm text-slate-300 bg-slate-900/60 border border-slate-700 rounded-xl p-4 leading-relaxed mb-4"></div>
+      <div id="hwPubAttachment" class="hide mb-4"></div>
+      <div id="hwPubForm" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-xs text-slate-400 mb-1 block">نام *</label><input id="hwStName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
+          <div><label class="text-xs text-slate-400 mb-1 block">نام خانوادگی *</label><input id="hwStFamily" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
+        </div>
+        <div><label class="text-xs text-slate-400 mb-1 block">توضیحات پاسخ (اختیاری)</label><textarea id="hwStAnswer" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="هر توضیحی دربارهٔ پاسخ‌تان..."></textarea></div>
+        <div>
+          <label class="text-xs text-slate-400 mb-1 block"><i class="fa-solid fa-paperclip text-emerald-400 ml-1"></i> آپلود فایل پاسخ (عکس / PDF / Word / هر فایلی — تا ۴MB، چند فایل)</label>
+          <input id="hwStFiles" type="file" multiple class="w-full text-xs text-slate-400 file:ml-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:text-white file:text-xs file:cursor-pointer" />
+          <div id="hwStFilesList" class="flex flex-wrap gap-2 mt-2"></div>
+        </div>
+        <button onclick="submitHomeworkPublic()" id="hwSubmitBtn" class="w-full py-3.5 rounded-xl btn-emerald text-white font-bold">ارسال تکلیف</button>
+      </div>
+      <div id="hwPubStatus" class="hide mt-6 pt-5 border-t border-slate-700/60">
+        <button onclick="checkHwStatus()" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-500/10 border border-accent-500/25 text-accent-300 text-sm font-bold hover:bg-accent-500/15 transition"><i class="fa-solid fa-magnifying-glass"></i> مشاهده وضعیت و پاسخ دبیر</button>
+        <div id="hwStatusResult" class="hide mt-3"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Result -->
 <section id="view-result" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
   <div class="glass rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
@@ -828,9 +862,10 @@
         <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
       </label>
       <button type="button" onclick="loadImportSample()" class="px-3 py-2 text-xs rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles ml-1"></i> نمونه ببین</button>
+      <button type="button" onclick="startManualImport()" id="manualImportBtn" class="px-3 py-2 text-xs rounded-lg border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 transition"><i class="fa-solid fa-hand-pointer ml-1"></i> ساخت دستی (بدون فایل متنی)</button>
       <span id="importFileInfo" class="text-[11px] text-slate-500"></span>
     </div>
-    <div><label class="text-xs text-slate-400 mb-1 block">متن سوالات (یا محتوای فایل)</label><textarea id="importText" rows="7" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm leading-relaxed font-mono" placeholder="مثال:
+    <div><label class="text-xs text-slate-400 mb-1 block">متن سوالات (یا محتوای فایل متنی)</label><textarea id="importText" rows="7" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm leading-relaxed font-mono" placeholder="مثال:
 1) پایتخت ایران کدام است؟
 الف) اصفهان
 ب) تهران
@@ -838,6 +873,7 @@
 د) تبریز
 
 2) جرم مولکول آب چند گرم است؟ (پاسخ کوتاه)"></textarea></div>
+    <p id="importPdfHint" class="hide text-[11px] text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 mt-2 leading-relaxed"><i class="fa-solid fa-circle-info ml-1"></i> این فایل قابل استخراج خودکار نیست (باینری). از دکمهٔ <b>«ساخت دستی»</b> استفاده کنید: طبق فایل‌تان تعداد سوالات، نوع هر سوال (تستی/تشریحی) و گزینه‌ها را خودتان تعریف و جواب‌ها را علامت بزنید.</p>
     <div class="flex flex-wrap items-center gap-3 mt-3">
       <button onclick="parseImportedText()" id="parseImportBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-l from-blue-600 to-cyan-500 text-white text-sm font-bold hover:brightness-110 transition"><i class="fa-solid fa-list-check ml-1"></i> استخراج سوالات</button>
       <span id="parseSummary" class="text-xs text-slate-400"></span>
@@ -1534,9 +1570,71 @@ function renderQuestions(list) {
     const isImg = q.image_url && String(q.image_url).startsWith('data:image');
     const thumb = isImg ? '<img src="' + q.image_url + '" class="w-14 h-14 object-cover rounded-lg border border-slate-600 shrink-0 cursor-pointer" onclick="showImageLightbox(this.src)" />' : '';
     const fileIcon = (q.image_url && !isImg) ? '<i class="fa-solid fa-paperclip text-accent-400" title="فایل پیوست"></i>' : '';
-    return '<div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex gap-3"><div class="text-emerald-400 font-bold text-sm w-6">' + (i+1) + '</div>' + thumb + '<div class="flex-1 min-w-0"><div class="text-sm text-white mb-1">' + esc(q.content).slice(0, 120) + '</div><div class="text-[11px] text-slate-500">' + ({mcq:'چندگزینه‌ای',multi:'چندجوابی',tf:'درست/نادرست',short:'کوتاه',essay:'تشریحی'}[q.type]||q.type) + ' · نمره ' + q.score + ' ' + fileIcon + '</div></div><button onclick="deleteQuestion(' + q.id + ')" class="text-rose-400 hover:text-rose-300 text-sm"><i class="fa-solid fa-trash"></i></button></div>';
+    return '<div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex gap-3"><div class="text-emerald-400 font-bold text-sm w-6">' + (i+1) + '</div>' + thumb + '<div class="flex-1 min-w-0"><div class="text-sm text-white mb-1">' + esc(q.content).slice(0, 120) + '</div><div class="text-[11px] text-slate-500">' + ({mcq:'چندگزینه‌ای',multi:'چندجوابی',tf:'درست/نادرست',short:'کوتاه',essay:'تشریحی'}[q.type]||q.type) + ' · نمره ' + q.score + ' ' + fileIcon + '</div></div><div class="flex flex-col gap-1"><button onclick="editQuestion(' + q.id + ')" class="text-accent-300 hover:text-accent-400 text-sm px-2" title="ویرایش"><i class="fa-solid fa-pen"></i></button><button onclick="deleteQuestion(' + q.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2" title="حذف"><i class="fa-solid fa-trash"></i></button></div></div>';
   }).join('');
   if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+async function editQuestion(id) {
+  try {
+    const data = await api('/api/quizzes/' + state.editingQuizId + '/questions');
+    const q = (data.questions || []).find(x => x.id === id);
+    if (!q) return Swal.fire({ icon: 'error', title: 'سوال یافت نشد', background: '#1e293b', color: '#fff' });
+    editingQuestionId = id;
+    document.getElementById('modalQTitle').textContent = 'ویرایش سوال #' + id;
+    document.getElementById('mqType').value = q.type;
+    document.getElementById('mqContent').value = q.content || '';
+    document.getElementById('mqScore').value = q.score ?? 1;
+    document.getElementById('mqExplain').value = q.explanation || '';
+    document.getElementById('mqMediaUrl').value = (q.image_url && !String(q.image_url).startsWith('data:')) ? q.image_url : '';
+    pendingQuestionFile = (q.image_url && String(q.image_url).startsWith('data:')) ? q.image_url : null;
+    const wrap = document.getElementById('mqFilePreviewWrap');
+    if (pendingQuestionFile) {
+      wrap.classList.remove('hide');
+      const imgEl = document.getElementById('mqFilePreviewImg');
+      if (imgEl) { imgEl.src = pendingQuestionFile; imgEl.classList.remove('hide'); }
+    } else wrap.classList.add('hide');
+    let opts = []; try { opts = JSON.parse(q.options_json || '[]'); } catch {}
+    let corr = []; try { corr = JSON.parse(q.correct_json); if (!Array.isArray(corr)) corr = [corr]; } catch {}
+    if (q.type === 'mcq' || q.type === 'multi') {
+      resetOptionRows(opts.map(o => String(o)), corr.map(Number));
+    } else if (q.type === 'tf') {
+      document.getElementById('mqTf').value = String(corr[0] ?? 'true');
+    } else if (q.type === 'short') {
+      document.getElementById('mqShort').value = Array.isArray(corr) ? corr.join(', ') : String(corr ?? '');
+    } else if (q.type === 'essay') {
+      document.getElementById('mqEssayKey').value = Array.isArray(corr) ? corr.join('\n') : String(corr ?? '');
+    }
+    toggleOptionsUI();
+    document.getElementById('modalQuestion').classList.remove('hide');
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+}
+
+async function submitQuestion() {
+  const type = document.getElementById('mqType').value;
+  const content = document.getElementById('mqContent').value.trim();
+  if (!content) return Swal.fire({ icon: 'warning', title: 'متن سوال الزامی است', background: '#1e293b', color: '#fff' });
+  let options_json = null, correct_json;
+  if (type === 'mcq' || type === 'multi') {
+    const { opts, correct } = collectOptionsFromUI();
+    if (opts.length < 2) return Swal.fire({ icon: 'warning', title: 'حداقل دو گزینه', background: '#1e293b', color: '#fff' });
+    if (!correct.length) return Swal.fire({ icon: 'warning', title: 'گزینه صحیح را انتخاب کنید', background: '#1e293b', color: '#fff' });
+    options_json = opts; correct_json = type === 'mcq' ? correct[0] : correct;
+  } else if (type === 'tf') correct_json = document.getElementById('mqTf').value;
+  else if (type === 'essay') { const key = (document.getElementById('mqEssayKey').value || '').trim(); correct_json = key ? [key] : []; }
+  else { correct_json = document.getElementById('mqShort').value.split(',').map(s => s.trim()).filter(Boolean); if (!correct_json.length) return Swal.fire({ icon: 'warning', title: 'پاسخ صحیح را وارد کنید', background: '#1e293b', color: '#fff' }); }
+  const mediaUrl = (document.getElementById('mqMediaUrl').value || '').trim();
+  const payload = { type, content, options_json, correct_json, score: Number(document.getElementById('mqScore').value) || 1, explanation: document.getElementById('mqExplain').value, image_url: pendingQuestionFile || mediaUrl || null };
+  try {
+    if (editingQuestionId) {
+      await api('/api/questions/' + editingQuestionId, { method: 'PUT', body: JSON.stringify(payload) });
+      editingQuestionId = null;
+      document.getElementById('modalQTitle').textContent = 'افزودن سوال';
+    } else {
+      await api('/api/quizzes/' + state.editingQuizId + '/questions', { method: 'POST', body: JSON.stringify(payload) });
+    }
+    pendingQuestionFile = null; closeModal('modalQuestion'); loadQuestions(state.editingQuizId);
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
 }
 
 let pendingQuestionFile = null;
@@ -1590,6 +1688,8 @@ function removeQuestionFile() {
 
 function openAddQuestion() {
   if (!state.editingQuizId) return Swal.fire({ icon: 'info', title: 'ابتدا آزمون را ذخیره کنید', background: '#1e293b', color: '#fff' });
+  editingQuestionId = null;
+  document.getElementById('modalQTitle').textContent = 'افزودن سوال';
   document.getElementById('mqType').value = 'mcq';
   document.getElementById('mqContent').value = '';
   document.getElementById('mqCorrect').value = '0';
@@ -1717,27 +1817,7 @@ function showFileLightbox(qid) {
   document.body.appendChild(overlay);
 }
 
-async function submitQuestion() {
-  const type = document.getElementById('mqType').value;
-  const content = document.getElementById('mqContent').value.trim();
-  if (!content) return Swal.fire({ icon: 'warning', title: 'متن سوال الزامی است', background: '#1e293b', color: '#fff' });
-  let options_json = null, correct_json;
-  if (type === 'mcq' || type === 'multi') {
-    const { opts, correct } = collectOptionsFromUI();
-    if (opts.length < 2) return Swal.fire({ icon: 'warning', title: 'حداقل دو گزینه', background: '#1e293b', color: '#fff' });
-    if (!correct.length) return Swal.fire({ icon: 'warning', title: 'گزینه صحیح را انتخاب کنید', background: '#1e293b', color: '#fff' });
-    options_json = opts; correct_json = type === 'mcq' ? correct[0] : correct;
-  } else if (type === 'tf') correct_json = document.getElementById('mqTf').value;
-  else if (type === 'essay') { const key = (document.getElementById('mqEssayKey').value || '').trim(); correct_json = key ? [key] : []; }
-  else { correct_json = document.getElementById('mqShort').value.split(',').map(s => s.trim()).filter(Boolean); if (!correct_json.length) return Swal.fire({ icon: 'warning', title: 'پاسخ صحیح را وارد کنید', background: '#1e293b', color: '#fff' }); }
-  const mediaUrl = (document.getElementById('mqMediaUrl').value || '').trim();
-  try {
-    await api('/api/quizzes/' + state.editingQuizId + '/questions', {
-      method: 'POST', body: JSON.stringify({ type, content, options_json, correct_json, score: Number(document.getElementById('mqScore').value) || 1, explanation: document.getElementById('mqExplain').value, image_url: pendingQuestionFile || mediaUrl || null }),
-    });
-    pendingQuestionFile = null; closeModal('modalQuestion'); loadQuestions(state.editingQuizId);
-  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
-}
+let editingQuestionId = null;
 
 async function deleteQuestion(id) {
   const r = await Swal.fire({ title: 'حذف سوال؟', text: 'این سوال از آزمون حذف می‌شود.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', cancelButtonColor: '#334155', confirmButtonText: 'حذف', cancelButtonText: 'انصراف', background: '#1e293b', color: '#fff' });
@@ -1885,10 +1965,11 @@ function handleImportFile(file) {
     const repl = (sample.match(/\uFFFD/g) || []).length;
     if (nulls > 2 || repl > sample.length * 0.08) {
       const ext = (file.name.split('.').pop() || '').toUpperCase();
-      document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' — فرمت باینری (قابل پارس خودکار نیست)';
+      document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' — باینری (ساخت دستی)';
+      document.getElementById('importPdfHint').classList.remove('hide');
       Swal.fire({
         icon: 'info', title: 'این فایل متنی (خوانا) نیست',
-        html: '<p class="text-xs text-slate-300 text-right leading-relaxed">فایل <b dir="ltr">' + esc(ext || '؟') + '</b> باینری است و استخراج خودکار ندارند.<br/>برای انتقال سوالات: فایل را باز کنید → <b>Select All</b> → <b>Copy</b> → متن را در کادر پایین <b>Paste</b> کنید و «استخراج سوالات» را بزنید.</p>',
+        html: '<p class="text-xs text-slate-300 text-right leading-relaxed">فایل <b dir="ltr">' + esc(ext || '؟') + '</b> قابل استخراج خودکار نیست.<br/>دکمهٔ <b class="text-indigo-300">«ساخت دستی»</b> را بزنید: تعداد سوالات و نوع هر سوال (تستی/تشریحی) را طبق فایل خودتان تعریف کنید، متن سوال‌ها را کپی کنید و جواب‌ها را علامت بزنید.</p>',
         background: '#1e293b', color: '#fff', confirmButtonText: 'متوجه شدم', confirmButtonColor: '#10b981'
       });
       return;
@@ -1904,6 +1985,43 @@ function handleImportFile(file) {
 function loadImportSample() {
   document.getElementById('importText').value = '1) پایتخت ایران کدام است؟\nالف) اصفهان\nب) تهران\nج) شیراز\nد) تبریز\n\n2) حاصل ۱۲ × ۵ چند است؟\n۱) ۵۰\n۲) ۶۰\n۳) ۷۰\n۴) ۸۰\n\n3) نیروی وارد بر جسم را در واحد سطح چه می‌نامند؟ (پاسخ کوتاه)\n\n4) حرکت شنازه در لبه چرخ‌دنده از نوع کدام حرکت است؟\nالف) انتقالی\nب) نوسانی\nج) دورانی\nد) رفت و برگشتی';
   document.getElementById('importFileInfo').textContent = '📝 نمونه آماده';
+}
+
+/* Manual builder: teacher defines count & per-question type, matching a PDF/image file */
+function startManualImport() {
+  Swal.fire({
+    title: 'ساخت دستی سوالات',
+    html: '<div class="text-right space-y-3">' +
+      '<p class="text-[11px] text-slate-400">طبق فایل‌تان (PDF/عکس/Word) مشخص کنید چند سوال دارید و هر کدام چه نوعی است. بعد در مرحلهٔ بعد متن سوال‌ها را وارد و جواب‌ها را علامت می‌زنید.</p>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+      '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد سوال تستی</label><input id="miMcq" type="number" min="0" max="200" value="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
+      '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد سوال تشریحی</label><input id="miEssay" type="number" min="0" max="200" value="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
+      '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد ص/غ (اختیاری)</label><input id="miTf" type="number" min="0" max="200" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
+      '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد پاسخ کوتاه (اختیاری)</label><input id="miShort" type="number" min="0" max="200" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
+      '</div><p class="text-[10px] text-slate-500">ترتیب ساخت: اول همهٔ تستی‌ها، بعد ص/غ، بعد کوتاه، بعد تشریحی‌ها — مثل ترتیب فایل شما.</p>' +
+      '</div>',
+    background: '#1e293b', color: '#fff', showCancelButton: true,
+    confirmButtonText: 'ساخت', cancelButtonText: 'انصراف', confirmButtonColor: '#6366f1', width: 460,
+    preConfirm: () => ({
+      mcq: Math.max(0, Number(document.getElementById('miMcq').value) || 0),
+      tf: Math.max(0, Number(document.getElementById('miTf').value) || 0),
+      short: Math.max(0, Number(document.getElementById('miShort').value) || 0),
+      essay: Math.max(0, Number(document.getElementById('miEssay').value) || 0),
+    })
+  }).then(r => {
+    if (!r.isConfirmed) return;
+    const { mcq, tf, short, essay } = r.value;
+    if (mcq + tf + short + essay === 0) return;
+    const qs = [];
+    for (let i = 0; i < mcq; i++) qs.push({ type: 'mcq', content: '', options: ['', '', '', ''], correct: null });
+    for (let i = 0; i < tf; i++) qs.push({ type: 'tf', content: '', options: null, correct: null });
+    for (let i = 0; i < short; i++) qs.push({ type: 'short', content: '', options: null, correct: '' });
+    for (let i = 0; i < essay; i++) qs.push({ type: 'essay', content: '', options: null, correct: '' });
+    importedQuestions = qs;
+    document.getElementById('importPdfHint').classList.add('hide');
+    renderImportReview(true);
+    document.getElementById('importReview').scrollIntoView({ behavior: 'smooth' });
+  });
 }
 
 const FA_DIGITS = { '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9' };
@@ -2025,28 +2143,43 @@ function parsePlainTextQuestions(lines) {
   return qs;
 }
 
-function renderImportReview() {
+function renderImportReview(manual) {
   const wrap = document.getElementById('importReview');
   const actions = document.getElementById('importActions');
   const n = importedQuestions.length;
-  document.getElementById('parseSummary').innerHTML = '<b class="text-emerald-400">' + n + '</b> سوال استخراج شد — جواب‌ها را علامت بزنید (برای سوال کوتاه، پاسخ را بنویسید).';
+  document.getElementById('parseSummary').innerHTML = '<b class="text-emerald-400">' + n + '</b> سوال' + (manual ? ' ساخته شد' : ' استخراج شد') + ' — متن سوال‌ها را کامل کنید و جواب‌ها را علامت بزنید.';
   if (!n) { wrap.classList.add('hide'); actions.classList.add('hide'); return; }
   wrap.classList.remove('hide');
   actions.classList.remove('hide');
   const letters = ['الف', 'ب', 'ج', 'د', 'ه', 'و'];
+  const typeLabel = { mcq: 'تستی', tf: 'ص/غ', short: 'کوتاه', essay: 'تشریحی' };
   wrap.innerHTML = importedQuestions.map((q, i) => {
-    let body;
-    if (q.options && q.options.length >= 2) {
-      const opts = q.options.map((o, oi) => o === undefined ? '' :
-        '<label class="imp-opt flex items-center gap-2 p-2 rounded-lg border border-slate-700 cursor-pointer hover:border-blue-500/50 transition ' + (q.correct === oi ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" /><span class="text-[11px] text-slate-500 w-5 shrink-0">' + letters[oi] + '</span><span class="text-xs text-slate-200 flex-1">' + esc(String(o)) + '</span></label>'
+    let body = '';
+    if (q.type === 'mcq') {
+      const opts = (q.options || []).map((o, oi) =>
+        '<div class="flex items-center gap-1.5"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" title="گزینه صحیح" /><input type="text" value="' + escAttr(String(o || '')) + '" oninput="editImportOption(' + i + ',' + oi + ', this.value)" placeholder="گزینه ' + letters[oi] + '" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white" /></div>'
       ).join('');
-      body = '<div class="grid sm:grid-cols-2 gap-1.5 mt-2">' + opts + '</div>';
+      body = '<div class="grid sm:grid-cols-2 gap-1.5 mt-2">' + opts + '</div><p class="text-[9px] text-slate-600 mt-1">دایره = گزینه صحیح</p>';
+    } else if (q.type === 'tf') {
+      body = '<div class="flex gap-3 mt-2 text-xs"><label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="imptf_' + i + '" ' + (q.correct === 'true' ? 'checked' : '') + ' onchange="markImportTf(' + i + ',\'true\')" class="text-emerald-500" /> درست</label><label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="imptf_' + i + '" ' + (q.correct === 'false' ? 'checked' : '') + ' onchange="markImportTf(' + i + ',\'false\')" class="text-emerald-500" /> نادرست</label></div>';
     } else {
-      body = '<input type="text" value="' + escAttr(q.correct !== null && typeof q.correct === 'string' ? q.correct : '') + '" oninput="markImportShort(' + i + ', this.value)" placeholder="پاسخ صحیح (با کاما جدا کنید برای چند پاسخ)" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />';
+      body = '<input type="text" value="' + escAttr(typeof q.correct === 'string' ? q.correct : '') + '" oninput="markImportShort(' + i + ', this.value)" placeholder="' + (q.type === 'essay' ? 'کلید پاسخ / نکات تصحیح (اختیاری)' : 'پاسخ صحیح (با کاما برای چند پاسخ)') + '" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />';
     }
-    return '<div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-2"><div class="flex items-start gap-2"><span class="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">' + (i + 1) + '</span><div class="flex-1 min-w-0"><div class="text-xs text-slate-100 leading-relaxed">' + esc(q.content) + '</div>' + body + '</div><button onclick="removeImported(' + i + ')" class="text-rose-400/60 hover:text-rose-400 px-1 shrink-0" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div></div>';
+    const typeSel = '<select onchange="changeImportType(' + i + ', this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-0.5 text-[10px] text-slate-300">' + Object.entries(typeLabel).map(([k, v]) => '<option value="' + k + '" ' + (q.type === k ? 'selected' : '') + '>' + v + '</option>').join('') + '</select>';
+    return '<div class="p-3 rounded-xl bg-slate-900/60 border ' + (q.content ? 'border-slate-800' : 'border-amber-500/30') + ' mb-2"><div class="flex items-start gap-2"><span class="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">' + (i + 1) + '</span><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1">' + typeSel + (manual ? '<span class="text-[9px] text-slate-600">طبق ترتیب فایل</span>' : '') + '</div><textarea rows="2" oninput="editImportContent(' + i + ', this.value)" placeholder="متن سوال را از فایل‌تان اینجا وارد/کپی کنید..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white leading-relaxed">' + esc(q.content || '') + '</textarea>' + body + '</div><button onclick="removeImported(' + i + ')" class="text-rose-400/60 hover:text-rose-400 px-1 shrink-0" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div></div>';
   }).join('');
 }
+
+function editImportContent(i, v) { importedQuestions[i].content = v; }
+function editImportOption(i, oi, v) { if (importedQuestions[i].options) importedQuestions[i].options[oi] = v; }
+function changeImportType(i, t) {
+  const q = importedQuestions[i];
+  if (t === 'mcq' && (!q.options || q.options.length < 2)) q.options = ['', '', '', ''];
+  if (t !== 'mcq' && t !== 'tf') q.correct = '';
+  if (t === 'tf') q.correct = null;
+  renderImportReview(true);
+}
+function markImportTf(i, v) { importedQuestions[i].correct = v; }
 
 function markImportAnswer(qi, oi) {
   importedQuestions[qi].correct = oi;
@@ -2064,33 +2197,33 @@ function removeImported(i) {
 
 async function saveImportedQuestions() {
   const valid = importedQuestions.filter(q => {
-    if (!q.content) return false;
-    if (q.type === 'mcq') return q.options && q.options.length >= 2 && q.correct !== null && q.correct !== undefined;
+    if (!q.content || !q.content.trim()) return false;
+    if (q.type === 'mcq') { const filled = (q.options || []).filter(o => String(o || '').trim()); return filled.length >= 2 && q.correct !== null && q.correct !== undefined; }
+    if (q.type === 'tf') return q.correct === 'true' || q.correct === 'false';
     return q.correct !== null && q.correct !== undefined && String(q.correct).trim() !== '';
   });
-  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'هیچ سوالی بدون جواب نمی‌ماند', text: 'برای هر سوال، گزینه صحیح را علامت بزنید یا پاسخ کوتاه بنویسید.', background: '#1e293b', color: '#fff' });
+  const empty = importedQuestions.length - valid.length;
+  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'سوالات ناقص‌اند', text: 'هر سوال باید متن داشته باشد و جوابش علامت بخورد.', background: '#1e293b', color: '#fff' });
   const btn = document.getElementById('saveImportBtn');
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ذخیره...';
   let saved = 0;
   for (const q of valid) {
     try {
-      await api('/api/quizzes/' + state.editingQuizId + '/questions', {
-        method: 'POST',
-        body: JSON.stringify({
-          type: q.type,
-          content: q.content,
-          options_json: q.type === 'mcq' ? q.options : null,
-          correct_json: q.type === 'mcq' ? q.correct : String(q.correct).split(',').map(s => s.trim()).filter(Boolean),
-          score: 1,
-        }),
-      });
+      const payload = q.type === 'mcq'
+        ? { type: 'mcq', content: q.content.trim(), options_json: (q.options || []).map(o => String(o || '').trim()).filter(Boolean), correct_json: q.correct, score: 1 }
+        : q.type === 'tf'
+          ? { type: 'tf', content: q.content.trim(), options_json: null, correct_json: q.correct, score: 1 }
+          : q.type === 'essay'
+            ? { type: 'essay', content: q.content.trim(), options_json: null, correct_json: String(q.correct || '').trim() ? [String(q.correct).trim()] : [], score: 1 }
+            : { type: 'short', content: q.content.trim(), options_json: null, correct_json: String(q.correct).split(',').map(s => s.trim()).filter(Boolean), score: 1 };
+      await api('/api/quizzes/' + state.editingQuizId + '/questions', { method: 'POST', body: JSON.stringify(payload) });
       saved++;
     } catch (err) { console.error(err); }
   }
   btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون';
   closeModal('modalUploadImport');
   loadQuestions(state.editingQuizId);
-  Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: valid.length - saved ? (valid.length - saved) + ' سوال ذخیره نشد' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
+  Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال ناقص رد شد (متن یا جواب نداشت).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
 }
 
 function printBankQuestions() {
@@ -2229,24 +2362,38 @@ async function loadHomework() {
     const el = document.getElementById('homeworkList');
     const hw = data.homework || [];
     if (!hw.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">هنوز تکلیفی نیست.</p>'; return; }
-    el.innerHTML = hw.map(h => '<div class="glass rounded-xl p-4 flex items-center justify-between card-hover"><div class="flex-1"><div class="font-bold text-white">' + esc(h.title) + '</div><div class="text-xs text-slate-400">' + (h.subject || '—') + ' · ' + (h.due_date || 'بدون مهلت') + '</div></div><div class="flex items-center gap-2"><button onclick="showHomeworkSubmissions(' + h.id + ')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs" title="مشاهده تحویل‌ها"><i class="fa-solid fa-eye ml-1"></i> ' + (h.submission_count || 0) + ' تحویل</button><span class="text-xs text-emerald-400">' + (h.graded_count || 0) + ' تصحیح</span><button onclick="deleteHomework(' + h.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2"><i class="fa-solid fa-trash"></i></button></div></div>').join('');
+    el.innerHTML = hw.map(h => '<div class="glass rounded-xl p-4 flex items-center justify-between card-hover"><div class="flex-1"><div class="font-bold text-white">' + esc(h.title) + '</div><div class="text-xs text-slate-400">' + (h.subject || '—') + ' · ' + (h.due_date || 'بدون مهلت') + (h.attachment ? ' · <i class="fa-solid fa-paperclip text-accent-400" title="فایل پیوست دارد"></i>' : '') + '</div></div><div class="flex items-center gap-2"><button onclick="showHomeworkSubmissions(' + h.id + ')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs" title="مشاهده تحویل‌ها"><i class="fa-solid fa-eye ml-1"></i> ' + (h.submission_count || 0) + ' تحویل</button><span class="text-xs text-emerald-400">' + (h.graded_count || 0) + ' بررسی</span><button onclick="copyHomeworkLink(' + h.id + ')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-accent-500/20 text-accent-300 text-xs" title="کپی لینک دانش‌آموز"><i class="fa-solid fa-link"></i></button><button onclick="deleteHomework(' + h.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2"><i class="fa-solid fa-trash"></i></button></div></div>').join('');
   } catch (err) { document.getElementById('homeworkList').innerHTML = '<p class="text-rose-400 text-sm text-center">' + esc(err.message) + '</p>'; }
 }
 
 function openAddHomework() {
   Swal.fire({
     title: 'تکلیف جدید',
-    html: '<div class="text-right space-y-2"><input id="hwTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="عنوان تکلیف *" /><input id="hwSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="درس" /><textarea id="hwDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="2" placeholder="توضیحات"></textarea><div class="grid grid-cols-2 gap-2"><input id="hwDue" type="date" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" /><input id="hwScore" type="number" value="10" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="حداکثر نمره" /></div></div>',
-    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'ذخیره', confirmButtonColor: '#10b981',
+    html: '<div class="text-right space-y-2"><input id="hwTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="عنوان تکلیف *" /><input id="hwSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="درس" /><textarea id="hwDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="3" placeholder="توضیحات تکلیف برای دانش‌آموز (خواسته‌ها، فصل کتاب، نحوهٔ ارسال...)"></textarea><div class="grid grid-cols-2 gap-2"><input id="hwDue" type="date" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" /><input id="hwScore" type="number" value="10" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="حداکثر نمره" /></div><div><label class="text-[10px] text-slate-400 block mb-1 text-right">فایل پیوست تکلیف (PDF / عکس / Word / هر فایلی — اختیاری)</label><input id="hwFile" type="file" class="w-full text-xs text-slate-400 file:ml-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-accent-600 file:text-white file:text-xs file:cursor-pointer" onchange="handleHwFile(this)" /><div id="hwFilePreview" class="hide mt-2 text-[11px] text-emerald-300 text-right"></div></div></div>',
+    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'ذخیره', confirmButtonColor: '#10b981', width: 520,
     preConfirm: () => {
       const title = document.getElementById('hwTitle').value.trim();
       if (!title) { Swal.showValidationMessage('عنوان الزامی'); return false; }
-      return { title, subject: document.getElementById('hwSubject').value, description: document.getElementById('hwDesc').value, due_date: document.getElementById('hwDue').value || null, max_score: Number(document.getElementById('hwScore').value) || 10 };
+      return { title, subject: document.getElementById('hwSubject').value, description: document.getElementById('hwDesc').value, due_date: document.getElementById('hwDue').value || null, max_score: Number(document.getElementById('hwScore').value) || 10, attachment: window.__hwAttachment || null };
     }
   }).then(async (r) => {
     if (!r.isConfirmed) return;
-    try { await api('/api/homework', { method: 'POST', body: JSON.stringify(r.value) }); loadHomework(); Swal.fire({ icon: 'success', title: 'تکلیف ساخته شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' }); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+    try { await api('/api/homework', { method: 'POST', body: JSON.stringify(r.value) }); loadHomework(); window.__hwAttachment = null; Swal.fire({ icon: 'success', title: 'تکلیف ساخته شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' }); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
   });
+}
+
+async function handleHwFile(input) {
+  const f = input.files && input.files[0];
+  const prev = document.getElementById('hwFilePreview');
+  if (!f) { window.__hwAttachment = null; prev.classList.add('hide'); return; }
+  if (f.size > 4 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۴ مگابایت (به‌صورت Base64 در دیتابیس ذخیره می‌شود).', background: '#1e293b', color: '#fff' }); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    window.__hwAttachment = { file: reader.result, fileName: f.name };
+    prev.textContent = '✓ پیوست شد: ' + f.name + ' (' + Math.round(f.size / 1024) + 'KB)';
+    prev.classList.remove('hide');
+  };
+  reader.readAsDataURL(f);
 }
 
 async function deleteHomework(id) {
@@ -2895,6 +3042,17 @@ function startExam(e) {
     return false;
   }
   state.reportPhone = (state.studentInfo ? '' : phone);
+  // Grace: if quiz window ends within 90s, student may still enter and finish.
+  state.graceEndsAt = null;
+  if (state.exam.end_at) {
+    const endMs = new Date(state.exam.end_at).getTime();
+    const nowMs = Date.now();
+    if (endMs - nowMs <= 90 * 1000 && endMs > nowMs - 60 * 60 * 1000) {
+      state.graceEndsAt = endMs;
+      const secs = Math.max(0, Math.round((endMs - nowMs) / 1000));
+      Swal.fire({ icon: 'info', title: '⚠️ مهلت آزمون رو به پایان است', html: '<p class="text-sm">مهلت شرکت تا <b class="text-amber-300">' + secs + ' ثانیه</b> دیگر تمام می‌شود، اما اگر حالا شروع کنید، می‌توانید تا اتمام زمان آزمون خودتان (حداکثر ' + state.exam.duration_min + ' دقیقه) پاسخ دهید و ثبت کنید.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981', confirmButtonText: 'شروع می‌کنم', timer: 8000, timerProgressBar: true });
+    }
+  }
   state.isExam = true; state.examFinished = false; state.answerSheet = []; state.examSubmitting = false;
   state.startedAt = new Date().toISOString();
   state.remainingSec = (state.exam.duration_min || 30) * 60;
@@ -3437,30 +3595,149 @@ async function loadHomeworkSubmissions(homeworkId) {
 function showHomeworkSubmissions(homeworkId) {
   Swal.fire({ title: 'تحویل‌های تکلیف', html: '<i class="fa-solid fa-spinner fa-spin text-emerald-400"></i>', background: '#1e293b', color: '#fff', showConfirmButton: false, allowOutsideClick: false });
   loadHomeworkSubmissions(homeworkId).then(subs => {
-    if (!subs.length) { Swal.fire({ title: 'تحویلی نیست', icon: 'info', background: '#1e293b', color: '#fff' }); return; }
+    if (!subs.length) { Swal.fire({ title: 'تحویلی نیست', icon: 'info', text: 'دانش‌آموزان هنوز پاسخی نفرستاده‌اند. لینک تکلیف را برایشان بفرستید.', background: '#1e293b', color: '#fff' }); return; }
     let html = '<div class="text-right space-y-3 max-h-96 overflow-y-auto">';
     subs.forEach(s => {
       let files = []; try { files = JSON.parse(s.files_json || '[]'); } catch {}
+      const [stLabel, stCls] = hwStatusLabel(s.status || (s.score != null ? 'approved' : 'pending'));
       html += '<div class="p-3 rounded-xl bg-slate-800 border border-slate-700">';
       html += '<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</div><div class="text-xs text-slate-400">' + (s.submitted_at || '') + '</div></div>';
-      html += '<div class="text-sm"><span class="text-emerald-400 font-bold">' + (s.score || '—') + '</span> / ' + (s.max_score || '—') + '</div></div>';
+      html += '<div class="flex items-center gap-2"><span class="text-[10px] px-2 py-1 rounded-lg ' + stCls + '">' + stLabel + '</span><div class="text-sm"><span class="text-emerald-400 font-bold">' + (s.score ?? '—') + '</span> / ' + '؟</div></div></div>';
+      if (s.answer_text) html += '<div class="text-xs text-slate-300 bg-slate-900/60 rounded-lg px-3 py-2 leading-relaxed mb-2">' + esc(s.answer_text) + '</div>';
       if (files.length) {
-        html += '<div class="flex flex-wrap gap-2 mt-2">';
+        html += '<div class="flex flex-wrap gap-2 mt-1 mb-2">';
         files.forEach(f => {
           if (f.file && String(f.file).startsWith('data:image')) {
             html += '<img src="' + f.file + '" class="h-20 rounded border border-slate-600 cursor-pointer" onclick="showImageLightbox(this.src)" />';
           } else if (f.file) {
-            html += '<a href="' + f.file + '" target="_blank" class="px-3 py-1 rounded bg-slate-700 text-emerald-400 text-xs hover:bg-slate-600"><i class="fa-solid fa-download ml-1"></i>' + esc(f.fileName || 'فایل') + '</a>';
+            html += '<a href="' + f.file + '" download="' + esc(f.fileName || 'فایل') + '" class="px-3 py-1.5 rounded bg-slate-700 text-emerald-400 text-xs hover:bg-slate-600"><i class="fa-solid fa-download ml-1"></i>' + esc(f.fileName || 'دانلود فایل') + '</a>';
           }
         });
         html += '</div>';
       }
-      if (s.comments) html += '<div class="text-xs text-slate-400 mt-2 italic">' + esc(s.comments) + '</div>';
+      if (s.reply) html += '<div class="text-xs bg-accent-500/10 border border-accent-500/20 rounded-lg px-3 py-2 mt-1"><b class="text-accent-300">پاسخ دبیر:</b> <span class="text-slate-300">' + esc(s.reply) + '</span></div>';
+      html += '<div class="flex flex-wrap gap-2 mt-2 items-center"><button onclick="openHwReview(' + s.id + ',' + homeworkId + ',\'' + esc(s.student_name + ' ' + (s.student_family || '')) + '\',' + (s.score ?? 'null') + ',\'' + esc((s.reply || '').replace(/'/g, '')) + '\',\'' + (s.status || 'pending') + '\')" class="px-3 py-1.5 rounded-lg bg-gradient-to-l from-accent-600 to-accent-500 text-white text-xs font-bold hover:brightness-110"><i class="fa-solid fa-reply ml-1"></i> بررسی و پاسخ</button></div>';
       html += '</div>';
     });
     html += '</div>';
-    Swal.fire({ title: 'تحویل‌ها (' + subs.length + ')', html: html, width: 700, background: '#1e293b', color: '#fff', showConfirmButton: false });
+    Swal.fire({ title: 'تحویل‌ها (' + subs.length + ')', html: html, width: 700, background: '#1e293b', color: '#fff', showConfirmButton: false, confirmButtonText: 'بستن' });
   });
+}
+
+function openHwReview(subId, hwId, studentName, score, reply, status) {
+  Swal.fire({
+    title: 'بررسی تکلیف — ' + studentName,
+    html: '<div class="text-right space-y-3">' +
+      '<div><label class="text-[11px] text-slate-400 block mb-1 text-right">وضعیت</label><select id="hrStatus" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white"><option value="approved" ' + (status === 'approved' ? 'selected' : '') + '>✅ تأیید شده</option><option value="needs_revision" ' + (status === 'needs_revision' ? 'selected' : '') + '>✏️ نیاز به اصلاح</option><option value="pending" ' + (status === 'pending' ? 'selected' : '') + '>⏳ در انتظار بررسی</option></select></div>' +
+      '<div><label class="text-[11px] text-slate-400 block mb-1 text-right">نمره (اختیاری)</label><input id="hrScore" type="number" min="0" step="0.25" value="' + (score === null ? '' : score) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white" /></div>' +
+      '<div><label class="text-[11px] text-slate-400 block mb-1 text-right">پیام / بازخورد برای دانش‌آموز</label><textarea id="hrReply" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="مثلاً: سوال ۳ را دوباره حل کن و دوباره بفرست...">' + esc(reply || '') + '</textarea></div>' +
+      '</div>',
+    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: '<i class="fa-solid fa-paper-plane ml-1"></i> ارسال پاسخ', cancelButtonText: 'انصراف', confirmButtonColor: '#6366f1', width: 480,
+    preConfirm: () => ({ status: document.getElementById('hrStatus').value, score: document.getElementById('hrScore').value === '' ? null : Number(document.getElementById('hrScore').value), reply: document.getElementById('hrReply').value.trim() })
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    try {
+      await api('/api/homework-submissions/' + subId + '/review', { method: 'POST', body: JSON.stringify(r.value) });
+      Swal.fire({ icon: 'success', title: 'پاسخ ثبت شد', text: 'دانش‌آموز با وارد کردن نامش در صفحهٔ تکلیف، وضعیت و پیام شما را می‌بیند.', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+    } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  });
+}
+
+function copyHomeworkLink(id) {
+  const url = location.origin + '/homework/' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    Swal.fire({ icon: 'success', title: 'لینک تکلیف کپی شد', html: '<code class="block text-xs bg-slate-900 border border-slate-700 rounded-lg p-3 text-emerald-300 break-all dir-ltr text-left">' + url + '</code><p class="text-[10px] text-slate-400 mt-2 text-right">این لینک را برای دانش‌آموزان بفرستید تا تکلیف را ببینند و پاسخ خود را آپلود کنند.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+  }).catch(() => { Swal.fire({ icon: 'info', title: 'لینک تکلیف', text: url, background: '#1e293b', color: '#fff' }); });
+}
+
+function hwStatusLabel(s) {
+  return { none: ['ارسال نشده', 'text-slate-400 bg-slate-700/40'], pending: ['در انتظار بررسی', 'text-amber-400 bg-amber-500/10 border border-amber-500/25'], approved: ['تأیید شده', 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25'], needs_revision: ['نیاز به اصلاح', 'text-rose-400 bg-rose-500/10 border border-rose-500/25'] }[s] || ['ارسال نشده', 'text-slate-400 bg-slate-700/40'];
+}
+
+/* ===== Public homework page (student) ===== */
+let __hwPubId = null;
+
+async function loadPublicHomework(id) {
+  __hwPubId = Number(id);
+  showView('homework-public');
+  document.getElementById('hwPubLoading').classList.remove('hide');
+  document.getElementById('hwPubError').classList.add('hide');
+  document.getElementById('hwPubContent').classList.add('hide');
+  try {
+    const data = await api('/api/public/homework/' + id);
+    const h = data.homework;
+    document.getElementById('hwPubLoading').classList.add('hide');
+    document.getElementById('hwPubContent').classList.remove('hide');
+    document.getElementById('hwPubTitle').textContent = h.title;
+    document.getElementById('hwPubMeta').textContent = (h.subject || '') + (h.due_date ? ' · مهلت: ' + h.due_date : '') + (h.max_score ? ' · حداکثر نمره: ' + h.max_score : '');
+    document.getElementById('hwPubDesc').innerHTML = h.description ? esc(h.description).replace(/\n/g, '<br/>') : '<span class="text-slate-500">توضیحی ثبت نشده.</span>';
+    const att = document.getElementById('hwPubAttachment');
+    if (h.attachment && h.attachment.file) {
+      const isImg = String(h.attachment.file).startsWith('data:image');
+      att.classList.remove('hide');
+      att.innerHTML = '<div class="text-xs text-accent-300 font-bold mb-2"><i class="fa-solid fa-paperclip ml-1"></i> فایل تکلیف:</div>' +
+        (isImg ? '<img src="' + h.attachment.file + '" class="max-h-64 rounded-xl border border-slate-700 cursor-zoom-in" onclick="showImageLightbox(this.src)" />' :
+          '<a href="' + h.attachment.file + '" download="' + esc(h.attachment.fileName || 'فایل') + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent-600/90 hover:bg-accent-500 text-white text-sm transition"><i class="fa-solid fa-download"></i> دانلود ' + esc(h.attachment.fileName || 'فایل تکلیف') + '</a>');
+    } else att.classList.add('hide');
+    document.getElementById('hwStName').value = '';
+    document.getElementById('hwStFamily').value = '';
+  } catch (err) {
+    document.getElementById('hwPubLoading').classList.add('hide');
+    const e = document.getElementById('hwPubError');
+    e.classList.remove('hide');
+    e.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-3xl text-rose-400"></i><p class="text-sm text-slate-300 mt-3">' + esc(err.message) + '</p><button onclick="showView(\'landing\')" class="mt-4 px-4 py-2 rounded-xl bg-slate-800 text-sm">صفحه اصلی</button>';
+  }
+}
+
+function hwCollectFiles() {
+  const input = document.getElementById('hwStFiles');
+  const files = Array.from(input.files || []);
+  const list = document.getElementById('hwStFilesList');
+  const total = files.reduce((a, f) => a + f.size, 0);
+  if (total > 8 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'حجم کل زیاد است', text: 'مجموع فایل‌ها حداکثر ۸ مگابایت.', background: '#1e293b', color: '#fff' }); return null; }
+  list.innerHTML = files.map(f => '<span class="text-[10px] px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">' + esc(f.name) + ' (' + Math.round(f.size / 1024) + 'KB)</span>').join('');
+  return files;
+}
+
+async function submitHomeworkPublic() {
+  const name = document.getElementById('hwStName').value.trim();
+  const family = document.getElementById('hwStFamily').value.trim();
+  if (!name || !family) return Swal.fire({ icon: 'warning', title: 'نام و نام خانوادگی الزامی است', background: '#1e293b', color: '#fff' });
+  const files = hwCollectFiles();
+  if (files === null) return;
+  const btn = document.getElementById('hwSubmitBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ارسال...';
+  const payload = { student_name: name, student_family: family, answer_text: document.getElementById('hwStAnswer').value.trim(), files: [] };
+  const readAs = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res({ file: r.result, fileName: f.name }); r.onerror = rej; r.readAsDataURL(f); });
+  try {
+    for (const f of files) payload.files.push(await readAs(f));
+    await api('/api/public/homework/' + __hwPubId + '/submit', { method: 'POST', body: JSON.stringify(payload) });
+    Swal.fire({ icon: 'success', title: 'تکلیف ارسال شد ✅', html: '<p class="text-sm">وضعیت فعلی: <b class="text-amber-300">در انتظار بررسی</b></p><p class="text-xs text-slate-400 mt-2">بعداً با همین نام از دکمهٔ «مشاهده وضعیت و پاسخ دبیر» نتیجه را ببینید.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+    document.getElementById('hwPubStatus').classList.remove('hide');
+    document.getElementById('hwStFiles').value = '';
+    document.getElementById('hwStFilesList').innerHTML = '';
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'خطا در ارسال', text: err.message, background: '#1e293b', color: '#fff' });
+  } finally { btn.disabled = false; btn.innerHTML = 'ارسال تکلیف'; }
+}
+
+async function checkHwStatus() {
+  const name = document.getElementById('hwStName').value.trim();
+  const family = document.getElementById('hwStFamily').value.trim();
+  if (!name) return Swal.fire({ icon: 'warning', title: 'نام را وارد کنید', text: 'همان نامی که هنگام ارسال نوشتید.', background: '#1e293b', color: '#fff' });
+  try {
+    const data = await api('/api/public/homework/' + __hwPubId + '/status?name=' + encodeURIComponent(name) + '&family=' + encodeURIComponent(family));
+    const box = document.getElementById('hwStatusResult');
+    box.classList.remove('hide');
+    if (!data.submission) { box.innerHTML = '<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-sm text-slate-300 text-center">با این نام تکلیفی پیدا نشد — هنوز ارسال نکرده‌اید؟</div>'; return; }
+    const s = data.submission;
+    const [stLabel, stCls] = hwStatusLabel(s.status || (s.score != null ? 'approved' : 'pending'));
+    box.innerHTML = '<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 space-y-2">' +
+      '<div class="flex items-center justify-between"><span class="text-xs text-slate-400">وضعیت:</span><span class="text-xs px-2 py-1 rounded-lg ' + stCls + '">' + stLabel + '</span></div>' +
+      (s.score != null ? '<div class="flex items-center justify-between"><span class="text-xs text-slate-400">نمره:</span><span class="text-emerald-300 font-bold">' + s.score + '</span></div>' : '') +
+      (s.reply ? '<div class="text-xs bg-accent-500/10 border border-accent-500/20 rounded-lg px-3 py-2"><b class="text-accent-300">پیام دبیر:</b> <span class="text-slate-300">' + esc(s.reply) + '</span></div>' : '<div class="text-[11px] text-slate-500 text-center">هنوز پیامی از دبیر نرسیده.</div>') +
+      '</div>';
+  } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
 }
 
 function updateAttendanceStats() {
@@ -3653,11 +3930,12 @@ function route() {
   if (hashParts[0] === 'result' && hashParts[1]) { loadResult(hashParts[1]); return; }
   let parts = [];
   const path = location.pathname.replace(/\/+$/, '') || '/';
-  const pathMatch = path.match(/^\/(quiz|result|login|dashboard)(?:\/([^/]+))?/i);
+  const pathMatch = path.match(/^\/(quiz|result|login|dashboard|homework)(?:\/([^/]+))?/i);
   if (pathMatch) parts = [pathMatch[1].toLowerCase(), pathMatch[2]].filter(Boolean);
   else if (hashParts.length) parts = hashParts;
   if (parts[0] === 'quiz' && parts[1] && state.examFinished) return;
   if (parts[0] === 'quiz' && parts[1]) loadPublicQuiz(parts[1]);
+  else if (parts[0] === 'homework' && parts[1]) loadPublicHomework(parts[1]);
   else if (parts[0] === 'result' && parts[1]) loadResult(parts[1]);
   else if (parts[0] === 'login') showView('login');
   else if (parts[0] === 'dashboard' && state.token) showView('dashboard');

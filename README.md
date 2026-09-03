@@ -6,7 +6,7 @@
 
 **پایه‌های هفتم، هشتم و نهم · هوش مصنوعی · کارنامه لوکس PDF · ضدتقلب**
 
-[![Live Demo](https://img.shields.io/badge/🌐_لایو-quiz26.dpdns.org-10b981?style=for-the-badge&labelColor=0f172a)](https://quiz26.dpdns.org)
+[![Link](https://img.shields.io/badge/🔗_Link-quiz26.dpdns.org-10b981?style=for-the-badge&labelColor=0f172a)](https://quiz26.dpdns.org)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white&labelColor=0f172a)](https://workers.cloudflare.com)
 [![D1 Database](https://img.shields.io/badge/D1-SQLite-4f46e5?style=for-the-badge&labelColor=0f172a)](https://developers.cloudflare.com/d1/)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=0f172a)](LICENSE)

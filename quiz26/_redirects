@@ -8,5 +8,6 @@
 /results/*  /index.html   200
 /exam/*     /index.html   200
 /bank       /index.html   200
+/homework/*  /index.html   200
 /settings   /index.html   200
 /ai         /index.html   200

@@ -133,6 +133,10 @@ async function ensureStudentSchema(env) {
   try { await env.DB.prepare("ALTER TABLE submissions ADD COLUMN student_phone TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN report_after_end INTEGER NOT NULL DEFAULT 0').run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN stacked_view INTEGER NOT NULL DEFAULT 0').run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN reply TEXT DEFAULT ''").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN replied_at TEXT").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE homework ADD COLUMN attachment_json TEXT").run(); } catch {}
   try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_students_teacher ON students(teacher_id)').run(); } catch {}
   try {
     const t = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='quizzes'").first();
@@ -235,6 +239,7 @@ async function ensureStudentSchema(env) {
           due_date      TEXT,
           max_score     REAL    NOT NULL DEFAULT 10,
           status        TEXT    NOT NULL DEFAULT 'active',
+          attachment_json TEXT,
           created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
         )`,
         `CREATE TABLE IF NOT EXISTS homework_submissions (
@@ -245,6 +250,9 @@ async function ensureStudentSchema(env) {
           school          TEXT    DEFAULT '',
           class_name      TEXT    DEFAULT '',
           answer_text     TEXT    DEFAULT '',
+          status          TEXT    NOT NULL DEFAULT 'pending',
+          reply           TEXT    DEFAULT '',
+          replied_at      TEXT,
           files_json      TEXT    DEFAULT '[]',
           score           REAL,
           feedback        TEXT    DEFAULT '',
@@ -1019,8 +1027,14 @@ export default {
         if (!answers || typeof answers !== 'object') return error('پاسخ‌ها نامعتبر است.', 400, origin);
 
         // Enforce quiz window on submit too (page could have been left open)
+        // Grace: students who entered before end_at may finish and submit.
         const nowSub = new Date().toISOString();
-        if (quiz.end_at && nowSub > quiz.end_at) return error('مهلت شرکت در آزمون به پایان رسیده است.', 403, origin);
+        if (quiz.end_at && nowSub > quiz.end_at) {
+          const startedIso = body.started_at || '';
+          if (!startedIso || startedIso >= quiz.end_at) {
+            return error('مهلت شرکت در آزمون به پایان رسیده است.', 403, origin);
+          }
+        }
 
         // For logged-in students, identity comes from the account (not user-supplied fields)
         let finalName = student_name, finalFamily = student_family || '', finalSchool = school || '', finalClass = class_name || '';
@@ -1314,6 +1328,28 @@ export default {
           }
           return error('داده نامعتبر.', 400, origin);
         }
+      }
+
+      // Grade/reply homework submission (teacher)
+      const hwGradeMatch = path.match(/^\/api\/homework-submissions\/(\d+)\/review$/);
+      if (hwGradeMatch && method === 'POST') {
+        const sid = Number(hwGradeMatch[1]);
+        const payload = await getAuth(request, env);
+        if (!payload) return error('Unauthorized', 401, origin);
+        const sub = await env.DB.prepare(`
+          SELECT hs.* FROM homework_submissions hs JOIN homework h ON hs.homework_id = h.id
+          WHERE hs.id = ? AND h.teacher_id = ?
+        `).bind(sid, payload.sub).first();
+        if (!sub) return error('یافت نشد.', 404, origin);
+        const b = await request.json();
+        const status = ['approved', 'needs_revision', 'pending'].includes(b.status) ? b.status : 'pending';
+        await env.DB.prepare(`UPDATE homework_submissions SET
+            status = ?, score = ?, reply = ?, replied_at = datetime('now'),
+            graded_at = CASE WHEN ? IS NOT NULL THEN datetime('now') ELSE graded_at END
+          WHERE id = ?`).bind(
+          status, b.score ?? null, b.reply || '', (b.score !== undefined && b.score !== null) ? 1 : null, sid
+        ).run();
+        return json({ success: true }, 200, origin);
       }
 
       // ---------- AI: Chat (public) ----------
@@ -1614,8 +1650,13 @@ export default {
 [{"content":"متن سوال","type":"mcq","options":["گزینه۱","گزینه۲","گزینه۳","گزینه۴"],"correct":0,"explanation":"توضیح"}]
 - فقط سوالات چندگزینه‌ای تک‌جواب با ۴ گزینه تولید کن
 - محتوا دقیق، بدون ابهام و آموزشی باشد
-- پاسخ‌ها متنوع و گمراه‌کننده باشند`;
-          const userPrompt = `${batchCount} سوال چندگزینه‌ای از کتاب ${subject} پایه ${diffLabel} پایه ${grade} ${chapterText} بساز. خروجی فقط JSON آرایه باشد.`;
+- پاسخ‌ها متنوع و گمراه‌کننده باشند
+- هر سوال باید از نظر موضوع، زاویه دید، ساختار جمله و ترتیب گزینه‌ها با سوالات قبلی کاملاً متفاوت باشد
+- از تکرار یک مفهوم یا شباهت دو سوال اکیداً خودداری کن؛ هر سوال یک نکتهٔ متفاوت از کتاب را می‌سنجد
+- موقعیت‌ها و اعداد داخل سوال‌ها را متنوع کن (اعداد سال، نام‌ها، مثال‌های روزمره متفاوت)
+- ترتیب گزینه صحیح بین سوالات مختلف به‌شدت جابه‌جا شود (0،1،2،3 به‌صورت پراکنده)`;
+        const userPrompt = `${batchCount} سوال چندگزینه‌ای از کتاب ${subject} ${chapterText} پایه ${grade} با سطح دشواری ${diffLabel} بساز. خروجی فقط JSON آرایه باشد.
+سوالات باید از هر نظر متنوع باشند: موضوعات فرعی متفاوتِ کتاب را پوشش بده، عدد و موقعیت هر سوال را تغییر بده و شماره گزینه صحیح را در سوالات مختلف عوض کن.`;
           try {
             const aiResponse = await callAI(env, systemPrompt, userPrompt, 4000);
             let questions;
@@ -1735,10 +1776,10 @@ export default {
         if (!payload) return error('Unauthorized', 401, origin);
         const b = await request.json();
         if (!b.title) return error('عنوان تکلیف الزامی است.', 400, origin);
-        const r = await env.DB.prepare(`INSERT INTO homework (teacher_id, title, description, subject, due_date, max_score, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(
+        const r = await env.DB.prepare(`INSERT INTO homework (teacher_id, title, description, subject, due_date, max_score, status, attachment_json)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(
           payload.sub, b.title, b.description || '', b.subject || '', b.due_date || null,
-          b.max_score ?? 10, b.status || 'active'
+          b.max_score ?? 10, b.status || 'active', b.attachment ? JSON.stringify(b.attachment) : null
         ).run();
         return json({ success: true, id: r.meta.last_row_id }, 201, origin);
       }
@@ -1783,10 +1824,10 @@ export default {
         return json({ success: true, submissions: rows }, 200, origin);
       }
 
-      // Grade homework (teacher)
-      const hwGradeMatch = path.match(/^\/api\/homework-submissions\/(\d+)\/grade$/);
-      if (hwGradeMatch && method === 'POST') {
-        const sid = Number(hwGradeMatch[1]);
+      // Grade homework (teacher) — legacy endpoint (kept for compatibility)
+      const hwGradeMatch2 = path.match(/^\/api\/homework-submissions\/(\d+)\/grade$/);
+      if (hwGradeMatch2 && method === 'POST') {
+        const sid = Number(hwGradeMatch2[1]);
         const payload = await getAuth(request, env);
         if (!payload) return error('Unauthorized', 401, origin);
         const sub = await env.DB.prepare(`
@@ -1984,12 +2025,15 @@ export default {
       }
 
       // ========== PUBLIC HOMEWORK SUBMIT ==========
+      // Public quiz metadata for homework-style pages (no auth): include end_at grace
       const pubHwMatch = path.match(/^\/api\/public\/homework\/(\d+)$/);
       if (pubHwMatch && method === 'GET') {
         const hid = Number(pubHwMatch[1]);
-        const hw = await env.DB.prepare('SELECT id, title, description, subject, due_date, max_score, status FROM homework WHERE id = ? AND status = ?').bind(hid, 'active').first();
+        const hw = await env.DB.prepare('SELECT id, title, description, subject, due_date, max_score, status, attachment_json FROM homework WHERE id = ? AND status = ?').bind(hid, 'active').first();
         if (!hw) return error('تکلیف یافت نشد.', 404, origin);
-        return json({ success: true, homework: hw }, 200, origin);
+        let attachment = null;
+        try { attachment = hw.attachment_json ? JSON.parse(hw.attachment_json) : null; } catch {}
+        return json({ success: true, homework: { ...hw, attachment } }, 200, origin);
       }
 
       const pubHwSubMatch = path.match(/^\/api\/public\/homework\/(\d+)\/submit$/);
@@ -1999,12 +2043,29 @@ export default {
         if (!hw) return error('تکلیف یافت نشد.', 404, origin);
         const b = await request.json();
         if (!b.student_name) return error('نام دانش‌آموز الزامی است.', 400, origin);
-        await env.DB.prepare(`INSERT INTO homework_submissions (homework_id, student_name, student_family, school, class_name, answer_text, files_json)
+        const r = await env.DB.prepare(`INSERT INTO homework_submissions (homework_id, student_name, student_family, school, class_name, answer_text, files_json)
           VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(
           hid, b.student_name, b.student_family || '', b.school || '', b.class_name || '',
           b.answer_text || '', JSON.stringify(b.files || [])
         ).run();
-        return json({ success: true }, 201, origin);
+        return json({ success: true, id: r.meta.last_row_id, status: 'pending' }, 201, origin);
+      }
+
+      // Public: student fetches their own homework submission status (by name + homework)
+      const pubHwStatusMatch = path.match(/^\/api\/public\/homework\/(\d+)\/status$/);
+      if (pubHwStatusMatch && method === 'GET') {
+        const hid = Number(pubHwStatusMatch[1]);
+        const url2 = new URL(request.url);
+        const nm = String(url2.searchParams.get('name') || '').trim();
+        const fam = String(url2.searchParams.get('family') || '').trim();
+        if (!nm) return error('نام الزامی است.', 400, origin);
+        const rows = (await env.DB.prepare(`
+          SELECT id, student_name, student_family, answer_text, files_json, score, status, reply, replied_at, submitted_at, graded_at
+          FROM homework_submissions WHERE homework_id = ? AND student_name = ? AND (student_family = ? OR ? = '')
+          ORDER BY submitted_at DESC LIMIT 1
+        `).bind(hid, nm, fam, fam).all()).results || [];
+        if (!rows.length) return json({ success: true, submission: null }, 200, origin);
+        return json({ success: true, submission: rows[0] }, 200, origin);
       }
 
       return error('مسیر یافت نشد.', 404, origin);
