@@ -1,0 +1,23 @@
+name = "quiz-api"
+main = "worker.js"
+compatibility_date = "2025-03-01"
+workers_dev = true
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "quiz26-db"
+database_id = "083340bf-d201-4781-8a0a-c352936d9ee0"
+preview_database_id = "083340bf-d201-4781-8a0a-c352936d9ee0"
+
+# AI Binding for Cloudflare Workers AI
+[ai]
+binding = "AI"
+
+# Route configuration for domain - تنظیم در Cloudflare Dashboard
+# [[routes]]
+# pattern = "quiz26.dpdns.org/api/*"
+
+# Environment variables
+# wrangler secret put JWT_SECRET
+# wrangler secret put OPENROUTER_KEY

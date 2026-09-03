@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.wrangler/
+.mimocode/
+dist-test/
+
+# Environment & secrets
+.env
+.dev.vars
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Wrangler build artifacts
+.wrangler/
