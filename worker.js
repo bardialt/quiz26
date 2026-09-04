@@ -1192,6 +1192,18 @@ export default {
         }, 200, origin);
       }
 
+      // ---------- Public quiz meta (attachment key only, for result page) ----------
+      const pubQuizMetaMatch = path.match(/^\/api\/public\/quiz-meta\/(\d+)$/);
+      if (pubQuizMetaMatch && method === 'GET') {
+        const qid = Number(pubQuizMetaMatch[1]);
+        const q = await env.DB.prepare('SELECT id, attachment_json, report_after_end, end_at, show_result FROM quizzes WHERE id = ?').bind(qid).first();
+        if (!q) return error('آزمون یافت نشد.', 404, origin);
+        // Answer key is only downloadable after quiz end (or immediately if no end date)
+        let attachment = null;
+        try { attachment = q.attachment_json ? JSON.parse(q.attachment_json) : null; } catch {}
+        return json({ success: true, attachment, report_after_end: !!q.report_after_end, end_at: q.end_at, show_result: !!q.show_result }, 200, origin);
+      }
+
       // ---------- Pre-check: has this phone already taken this quiz? ----------
       const quizDupCheckMatch = path.match(/^\/api\/public\/quiz\/(\d+)\/check-phone$/);
       if (quizDupCheckMatch && method === 'GET') {

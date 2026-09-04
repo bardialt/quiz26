@@ -207,7 +207,7 @@
     .exam-opt:hover{transform:translateX(-4px)}
     body.theme-light .exam-opt:hover{transform:translateX(4px)}
     /* Sheet split-view exam (PDF left, options right) */
-    .sheet-frame{height:min(78vh,900px)}
+    .sheet-frame{height:calc(100vh - 120px);min-height:560px}
     @media(max-width:1023px){.sheet-frame{height:60vh}}
     @media print{.no-print button:not(.keep-print){display:none!important}}
     input:focus-visible,select:focus-visible,textarea:focus-visible{box-shadow:0 0 0 2px rgba(16,185,129,.4)}
@@ -847,6 +847,23 @@
   </main>
 </section>
 
+<!-- Student Answer Sheet Upload Modal -->
+<div id="modalAnswerSheet" class="fixed inset-0 z-[210] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modalAnswerSheet')">
+  <div class="glass rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
+    <button type="button" onclick="closeModal('modalAnswerSheet')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-rose-500/80 text-slate-400 hover:text-white flex items-center justify-center transition" title="بستن"><i class="fa-solid fa-xmark"></i></button>
+    <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-arrow-up text-accent-400"></i> بارگذاری پاسخنامه</h3>
+    <p class="text-[11px] text-slate-500 mb-4">عکس یا فایل پاسخ‌های خود را انتخاب کنید (تک یا چندتایی). فایل‌ها در همین صفحه لیست می‌شوند — با کلیک روی هرکدام بزرگ می‌شود.</p>
+    <label class="block w-full px-4 py-3 rounded-xl bg-accent-600 hover:bg-accent-500 text-white text-sm font-bold cursor-pointer text-center transition mb-4">
+      <i class="fa-solid fa-folder-open ml-1"></i> انتخاب فایل (عکس / PDF / هر فایلی)
+      <input type="file" id="asFileInput" multiple class="hidden" onchange="asAddFiles(this.files)" />
+    </label>
+    <div id="asFilesList" class="space-y-2"></div>
+    <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-800">
+      <button onclick="closeModal('modalAnswerSheet')" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-800">بستن</button>
+    </div>
+  </div>
+</div>
+
 <!-- Result -->
 <section id="view-result" class="view hide min-h-screen flex items-center justify-center p-4 gradient-bg">
   <div class="glass rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
@@ -860,6 +877,7 @@
     </div>
     <div id="resultExtra" class="text-sm text-slate-400 text-right mb-4"></div>
     <div class="flex flex-wrap justify-center gap-2">
+      <button onclick="downloadSheetKey()" id="downloadSheetKeyBtn" class="hide px-5 py-2.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-sm font-bold transition"><i class="fa-solid fa-file-pdf ml-1"></i> دانلود پاسخنامه تشریحی</button>
       <button onclick="downloadReportCard()" id="downloadReportBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-l from-violet-600 via-accent-600 to-emerald-500 text-white text-sm font-bold shadow-lg shadow-accent-500/30 hover:brightness-110 hover:scale-[1.03] transition"><i class="fa-solid fa-file-arrow-down ml-1"></i> دانلود کارنامه</button>
       <button onclick="window.print()" class="px-5 py-2 rounded-xl border border-slate-700 text-sm hover:bg-slate-800 ml-0"><i class="fa-solid fa-print ml-1"></i> چاپ</button>
       <button onclick="location.hash=''; showView('landing')" class="px-5 py-2 rounded-xl btn-gradient text-white text-sm font-medium">صفحه اصلی</button>
@@ -2333,8 +2351,10 @@ async function saveImportedQuestions() {
     return q.correct !== null && q.correct !== undefined && String(q.correct).trim() !== '';
   });
   const empty = importedQuestions.length - valid.length;
-  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'سوالات ناقص‌اند', text: sheetMode ? 'برای هر سوال، گزینه صحیح را علامت بزنید (تستی‌ها) یا درست/نادرست را انتخاب کنید.' : 'هر سوال باید متن داشته باشد و جوابش علامت بخورد.', background: '#1e293b', color: '#fff' });
+  const markedCount = valid.length;
+  if (!valid.length) return Swal.fire({ icon: 'warning', title: sheetMode ? 'هنوز هیچ جوابی علامت نخورده' : 'سوالات ناقص‌اند', text: sheetMode ? 'برای هر سوال روی عدد صحیح (۱ تا ۴) کلیک کنید — دکمه سبز می‌شود.' : 'هر سوال باید متن داشته باشد و جوابش علامت بخورد.', background: '#1e293b', color: '#fff' });
   const btn = document.getElementById('saveImportBtn');
+  btn.innerHTML = '<i class="fa-solid fa-check-double ml-1"></i> افزودن ' + markedCount + ' سوال به آزمون';
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ذخیره...';
   let saved = 0;
   const sheetFile = sheetMode ? __importAttachmentFile.file : null;
@@ -2991,58 +3011,72 @@ function buildReportCardHtml(d) {
   const icons = {
     cap: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
   };
+  let correctCount = 0, wrongCount = 0, blankCount = 0, essayCount = 0;
   const rows = (d.questions || []).map((q, i) => {
     const a = d.answers ? d.answers[String(q.id)] : undefined;
-    let ansTxt = '—', okCls = 'rc-wrong';
-    if (q.type === 'essay') ansTxt = (a && typeof a === 'object') ? (a.text || '—') : (a || '—');
-    else if (q.type === 'tf') { ansTxt = a === 'true' ? 'درست' : (a === 'false' ? 'نادرست' : '—'); }
-    else if (q.type === 'short') ansTxt = a ? String(a) : '—';
-    else if (Array.isArray(a)) ansTxt = (q.options || []).filter((_, ix) => a.includes(ix)).join('، ') || '—';
-    else if (a !== undefined && a !== null && a !== '') ansTxt = (q.options || [])[a] ?? String(a);
-    if (q.type === 'essay') okCls = 'rc-neutral';
-    return '<div class="rc-q"><div class="rc-q-head"><span class="rc-q-num">' + fa(i + 1) + '</span><span class="rc-q-type">' + ({ mcq: 'تستی', multi: 'چندجوابی', tf: 'ص/غ', short: 'کوتاه', essay: 'تشریحی' }[q.type] || q.type) + '</span></div><div class="rc-q-text">' + esc(String(q.content || '').slice(0, 220)) + '</div><div class="rc-ans"><span>پاسخ شما:</span> ' + esc(String(ansTxt).slice(0, 160)) + '</div></div>';
+    let cd = null;
+    try { const c = JSON.parse(q.correct_json); cd = Array.isArray(c) ? c[0] : c; } catch {}
+    let userNum = null;
+    if (q.type === 'tf') userNum = (a === 'true' || a === 'false') ? (a === 'true' ? 'درست' : 'نادرست') : null;
+    else if (typeof a === 'number') userNum = a + 1;
+    else if (typeof a === 'string' && a && q.type !== 'essay') userNum = a;
+    if (q.type === 'essay') { essayCount++; if (a && ((typeof a === 'object' && a.text) || (typeof a === 'string' && a))) userNum = 'داده شد'; }
+    const blank = userNum === null || userNum === undefined || userNum === '';
+    if (blank) blankCount++;
+    else if (q.type === 'essay') { /* counted */ }
+    else if (Number(userNum) === Number(cd) + 1) correctCount++;
+    else wrongCount++;
+    const state = blank ? 'blank' : (q.type === 'essay' ? 'essay' : (Number(userNum) === Number(cd) + 1 ? 'ok' : 'bad'));
+    const badgeStyle = state === 'ok' ? 'background:#d1fae5;color:#047857' : state === 'bad' ? 'background:#ffe4e6;color:#be123c' : 'background:#fef9c3;color:#a16207';
+    const rowStyle = state === 'bad' ? 'background:#fff7f7;border-color:#fecdd3' : state === 'ok' ? 'background:#f0fdf9;border-color:#a7f3d0' : '';
+    const keyTxt = q.type === 'tf' ? (cd === 'true' ? 'درست' : 'نادرست') : (cd !== null && cd !== undefined && cd !== '' ? fa(Number(cd) + 1) : '—');
+    const userTxt = blank ? '—' : userNum;
+    return '<div class="rc-q" style="' + rowStyle + '">' +
+      '<div class="rc-q-head"><span style="' + badgeStyle + '">' + fa(i + 1) + '</span><span class="rc-q-type">' + ({ mcq: 'تستی', multi: 'چندجوابی', tf: 'ص/غ', short: 'کوتاه', essay: 'تشریحی' }[q.type] || q.type) + '</span></div>' +
+      '<div class="rc-ansline"><span>پاسخ شما:</span> <b>' + userTxt + '</b></div>' +
+      '<div class="rc-ansline"><span>کلید:</span> <b>' + keyTxt + '</b></div></div>';
   }).join('');
   const grade = ok ? 'A' : ((d.percent || 0) >= 75 ? 'B' : ((d.percent || 0) >= 50 ? 'C' : 'D'));
+  const summary = '<div class="rc-summary"><div><span style="color:#059669">●</span> صحیح: <b>' + fa(correctCount) + '</b></div><div><span style="color:#e11d48">✕</span> غلط: <b>' + fa(wrongCount) + '</b></div><div><span style="color:#a16207">—</span> نزده: <b>' + fa(blankCount) + '</b></div>' + (essayCount ? '<div><span style="color:#4f46e5">✎</span> تشریحی: <b>' + fa(essayCount) + '</b></div>' : '') + '</div>';
   return '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><title>کارنامه ' + esc(d.student) + '</title><style>' +
     "@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800;900&display=swap');" +
     '*{margin:0;padding:0;box-sizing:border-box;font-family:Vazirmatn,Tahoma,sans-serif}' +
-    'body{background:#0b1026;padding:32px 16px}' +
-    '.rc{max-width:760px;margin:0 auto;background:linear-gradient(160deg,#101736 0%,#151d42 55%,#1a1f4d 100%);border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6),0 0 0 1px rgba(148,163,184,.12);position:relative}' +
-    '.rc::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 85% -10%,rgba(129,140,248,.22),transparent 60%),radial-gradient(500px 260px at 10% 110%,rgba(52,211,153,.16),transparent 60%);pointer-events:none}' +
-    '.rc-head{position:relative;padding:34px 38px 26px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(148,163,184,.14)}' +
+    'body{background:#f1f5f9;padding:32px 16px}' +
+    '.rc{max-width:760px;margin:0 auto;background:#ffffff;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(15,23,42,.10),0 0 0 1px rgba(15,23,42,.05)}' +
+    '.rc-head{padding:30px 38px 24px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #e2e8f0}' +
     '.rc-brand{display:flex;align-items:center;gap:12px}' +
-    '.rc-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#10b981,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900}' +
-    '.rc-brand b{color:#fff;font-size:19px;display:block}.rc-brand span{color:#8ea0c9;font-size:10.5px}' +
-    '.rc-seal{width:86px;height:86px;border-radius:50%;border:2.5px solid rgba(245,158,11,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fbbf24;background:rgba(245,158,11,.06);box-shadow:0 0 34px rgba(245,158,11,.18)}' +
+    '.rc-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#10b981,#6366f1);display:flex;align-items:center;justify-content:center}' +
+    '.rc-brand b{color:#0f172a;font-size:19px;display:block}.rc-brand span{color:#64748b;font-size:10.5px}' +
+    '.rc-seal{width:82px;height:82px;border-radius:50%;border:2.5px solid #fbbf24;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#b45309;background:#fffbeb}' +
     '.rc-seal b{font-size:30px;line-height:1}.rc-seal span{font-size:9px;margin-top:3px;letter-spacing:2px}' +
-    '.rc-title{position:relative;padding:22px 38px 6px;color:#e2e8f0;font-size:13px}.rc-title h1{color:#fff;font-size:23px;margin-top:4px}' +
-    '.rc-meta{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:18px 38px 6px}' +
-    '.rc-meta div{background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:10px 12px}' +
-    '.rc-meta span{display:block;color:#8ea0c9;font-size:9.5px;margin-bottom:4px}.rc-meta b{color:#e2e8f0;font-size:12.5px}' +
-    '.rc-stats{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 38px 10px}' +
-    '.rc-stat{border-radius:18px;padding:16px;text-align:center;background:rgba(148,163,184,.06);border:1px solid rgba(148,163,184,.13)}' +
-    '.rc-stat span{display:block;color:#8ea0c9;font-size:10px;margin-bottom:6px}.rc-stat b{font-size:24px;font-weight:900}' +
-    '.rc-stat.score b{color:#34d399}.rc-stat.pct b{color:#818cf8}.rc-stat.pass b{color:' + (ok ? '#34d399' : '#fb7185') + '}' +
-    '.rc-bar{position:relative;margin:14px 38px 8px;height:10px;border-radius:99px;background:rgba(148,163,184,.12);overflow:hidden}' +
-    '.rc-bar div{height:100%;border-radius:99px;background:linear-gradient(270deg,#10b981,#6366f1);box-shadow:0 0 16px rgba(99,102,241,.5)}' +
-    '.rc-qs{position:relative;padding:18px 38px 10px;max-height:none}' +
-    '.rc-q{background:rgba(148,163,184,.05);border:1px solid rgba(148,163,184,.1);border-radius:14px;padding:12px 14px;margin-bottom:9px}' +
-    '.rc-q-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}' +
-    '.rc-q-num{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#10b981,#6366f1);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}' +
-    '.rc-q-type{color:#8ea0c9;font-size:9.5px}' +
-    '.rc-q-text{color:#dbe4f5;font-size:12px;line-height:1.9;margin-bottom:6px}' +
-    '.rc-ans{color:#9fb2d8;font-size:11px}.rc-ans span{color:#64748b}' +
-    '.rc-foot{position:relative;display:flex;justify-content:space-between;align-items:center;padding:20px 38px 30px;color:#64748b;font-size:10px}' +
-    '.rc-foot b{color:#34d399}' +
+    '.rc-title{padding:22px 38px 6px;color:#475569;font-size:13px}.rc-title h1{color:#0f172a;font-size:23px;margin-top:4px}' +
+    '.rc-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:18px 38px 6px}' +
+    '.rc-meta div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:10px 12px}' +
+    '.rc-meta span{display:block;color:#94a3b8;font-size:9.5px;margin-bottom:4px}.rc-meta b{color:#1e293b;font-size:12.5px}' +
+    '.rc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 38px 10px}' +
+    '.rc-stat{border-radius:18px;padding:16px;text-align:center;background:#f8fafc;border:1px solid #e2e8f0}' +
+    '.rc-stat span{display:block;color:#94a3b8;font-size:10px;margin-bottom:6px}.rc-stat b{font-size:24px;font-weight:900}' +
+    '.rc-stat.score b{color:#059669}.rc-stat.pct b{color:#4f46e5}.rc-stat.pass b{color:' + (ok ? '#059669' : '#e11d48') + '}' +
+    '.rc-bar{margin:14px 38px 8px;height:10px;border-radius:99px;background:#e2e8f0;overflow:hidden}' +
+    '.rc-bar div{height:100%;border-radius:99px;background:linear-gradient(270deg,#10b981,#6366f1)}' +
+    '.rc-summary{display:flex;gap:18px;flex-wrap:wrap;margin:12px 38px 0;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;font-size:12px;color:#334155}' +
+    '.rc-summary b{color:#0f172a}' +
+    '.rc-qs{padding:18px 38px 10px}' +
+    '.rc-q{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:9px}' +
+    '.rc-q-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}' +
+    '.rc-q-head span:first-child{width:24px;height:24px;border-radius:8px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}' +
+    '.rc-q-type{color:#64748b;font-size:9.5px}' +
+    '.rc-ansline{color:#334155;font-size:11.5px;line-height:2}.rc-ansline span{color:#94a3b8}.rc-ansline b{color:#0f172a}' +
+    '.rc-foot{display:flex;justify-content:space-between;align-items:center;padding:20px 38px 30px;color:#94a3b8;font-size:10px}' +
+    '.rc-foot b{color:#059669}' +
     '@media print{body{background:#fff}.rc{box-shadow:none}}' +
     '</style></head><body><div class="rc">' +
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>' +
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>' +
     '<div class="rc-head"><div class="rc-brand"><div class="rc-logo">' + icons.cap + '</div><div><b>Quiz26</b><span>سامانه آزمون هوشمند</span></div></div><div class="rc-seal"><b>' + grade + '</b><span>GRADE</span></div></div>' +
     '<div class="rc-title">کارنامه آزمون<h1>' + esc(d.quizTitle || '—') + '</h1></div>' +
     '<div class="rc-meta"><div><span>دانش‌آموز</span><b>' + esc(d.student || '—') + '</b></div><div><span>مدرسه</span><b>' + esc(d.school || '—') + '</b></div><div><span>کلاس</span><b>' + esc(d.cls || '—') + '</b></div><div><span>تاریخ</span><b>' + esc(d.date || '—') + '</b></div></div>' +
-    '<div class="rc-stats"><div class="rc-stat score"><span>نمره</span><b>' + fa(d.score ?? 0) + ' <small style="font-size:12px;color:#8ea0c9">از ' + fa(d.maxScore ?? 0) + '</small></b></div><div class="rc-stat pct"><span>درصد</span><b>' + fa(d.percent ?? 0) + '٪</b></div><div class="rc-stat pass"><span>نتیجه</span><b>' + (ok ? 'قبول ✓' : 'مردود') + '</b></div></div>' +
+    '<div class="rc-stats"><div class="rc-stat score"><span>نمره</span><b>' + fa(d.score ?? 0) + ' <small style="font-size:12px;color:#94a3b8">از ' + fa(d.maxScore ?? 0) + '</small></b></div><div class="rc-stat pct"><span>درصد</span><b>' + fa(d.percent ?? 0) + '٪</b></div><div class="rc-stat pass"><span>نتیجه</span><b>' + (ok ? 'قبول ✓' : 'مردود') + '</b></div></div>' +
     '<div class="rc-bar"><div style="width:' + Math.min(100, Math.max(0, d.percent || 0)) + '%"></div></div>' +
+    summary +
     '<div class="rc-qs">' + rows + '</div>' +
     '<div class="rc-foot"><span>صادر شده توسط سامانه Quiz26</span><span>ساخته شده با <b>♥</b> BardiaLT</span></div>' +
     '</div></body></html>';
@@ -3696,25 +3730,59 @@ function confirmEndExam() {
 }
 
 function uploadAnswerSheet() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*,.pdf,.doc,.docx'; input.multiple = true;
-  input.onchange = async () => {
-    const files = input.files;
-    if (!files || !files.length) return;
-    if (!state.answerSheet) state.answerSheet = [];
-    if (state.answerSheet.length >= 5) { Swal.fire({ icon: 'warning', title: 'حداکثر ۵ فایل', text: 'برای جلوگیری از خطا در ارسال، حداکثر ۵ پاسخنامه مجاز است.', background: '#1e293b', color: '#fff' }); return; }
+  if (!state.answerSheet) state.answerSheet = [];
+  asRenderList();
+  document.getElementById('modalAnswerSheet').classList.remove('hide');
+}
+
+function asAddFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  if (!state.answerSheet) state.answerSheet = [];
+  (async () => {
     for (const f of files) {
-      if (!f.type.startsWith('image/') && f.size > 500 * 1024) { Swal.fire({ icon: 'warning', title: 'حجم زیاد', text: f.name + ' بیشتر از ۵۰۰ کیلوبایت است (فایل‌های غیرتصویری).', background: '#1e293b', color: '#fff' }); continue; }
+      if (state.answerSheet.length >= 5) { Swal.fire({ icon: 'warning', title: 'حداکثر ۵ فایل', background: '#1e293b', color: '#fff' }); break; }
+      const isImg = f.type.startsWith('image/');
+      if (!isImg && f.size > 3 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'حجم زیاد', text: f.name + ' بیشتر از ۳ مگابایت است.', background: '#1e293b', color: '#fff' }); continue; }
       try {
-        const dataUrl = await compressImageFile(f, 800, 0.5, 400000);
+        const dataUrl = isImg ? await compressImageFile(f, 1000, 0.6, 500000) : await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => { if (r.result.length > 3000000) rej(new Error('بیشتر از ۳ مگابایت')); else res(r.result); }; r.onerror = rej; r.readAsDataURL(f); });
         state.answerSheet.push({ file: dataUrl, fileName: f.name });
       } catch (err) { Swal.fire({ icon: 'warning', title: f.name, text: err.message || 'خطا در بارگذاری', background: '#1e293b', color: '#fff' }); }
     }
+    asRenderList();
     updateSheetBadge();
     renderAnswerSheetList();
-  };
-  input.click();
+  })();
 }
+
+function asRemoveFile(idx) {
+  state.answerSheet.splice(idx, 1);
+  asRenderList();
+  updateSheetBadge();
+  renderAnswerSheetList();
+}
+
+function asRenderList() {
+  const el = document.getElementById('asFilesList');
+  if (!el) return;
+  if (!state.answerSheet || !state.answerSheet.length) { el.innerHTML = '<p class="text-slate-500 text-xs text-center py-6">هنوز فایلی اضافه نشده.</p>'; return; }
+  el.innerHTML = state.answerSheet.map((f, i) => {
+    const isImg = String(f.file).startsWith('data:image');
+    return '<div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800"><div class="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center">' + (isImg ? '<img src="' + f.file + '" class="w-full h-full object-cover cursor-zoom-in" onclick="showFileSrcLightbox(\'' + 'AS' + i + '\')" />' : '<i class="fa-solid ' + (fileLabelFor(f.file).icon) + ' text-2xl text-slate-400"></i>') + '</div><div class="flex-1 min-w-0"><div class="text-xs text-white font-medium truncate">' + esc(f.fileName || 'فایل') + '</div><button onclick="showFileSrcLightbox(\'' + 'AS' + i + '\')" class="text-[10px] text-accent-300 hover:text-accent-400 mt-0.5"><i class="fa-solid fa-expand ml-0.5"></i> مشاهده بزرگ</button></div><button onclick="asRemoveFile(' + i + ')" class="text-rose-400/70 hover:text-rose-400 px-1" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div>';
+  }).join('');
+  // stash file URLs for lightbox
+  state.answerSheet.forEach((f, i) => { window['__asFile_' + i] = f.file; });
+}
+
+const _origShowFileSrcLightbox = showFileSrcLightbox;
+showFileSrcLightbox = function (u) {
+  if (typeof u === 'string' && u.startsWith('AS')) {
+    const idx = Number(u.slice(2));
+    u = window['__asFile_' + idx] || '';
+    if (!u) return;
+  }
+  _origShowFileSrcLightbox(u);
+};
 
 function removeAnswerSheetFile(idx) {
   if (!state.answerSheet || !state.answerSheet[idx]) return;
@@ -3875,6 +3943,9 @@ function showResult(data) {
     extra += '</div>';
   }
   extra += '<p class="text-[11px] text-slate-500 mt-2">کارنامه: <code class="dir-ltr text-emerald-300 text-[10px] break-all">' + location.origin + '/result/' + data.submission_id + '</code></p>';
+  const keyBtn = document.getElementById('downloadSheetKeyBtn');
+  if (keyBtn && state.exam && state.exam.attachment && state.exam.attachment.file) { keyBtn.classList.remove('hide'); window.__currentSheetKey = state.exam.attachment.file; }
+  else if (keyBtn) keyBtn.classList.add('hide');
   fillStudentReportCard({ title: state.exam?.title || 'کارنامه', student: name.trim(), score: data.score, maxScore: data.max_score, percent: data.percent, passed: data.passed, extraHtml: extra });
   __lastReportData = {
     quizTitle: state.exam?.title || '', student: name.trim(),
@@ -3899,6 +3970,14 @@ async function loadResult(id) {
         questions: [], answers: {},
       };
     }
+  const keyBtn = document.getElementById('downloadSheetKeyBtn');
+  if (keyBtn) {
+    try {
+      const qz = await api('/api/public/quiz-meta/' + (r.quiz_id || r.id));
+      if (qz && qz.attachment && qz.attachment.file) { keyBtn.classList.remove('hide'); window.__currentSheetKey = qz.attachment.file; }
+      else keyBtn.classList.add('hide');
+    } catch { if (keyBtn) keyBtn.classList.add('hide'); }
+  }
   } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }).then(() => { location.hash = ''; showView('landing'); }); }
 }
 
@@ -4202,6 +4281,16 @@ async function openStudentPanel() {
     if (String(err.message).includes('Unauthorized')) { studentLogout(); }
     else Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' });
   }
+}
+
+function downloadSheetKey() {
+  const att = state.exam && state.exam.attachment;
+  if (!att || !att.file) { // fallback: stored on last loaded result
+    const u = window.__currentSheetKey;
+    if (!u) return Swal.fire({ icon: 'info', title: 'پاسخنامه تشریحی موجود نیست', background: '#1e293b', color: '#fff' });
+    showFileSrcLightbox(u); return;
+  }
+  showFileSrcLightbox(att.file);
 }
 
 function updateAttendanceStats() {
