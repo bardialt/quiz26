@@ -602,7 +602,20 @@ export default {
       if (path === '/api/student/login' && method === 'POST') {
         const b = await request.json();
         const qid = Number(b.quiz_id);
-        if (!qid || !b.username || !b.password) return error('نام کاربری و رمز عبور الزامی است.', 400, origin);
+        // Panel login (quiz_id=0): no quiz window checks — token valid for teacher's quizzes
+        if (!qid) {
+          if (!b.username || !b.password) return error('نام کاربری و رمز عبور الزامی است.', 400, origin);
+          const panSt = await env.DB.prepare(
+            'SELECT * FROM students WHERE username = ? COLLATE NOCASE'
+          ).bind(String(b.username).trim()).first();
+          if (!panSt) return error('نام کاربری یا رمز عبور اشتباه است.', 401, origin);
+          const panHash = await hashPassword(b.password, panSt.salt);
+          if (panHash !== panSt.password_hash) return error('نام کاربری یا رمز عبور اشتباه است.', 401, origin);
+          const panSecret = env.JWT_SECRET || 'quiz26-dev-secret-change-me';
+          const panToken = await signJWT({ role: 'student', sid: panSt.id, tid: panSt.teacher_id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }, panSecret);
+          return json({ success: true, token: panToken, student: { id: panSt.id, username: panSt.username, full_name: panSt.full_name, class_name: panSt.class_name } }, 200, origin);
+        }
+        if (!b.username || !b.password) return error('نام کاربری و رمز عبور الزامی است.', 400, origin);
         const quiz = await env.DB.prepare(
           'SELECT id, teacher_id, status, start_at, end_at FROM quizzes WHERE id = ?'
         ).bind(qid).first();
@@ -2073,14 +2086,22 @@ export default {
         const dupHw = await env.DB.prepare(
           'SELECT id, status FROM homework_submissions WHERE homework_id = ? AND student_name = ? AND student_family = ?'
         ).bind(hid, b.student_name, b.student_family || '').first();
+        if (dupHw && dupHw.status === 'approved') {
+          return error('تکلیف شما تأیید شده و دیگر قابل تغییر نیست.', 403, origin);
+        }
         if (dupHw && dupHw.status !== 'needs_revision') {
           return error('شما قبلاً این تکلیف را ارسال کرده‌اید. برای مشاهده نتیجه از دکمه «مشاهده وضعیت» استفاده کنید.', 409, origin);
         }
         if (dupHw && dupHw.status === 'needs_revision') {
-          // Resubmission after teacher requested revision: update existing row
+          // Resubmission after teacher requested revision — PRESERVE previously uploaded files unless new ones provided
+          let filesJson = JSON.stringify(b.files || []);
+          let oldFiles = [];
+          try { oldFiles = JSON.parse((await env.DB.prepare('SELECT files_json FROM homework_submissions WHERE id = ?').bind(dupHw.id).first()).files_json || '[]'); } catch {}
+          if (!(b.files && b.files.length) && oldFiles.length) filesJson = JSON.stringify(oldFiles);
+          const finalFiles = JSON.parse(filesJson);
           await env.DB.prepare(`UPDATE homework_submissions SET answer_text = ?, files_json = ?, status = 'pending', reply = '', student_phone = ?, submitted_at = datetime('now') WHERE id = ?`)
-            .bind(b.answer_text || '', JSON.stringify(b.files || []), normPhone(b.student_phone || ''), dupHw.id).run();
-          return json({ success: true, id: dupHw.id, status: 'pending', resubmitted: true }, 200, origin);
+            .bind(b.answer_text || '', filesJson, normPhone(b.student_phone || ''), dupHw.id).run();
+          return json({ success: true, id: dupHw.id, status: 'pending', resubmitted: true, kept_files: finalFiles.length }, 200, origin);
         }
         const r = await env.DB.prepare(`INSERT INTO homework_submissions (homework_id, student_name, student_family, school, class_name, answer_text, student_phone, files_json)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(
@@ -2116,6 +2137,43 @@ export default {
         }
         if (!rows.length) return json({ success: true, submission: null }, 200, origin);
         return json({ success: true, submission: rows[0] }, 200, origin);
+      }
+
+      // ---------- Student panel (logged-in students) ----------
+      const stuPanelMatch = path.match(/^\/api\/student\/panel$/);
+      if (stuPanelMatch && method === 'GET') {
+        const sp = await getStudentAuth(request, env);
+        if (!sp) return error('Unauthorized', 401, origin);
+        const st = await env.DB.prepare('SELECT id, username, full_name, class_name FROM students WHERE id = ?').bind(sp.sid).first();
+        if (!st) return error('حساب یافت نشد.', 404, origin);
+        // Active quizzes of THIS student's teacher (all quizzes; participation state computed per quiz)
+        const quizzes = (await env.DB.prepare(`
+          SELECT q.id, q.title, q.description, q.duration_min, q.status, q.start_at, q.end_at, q.require_login, q.report_after_end, q.stacked_view, q.attachment_json,
+            (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS question_count,
+            (SELECT COUNT(*) FROM submissions WHERE quiz_id = q.id AND student_user_id = ?) AS my_attempts
+          FROM quizzes q WHERE q.teacher_id = ? AND q.status = 'active'
+          ORDER BY q.created_at DESC LIMIT 50
+        `).bind(sp.sid, sp.tid).all()).results || [];
+        const homework = (await env.DB.prepare(`
+          SELECT h.id, h.title, h.subject, h.description, h.due_date, h.max_score, h.attachment_json,
+            (SELECT status FROM homework_submissions hs WHERE hs.homework_id = h.id AND hs.student_name = ? AND hs.student_family = ? ORDER BY hs.submitted_at DESC LIMIT 1) AS my_status,
+            (SELECT score FROM homework_submissions hs2 WHERE hs2.homework_id = h.id AND hs2.student_name = ? AND hs2.student_family = ? ORDER BY hs2.submitted_at DESC LIMIT 1) AS my_score,
+            (SELECT reply FROM homework_submissions hs3 WHERE hs3.homework_id = h.id AND hs3.student_name = ? AND hs3.student_family = ? ORDER BY hs3.submitted_at DESC LIMIT 1) AS my_reply
+          FROM homework h WHERE h.teacher_id = ? AND h.status = 'active'
+          ORDER BY h.created_at DESC LIMIT 50
+        `).bind(st.full_name.split(' ')[0] || '', st.full_name.split(' ').slice(1).join(' ') || '', st.full_name.split(' ')[0] || '', st.full_name.split(' ').slice(1).join(' ') || '', st.full_name.split(' ')[0] || '', st.full_name.split(' ').slice(1).join(' ') || '', sp.tid).all()).results || [];
+        const homeworkMapped = homework.map(h => { let attachment = null; try { attachment = h.attachment_json ? JSON.parse(h.attachment_json) : null; } catch {} return { ...h, attachment, attachment_json: undefined }; });
+        const attendance = (await env.DB.prepare(`
+          SELECT date, status, class_name FROM attendance WHERE teacher_id = ? AND student_name = ? AND student_family = ?
+          ORDER BY date DESC LIMIT 60
+        `).bind(sp.tid, st.full_name.split(' ')[0] || '', st.full_name.split(' ').slice(1).join(' ') || '').all()).results || [];
+        const results = (await env.DB.prepare(`
+          SELECT s.id, s.quiz_id, s.score, s.max_score, s.percent, s.passed, s.finished_at, q.title AS quiz_title
+          FROM submissions s JOIN quizzes q ON s.quiz_id = q.id
+          WHERE s.student_user_id = ? AND (q.show_result = 1 OR q.report_after_end = 0)
+          ORDER BY s.finished_at DESC LIMIT 50
+        `).bind(sp.sid).all()).results || [];
+        return json({ success: true, student: st, quizzes, homework: homeworkMapped, attendance, results }, 200, origin);
       }
 
       return error('مسیر یافت نشد.', 404, origin);

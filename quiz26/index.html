@@ -206,6 +206,9 @@
     .exam-opt{transition:transform .18s ease,background-color .2s ease,border-color .2s ease}
     .exam-opt:hover{transform:translateX(-4px)}
     body.theme-light .exam-opt:hover{transform:translateX(4px)}
+    /* Sheet split-view exam (PDF left, options right) */
+    .sheet-frame{height:min(78vh,900px)}
+    @media(max-width:1023px){.sheet-frame{height:60vh}}
     @media print{.no-print button:not(.keep-print){display:none!important}}
     input:focus-visible,select:focus-visible,textarea:focus-visible{box-shadow:0 0 0 2px rgba(16,185,129,.4)}
     /* ===== Shimmer + polish (v2.2) ===== */
@@ -259,6 +262,7 @@
         <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-8 no-print">
           <button onclick="showView('login')" class="px-9 py-4 rounded-full btn-emerald text-white font-black text-base shadow-xl shadow-emerald-500/40 animate-glow"><i class="fa-solid fa-rocket ml-2"></i> همین حالا آزمون بساز</button>
           <button onclick="promptQuizId()" class="px-6 py-4 rounded-full text-slate-300 hover:text-white font-bold text-sm transition hover:bg-white/5"><i class="fa-solid fa-pen-to-square ml-2"></i> شرکت در آزمون</button>
+        <button onclick="showView('student-panel')" class="px-6 py-4 rounded-full text-slate-300 hover:text-white font-bold text-sm transition hover:bg-white/5"><i class="fa-solid fa-user-graduate ml-2"></i> پنل دانش‌آموز</button>
         </div>
         <div class="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-xs text-slate-400 font-medium">
           <span><i class="fa-solid fa-check text-indigo-400 ml-1.5"></i>بدون نصب</span>
@@ -555,25 +559,29 @@
           <div class="flex flex-wrap gap-2 items-center">
             <input type="date" id="attDate" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" onchange="loadAttendance()" />
             <span id="attDateJalali" class="clock-pill clock-pill-sm" aria-live="off"></span>
-            <button onclick="attSetAll('present')" class="px-3 py-2 text-xs rounded-lg bg-emerald-600/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/25 transition font-bold"><i class="fa-solid fa-check-double ml-1"></i> همه حاضر</button>
             <button onclick="saveAttendance()" id="attSaveBtn" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-save ml-1"></i> ذخیره</button>
           </div>
         </div>
-        <div class="grid grid-cols-3 md:grid-cols-5 gap-2.5 mb-5">
+        <div class="flex flex-wrap gap-2 mb-4 p-3 rounded-xl bg-slate-900/40 border border-slate-800 items-center">
+          <i class="fa-solid fa-users-rectangle text-slate-500 text-xs"></i>
+          <span class="text-xs text-slate-400 font-bold">کلاس:</span>
+          <input id="attClassName" type="text" oninput="saveAttendanceClassDraft()" placeholder="مثلاً ۹۰۱" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm w-32 text-white" />
+          <span class="text-slate-700">|</span>
+          <input id="attNewName" type="text" class="flex-1 min-w-[130px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام *" onkeydown="if(event.key==='Enter'){event.preventDefault();addAttendanceRow();}" />
+          <input id="attNewFamily" type="text" class="flex-1 min-w-[130px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام خانوادگی *" onkeydown="if(event.key==='Enter'){event.preventDefault();addAttendanceRow();}" />
+          <button onclick="addAttendanceRow()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold"><i class="fa-solid fa-user-plus ml-1"></i> ثبت دانش‌آموز</button>
+        </div>
+        <div id="attAutoSaveHint" class="hide text-[11px] text-emerald-300/90 mb-3"><i class="fa-solid fa-circle-check ml-1"></i> دانش‌آموز ثبت شد و بلافاصله ذخیره گردید — صفحه را می‌توانید ببندید و بعداً ادامه دهید.</div>
+        <div class="grid grid-cols-3 md:grid-cols-5 gap-2.5 mb-4">
           <div class="rounded-xl p-3 text-center bg-gradient-to-b from-emerald-500/10 to-transparent border border-emerald-500/20"><div class="text-2xl font-black text-emerald-400" id="attPresent">0</div><div class="text-[10px] text-slate-500 mt-0.5">حاضر</div></div>
           <div class="rounded-xl p-3 text-center bg-gradient-to-b from-rose-500/10 to-transparent border border-rose-500/20"><div class="text-2xl font-black text-rose-400" id="attAbsent">0</div><div class="text-[10px] text-slate-500 mt-0.5">غایب</div></div>
           <div class="rounded-xl p-3 text-center bg-gradient-to-b from-amber-500/10 to-transparent border border-amber-500/20"><div class="text-2xl font-black text-amber-400" id="attLate">0</div><div class="text-[10px] text-slate-500 mt-0.5">تاخیر</div></div>
           <div class="rounded-xl p-3 text-center bg-gradient-to-b from-slate-500/10 to-transparent border border-slate-500/20"><div class="text-2xl font-black text-slate-300" id="attExcused">0</div><div class="text-[10px] text-slate-500 mt-0.5">مرخصی</div></div>
           <div class="rounded-xl p-3 text-center bg-slate-900/50 border border-slate-700 col-span-3 md:col-span-1"><div class="text-2xl font-black text-white" id="attTotal">0</div><div class="text-[10px] text-slate-500 mt-0.5">کل دانش‌آموزان</div></div>
         </div>
-        <div id="attProgressBarWrap" class="mb-5">
+        <div id="attProgressBarWrap" class="mb-4">
           <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>درصد حضور روز</span><span id="attPctLabel">—</span></div>
           <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden"><div id="attProgressBar" class="h-full bg-gradient-to-l from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width:0%"></div></div>
-        </div>
-        <div class="flex flex-wrap gap-2 mb-4 p-3 rounded-xl bg-slate-900/40 border border-slate-800">
-          <input id="attNewName" type="text" class="flex-1 min-w-[140px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام دانش‌آموز" />
-          <input id="attNewFamily" type="text" class="flex-1 min-w-[140px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام خانوادگی" />
-          <button onclick="addAttendanceRow()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold"><i class="fa-solid fa-user-plus ml-1"></i> افزودن</button>
         </div>
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-slate-400 font-bold">لیست دانش‌آموزان</span>
@@ -582,7 +590,7 @@
         <div id="attendanceList" class="space-y-1.5"></div>
       </div>
       <div class="glass rounded-2xl p-5">
-        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-accent-400"></i> تاریخچه (۵۰ جلسه آخر)</h3>
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-accent-400"></i> جلسات قبلی — کلیک کنید تا همان روز دوباره باز شود</h3>
         <div id="attHistory"><p class="text-slate-500 text-sm text-center py-4">هنوز سابقه‌ای نیست.</p></div>
       </div>
     </section>
@@ -782,6 +790,61 @@
       </div>
     </div>
   </div>
+</section>
+
+<!-- Student Panel -->
+<section id="view-student-panel" class="view hide min-h-screen gradient-bg">
+  <header class="glass sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center"><i class="fa-solid fa-user-graduate text-white"></i></div>
+        <span class="font-bold text-white">پنل دانش‌آموز</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="spName" class="text-xs text-slate-300 hidden sm:inline"></span>
+        <span id="spClass" class="text-[10px] px-2 py-1 rounded-lg bg-slate-800 text-slate-400"></span>
+        <button onclick="studentLogout()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 text-xs transition"><i class="fa-solid fa-right-from-bracket ml-1"></i> خروج</button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div id="spLoginBox" class="glass rounded-3xl p-8 w-full max-w-md mx-auto shadow-2xl mt-10">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center mb-4 shadow-lg animate-float"><i class="fa-solid fa-user-graduate text-white text-2xl"></i></div>
+        <h2 class="text-xl font-bold text-white">ورود دانش‌آموز</h2>
+        <p class="text-xs text-slate-500 mt-1">با حسابی که دبیر برای شما ساخته وارد شوید</p>
+      </div>
+      <div class="space-y-3">
+        <div><label class="text-xs text-slate-400 mb-1 block">نام کاربری</label><input id="spUser" autocomplete="username" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-left" placeholder="username" /></div>
+        <div><label class="text-xs text-slate-400 mb-1 block">رمز عبور</label><input id="spPass" type="password" autocomplete="current-password" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-left" placeholder="••••••••" onkeydown="if(event.key==='Enter'){event.preventDefault();studentPanelLogin();}" /></div>
+        <button onclick="studentPanelLogin()" id="spLoginBtn" class="w-full py-3.5 rounded-xl btn-gradient text-white font-bold">ورود به پنل</button>
+        <button onclick="showView('landing')" class="w-full text-xs text-slate-500 hover:text-slate-300 pt-1">بازگشت به صفحه اصلی</button>
+      </div>
+    </div>
+    <div id="spContent" class="hide space-y-6">
+      <!-- Quizzes -->
+      <div class="glass rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-file-pen text-emerald-400"></i> آزمون‌های فعال</h3>
+        <div id="spQuizzes" class="space-y-3"></div>
+      </div>
+      <!-- Homework -->
+      <div class="glass rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-book text-amber-400"></i> تکالیف من</h3>
+        <div id="spHomework" class="space-y-3"></div>
+      </div>
+      <!-- Results -->
+      <div class="glass rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-simple text-accent-400"></i> کارنامه‌های من</h3>
+        <div id="spResults" class="space-y-2"></div>
+      </div>
+      <!-- Attendance -->
+      <div class="glass rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-teal-400"></i> حضور و غیاب من</h3>
+        <div id="spAttStats" class="grid grid-cols-4 gap-2 mb-4"></div>
+        <div id="spAttendance" class="space-y-1.5 max-h-72 overflow-y-auto"></div>
+      </div>
+    </div>
+  </main>
 </section>
 
 <!-- Result -->
@@ -1198,7 +1261,7 @@ function showView(name) {
     if (name === 'studio' && state.editingQuizId) loadQuestions(state.editingQuizId);
     if (name === 'ai') loadQuizzesForAI();
     if (name === 'homework') loadHomework();
-    if (name === 'attendance') { document.getElementById('attDate').value = localDateStr(); loadAttendance(); }
+    if (name === 'attendance') { document.getElementById('attDate').value = localDateStr(); loadAttendance(); document.getElementById('attClassName').value = ''; }
     if (name === 'users') loadStudents();
     if (name === 'settings') loadSettings();
   } else {
@@ -2243,43 +2306,49 @@ function removeImported(i) {
 }
 
 async function saveImportedQuestions() {
+  const sheetMode = !!__importAttachmentFile;
   const valid = importedQuestions.filter(q => {
-    if (!q.content || !q.content.trim()) return false;
+    // In sheet mode (questions live in the attached PDF/image), content is optional — only the answer key matters
+    if (!sheetMode && (!q.content || !q.content.trim())) return false;
     if (q.type === 'mcq') { const filled = (q.options || []).filter(o => String(o || '').trim()); return filled.length >= 2 && q.correct !== null && q.correct !== undefined; }
     if (q.type === 'tf') return q.correct === 'true' || q.correct === 'false';
+    if (q.type === 'essay') return true; // essay: answer key optional
     return q.correct !== null && q.correct !== undefined && String(q.correct).trim() !== '';
   });
   const empty = importedQuestions.length - valid.length;
-  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'سوالات ناقص‌اند', text: 'هر سوال باید متن داشته باشد و جوابش علامت بخورد.', background: '#1e293b', color: '#fff' });
+  if (!valid.length) return Swal.fire({ icon: 'warning', title: 'سوالات ناقص‌اند', text: sheetMode ? 'برای هر سوال، گزینه صحیح را علامت بزنید (تستی‌ها) یا درست/نادرست را انتخاب کنید.' : 'هر سوال باید متن داشته باشد و جوابش علامت بخورد.', background: '#1e293b', color: '#fff' });
   const btn = document.getElementById('saveImportBtn');
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ذخیره...';
   let saved = 0;
-  for (const q of valid) {
+  const sheetFile = sheetMode ? __importAttachmentFile.file : null;
+  for (let qi = 0; qi < valid.length; qi++) {
+    const q = valid[qi];
     try {
+      // In sheet mode each question references the attached sheet; students see the sheet on the left.
+      const img = sheetFile ? sheetFile : (q.image_url || null);
       const payload = q.type === 'mcq'
-        ? { type: 'mcq', content: q.content.trim(), options_json: (q.options || []).map(o => String(o || '').trim()).filter(Boolean), correct_json: q.correct, score: 1 }
+        ? { type: 'mcq', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: (q.options || []).map(o => String(o || '').trim()).filter(Boolean), correct_json: q.correct, score: 1, image_url: img }
         : q.type === 'tf'
-          ? { type: 'tf', content: q.content.trim(), options_json: null, correct_json: q.correct, score: 1 }
+          ? { type: 'tf', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: null, correct_json: q.correct, score: 1, image_url: img }
           : q.type === 'essay'
-            ? { type: 'essay', content: q.content.trim(), options_json: null, correct_json: String(q.correct || '').trim() ? [String(q.correct).trim()] : [], score: 1 }
-            : { type: 'short', content: q.content.trim(), options_json: null, correct_json: String(q.correct).split(',').map(s => s.trim()).filter(Boolean), score: 1 };
+            ? { type: 'essay', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: null, correct_json: String(q.correct || '').trim() ? [String(q.correct).trim()] : [], score: 1, image_url: img }
+            : { type: 'short', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: null, correct_json: String(q.correct).split(',').map(s => s.trim()).filter(Boolean), score: 1, image_url: img };
       await api('/api/quizzes/' + state.editingQuizId + '/questions', { method: 'POST', body: JSON.stringify(payload) });
       saved++;
     } catch (err) { console.error(err); }
   }
   btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون';
-  // Attachment mode: attach the uploaded PDF/image as a global quiz attachment (stored on first question's quiz — use quiz-level via mqMediaUrl on each? Instead store on quiz description field is wrong; use dedicated approach: attach to every question as fallback sheet)
   const attachFile = __importAttachmentFile;
   __importAttachmentFile = null;
   closeModal('modalUploadImport');
   const finish = () => {
     loadQuestions(state.editingQuizId);
-    Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال ناقص رد شد (متن یا جواب نداشت).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
+    Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال رد شد (جواب علامت نخورده بود).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
   };
   if (attachFile) {
     try {
       await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify({ attachment: attachFile }) });
-      Swal.fire({ icon: 'info', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد و در صفحهٔ آزمون، بالای سوالات برای دانش‌آموز نمایش داده می‌شود.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
+      Swal.fire({ icon: 'info', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد — در صفحهٔ آزمون، برگه سمت چپ و گزینه‌ها سمت راست نمایش داده می‌شود.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
       return;
     } catch { finish(); return; }
   }
@@ -2565,19 +2634,55 @@ async function deleteStudent(id) {
 
 let attendanceStudents = [];
 
-function addAttendanceRow(name, family, status) {
-  attendanceStudents.push({ name: name || '', family: family || '', status: status || 'present', note: '' });
+function addAttendanceRow() {
+  const nameEl = document.getElementById('attNewName');
+  const famEl = document.getElementById('attNewFamily');
+  const name = nameEl.value.trim();
+  const family = famEl.value.trim();
+  if (!name || !family) return Swal.fire({ icon: 'warning', title: 'نام و نام خانوادگی هر دو الزامی است', background: '#1e293b', color: '#fff' });
+  const dup = attendanceStudents.find(s => s.name === name && s.family === family);
+  if (dup) return Swal.fire({ icon: 'info', title: 'این دانش‌آموز قبلاً اضافه شده', text: 'در لیست پایین وضعیتش را تنظیم کنید.', background: '#1e293b', color: '#fff' });
+  attendanceStudents.push({ name, family, status: 'present', note: '' });
+  nameEl.value = ''; famEl.value = ''; nameEl.focus();
   renderAttendanceList();
+  // Auto-save immediately (per-student persistence)
+  persistAttendance(true);
 }
 
+function persistAttendance(silent) {
+  const date = document.getElementById('attDate')?.value || localDateStr();
+  const class_name = document.getElementById('attClassName')?.value.trim() || '';
+  if (!attendanceStudents.length) return Promise.resolve();
+  return api('/api/attendance', { method: 'POST', body: JSON.stringify({ date, class_name, students: attendanceStudents }) })
+    .then(() => {
+      if (silent) {
+        const hint = document.getElementById('attAutoSaveHint');
+        hint.classList.remove('hide');
+        clearTimeout(window.__attHintT);
+        window.__attHintT = setTimeout(() => hint.classList.add('hide'), 2500);
+      }
+      loadAttendanceHistory();
+      return true;
+    })
+    .catch(err => { Swal.fire({ icon: 'error', title: 'خطا در ذخیره', text: err.message, background: '#1e293b', color: '#fff' }); return false; });
+}
+
+function saveAttendanceClassDraft() { /* class name is saved together with students on persist */ }
+
 function removeAttendanceRow(idx) {
-  attendanceStudents.splice(idx, 1);
-  renderAttendanceList();
+  const s = attendanceStudents[idx];
+  Swal.fire({ title: 'حذف «' + (s.name + ' ' + s.family).trim() + '»؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', cancelButtonColor: '#334155', confirmButtonText: 'حذف', cancelButtonText: 'انصراف', background: '#1e293b', color: '#fff' }).then(r => {
+    if (!r.isConfirmed) return;
+    attendanceStudents.splice(idx, 1);
+    renderAttendanceList();
+    persistAttendance(true);
+  });
 }
 
 function setAttStatus(idx, status) {
   attendanceStudents[idx].status = status;
   renderAttendanceList();
+  persistAttendance(true);
 }
 
 function renderAttendanceList() {
@@ -3325,24 +3430,70 @@ function renderExamQuestion() {
   if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
 }
 
-/* Quiz-level sheet attachment (PDF/image uploaded via import) — shown at top of exam */
+/* Quiz-level sheet attachment (PDF/image uploaded via import) — split view: sheet LEFT, options RIGHT */
 function renderExamSheetAttachment() {
   const area = document.getElementById('examQuestionArea');
   if (!area) return;
   const att = state.exam && state.exam.attachment;
   if (!att || !att.file) return;
-  const holder = document.createElement('div');
-  holder.id = 'examSheetAttachment';
-  holder.className = 'mb-5';
-  const isImg = String(att.file).startsWith('data:image');
-  holder.innerHTML = '<div class="glass rounded-2xl p-4 border-violet-500/30"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-violet-300"><i class="fa-solid fa-file-pdf ml-1"></i> برگهٔ سوالات آزمون</span><button type="button" onclick="showFileUrlLightbox(\'' + 'SHEET' + '\')" class="px-3 py-1.5 rounded-lg bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-bold transition"><i class="fa-solid fa-expand ml-1"></i> مشاهده در اندازهٔ بزرگ</button></div>' +
-    (isImg ? '<img src="' + att.file + '" class="max-h-56 rounded-xl border border-slate-700 cursor-zoom-in w-full object-contain" onclick="showFileUrlLightbox(\'SHEET\')" />' : '<p class="text-xs text-slate-400">فایل <b>' + esc(att.fileName || 'برگه') + '</b> — برای مشاهده دکمهٔ بالا را بزنید.</p>') + '</div>';
-  area.parentNode.insertBefore(holder, area);
   window.__sheetUrl = att.file;
+  const isPdf = /\.pdf(\?|$)/i.test(att.file) || String(att.file).startsWith('data:application/pdf');
+  const isImg = String(att.file).startsWith('data:image');
+  const wrap = document.createElement('div');
+  wrap.id = 'examSheetSplit';
+  wrap.innerHTML = '<div class="exam-split grid lg:grid-cols-2 gap-4 mb-6">' +
+    '<div class="glass rounded-2xl p-3 border-violet-500/30 lg:sticky lg:top-20 lg:self-start">' +
+    '<div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-violet-300"><i class="fa-solid fa-file-pdf ml-1"></i> برگهٔ سوالات</span><button type="button" onclick="showFileUrlLightbox(\'SHEET\')" class="px-2.5 py-1.5 rounded-lg bg-violet-600/90 hover:bg-violet-500 text-white text-[11px] font-bold transition"><i class="fa-solid fa-expand ml-1"></i> بزرگ</button></div>' +
+    (isPdf
+      ? '<iframe id="sheetFrame" src="' + esc(att.file) + '#toolbar=1&view=FitH" class="w-full rounded-xl border border-slate-700 bg-white sheet-frame"></iframe>'
+      : isImg
+        ? '<img src="' + esc(att.file) + '" class="w-full rounded-xl border border-slate-700 cursor-zoom-in" onclick="showFileUrlLightbox(\'SHEET\')" />'
+        : '<a href="' + esc(att.file) + '" download="' + esc(att.fileName || 'برگه') + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-sm"><i class="fa-solid fa-download"></i> دانلود برگهٔ سوالات</a>') +
+    '<p class="text-[10px] text-slate-500 mt-2 text-center">برای بزرگ‌نمایی داخل PDF از دکمه‌های خود مرورگر PDF استفاده کنید یا دکمهٔ «بزرگ» را بزنید.</p>' +
+    '</div>' +
+    '<div id="examSplitQuestions" class="min-w-0"></div>' +
+    '</div>';
+  area.parentNode.insertBefore(wrap, area);
+  // In split mode, questions render inside the right column
+  state.splitMode = true;
+  const qCol = document.getElementById('examSplitQuestions');
+  if (state.stackedMode) {
+    qCol.innerHTML = state.questions.map((q, i) => '<div id="sq_' + q.id + '" class="stacked-q glass rounded-2xl p-4 mb-4">' + buildQuestionBlock(q, i) + '</div>').join('') +
+      '<div class="flex justify-center pt-2"><button type="button" onclick="confirmEndExam()" class="px-8 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-500/25"><i class="fa-solid fa-flag-checkered ml-1"></i> پایان آزمون و ثبت نهایی</button></div>';
+    state.questions.forEach(q => {
+      if (q.type === 'essay') { const el = document.getElementById('essayInput_' + q.id); if (el) el.addEventListener('input', () => { const prev = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : {}; state.answers[q.id] = { text: el.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); }); }
+      else if (q.type === 'short') { const el = document.getElementById('shortInput_' + q.id); if (el) el.addEventListener('input', () => { state.answers[q.id] = el.value; renderPalette(); }); }
+    });
+  } else {
+    renderExamQuestionInto(qCol);
+  }
+}
+
+/* Render single-question flow inside the split right column: the static area's id is moved here */
+function renderExamQuestionInto(container) {
+  // 1. grab the static examQuestionArea (it exists in DOM before split columns)
+  const staticArea = document.getElementById('examQuestionArea');
+  // 2. create the new live area inside the split column and take over the id
+  const holder = document.createElement('div');
+  holder.className = 'split-live';
+  staticArea.id = 'examQuestionAreaOrig';
+  staticArea.classList.add('hide');
+  holder.id = 'examQuestionArea';
+  container.appendChild(holder);
+  // 3. render the first question into it
+  renderExamQuestion();
+}
+
+function setAnswer(qid, val, type) {
+  if (type === 'multi') { let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : []; const idx = arr.indexOf(val); if (idx >= 0) arr.splice(idx, 1); else arr.push(val); state.answers[qid] = arr; }
+  else if (type === 'essay' || type === 'short') { state.answers[qid] = val; renderPalette(); return; }
+  else state.answers[qid] = type === 'mcq' ? Number(val) : val;
+  renderPalette();
+  if (state.stackedMode || state.splitMode) refreshStackedQuestion(qid); else renderExamQuestion();
 }
 
 function showFileUrlLightbox(token) {
-  const src = token === 'SHEET' ? (window.__sheetUrl || '') : (state.questions || []).find(q => String(q.id) === token)?.image_url || '';
+  const src = token === 'SHEET' ? (window.__sheetUrl || '') : ((state.questions || []).find(q => String(q.id) === token) || {}).image_url || '';
   if (!src) return;
   showFileSrcLightbox(src);
 }
@@ -3356,21 +3507,13 @@ function showFileSrcLightbox(u) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
   let inner;
   if (isImg) inner = '<img src="' + esc(u) + '" style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65);display:block;object-fit:contain" />';
-  else if (isPdf) inner = '<iframe src="' + esc(u) + '" style="width:min(94vw,1000px);height:86vh;border:0;border-radius:16px;background:#fff"></iframe>';
+  else if (isPdf) inner = '<iframe src="' + esc(u) + '#toolbar=1&view=FitH" style="width:min(96vw,1100px);height:88vh;border:0;border-radius:16px;background:#fff"></iframe>';
   else if (isVid) inner = '<video src="' + esc(u) + '" controls autoplay style="max-width:94vw;max-height:84vh;border-radius:16px"></video>';
   else inner = '<div style="text-align:center;color:#e2e8f0;padding:40px 60px;background:rgba(15,23,42,.9);border:1px solid rgba(148,163,184,.2);border-radius:20px"><i class="fa-solid ' + meta.icon + '" style="font-size:56px;color:' + meta.color + '"></i><div style="margin-top:14px;font-weight:800">فایل ' + meta.label + '</div></div>';
   const dlBtn = '<a href="' + esc(u) + '" download style="position:absolute;bottom:-16px;right:50%;transform:translateX(50%);display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#4f46e5,#059669);color:#fff;border:0;border-radius:999px;padding:10px 22px;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.5)"><i class="fa-solid fa-download"></i> دانلود فایل</a>';
   overlay.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%"><button style="position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:50%;background:#e11d48;color:#fff;border:0;cursor:pointer;font-size:15px;z-index:2" title="بستن">✕</button>' + inner + dlBtn + '</div>';
   overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName === 'BUTTON') overlay.remove(); });
   document.body.appendChild(overlay);
-}
-
-function setAnswer(qid, val, type) {
-  if (type === 'multi') { let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : []; const idx = arr.indexOf(val); if (idx >= 0) arr.splice(idx, 1); else arr.push(val); state.answers[qid] = arr; }
-  else if (type === 'essay' || type === 'short') { state.answers[qid] = val; renderPalette(); return; }
-  else state.answers[qid] = type === 'mcq' ? Number(val) : val;
-  renderPalette();
-  if (state.stackedMode) refreshStackedQuestion(qid); else renderExamQuestion();
 }
 
 /* ===== Stacked (all-in-one-page) exam view ===== */
@@ -3826,7 +3969,7 @@ async function loadPublicHomework(id) {
     document.getElementById('hwPubLoading').classList.add('hide');
     document.getElementById('hwPubContent').classList.remove('hide');
     document.getElementById('hwPubTitle').textContent = h.title;
-    document.getElementById('hwPubMeta').textContent = (h.subject || '') + (h.due_date ? ' · مهلت: ' + h.due_date : '') + (h.max_score ? ' · حداکثر نمره: ' + h.max_score : '');
+    document.getElementById('hwPubMeta').textContent = (h.subject || '') + (h.due_date ? ' · مهلت: ' + jalaliFromISO(h.due_date) : '') + (h.max_score ? ' · حداکثر نمره: ' + h.max_score : '');
     document.getElementById('hwPubDesc').innerHTML = h.description ? esc(h.description).replace(/\n/g, '<br/>') : '<span class="text-slate-500">توضیحی ثبت نشده.</span>';
     const att = document.getElementById('hwPubAttachment');
     if (h.attachment && h.attachment.file) {
@@ -3838,6 +3981,9 @@ async function loadPublicHomework(id) {
     } else att.classList.add('hide');
     document.getElementById('hwStName').value = '';
     document.getElementById('hwStFamily').value = '';
+    document.getElementById('hwStPhone').value = '';
+    // Status-check box is ALWAYS visible (student who already submitted can check teacher's reply)
+    document.getElementById('hwPubStatus').classList.remove('hide');
   } catch (err) {
     document.getElementById('hwPubLoading').classList.add('hide');
     const e = document.getElementById('hwPubError');
@@ -3910,6 +4056,84 @@ async function checkHwStatus() {
   finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-chart-line ml-1"></i> جستجو'; } }
 }
 
+/* ===== Student Panel ===== */
+async function studentPanelLogin() {
+  const u = document.getElementById('spUser').value.trim();
+  const p = document.getElementById('spPass').value;
+  if (!u || !p) return Swal.fire({ icon: 'warning', title: 'نام کاربری و رمز را وارد کنید', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('spLoginBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ورود...';
+  try {
+    // Generic student login (quiz_id=0 → panel-only token); fall back to per-quiz endpoint
+    const res = await fetch(API_BASE + '/api/student/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quiz_id: 0, username: u, password: p }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'خطا در ورود');
+    state.studentToken = data.token;
+    localStorage.setItem('q26_student_token', data.token);
+    document.getElementById('spPass').value = '';
+    await openStudentPanel();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' });
+  } finally { btn.disabled = false; btn.innerHTML = 'ورود به پنل'; }
+}
+
+function studentLogout() {
+  state.studentToken = null;
+  localStorage.removeItem('q26_student_token');
+  document.getElementById('spContent').classList.add('hide');
+  document.getElementById('spLoginBox').classList.remove('hide');
+}
+
+async function openStudentPanel() {
+  showView('student-panel');
+  if (!state.studentToken) { document.getElementById('spLoginBox').classList.remove('hide'); document.getElementById('spContent').classList.add('hide'); return; }
+  document.getElementById('spLoginBox').classList.add('hide');
+  document.getElementById('spContent').classList.remove('hide');
+  try {
+    const data = await api('/api/student/panel');
+    document.getElementById('spName').textContent = data.student.full_name || data.student.username;
+    document.getElementById('spClass').textContent = data.student.class_name || '—';
+    // Quizzes
+    const qz = data.quizzes || [];
+    document.getElementById('spQuizzes').innerHTML = qz.length ? qz.map(q => {
+      const done = (q.my_attempts || 0) > 0;
+      const endPassed = q.end_at && new Date() > new Date(q.end_at);
+      const nowOk = !q.start_at || new Date() >= new Date(q.start_at);
+      const canEnter = !done && !endPassed && nowOk;
+      return '<div class="flex flex-wrap items-center justify-between gap-2 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800"><div class="flex-1 min-w-0"><div class="font-bold text-white text-sm">' + esc(q.title) + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + (q.question_count || 0) + ' سؤال · ' + (q.duration_min || 30) + ' دقیقه' + (q.end_at ? ' · مهلت: ' + jalaliFromISO(q.end_at) : '') + '</div></div>' +
+        (done ? '<span class="text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"><i class="fa-solid fa-check ml-1"></i> شرکت کردید</span>'
+          : endPassed ? '<span class="text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-700/40 text-slate-400">مهلت تمام شد</span>'
+          : canEnter ? '<a href="/quiz/' + q.id + '" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"><i class="fa-solid fa-play ml-1"></i> شروع آزمون</a>'
+          : '<span class="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/25">هنوز شروع نشده</span>') + '</div>';
+    }).join('') : '<p class="text-slate-500 text-sm text-center py-4">آزمون فعالی نیست.</p>';
+    // Homework
+    const hw = data.homework || [];
+    document.getElementById('spHomework').innerHTML = hw.length ? hw.map(h => {
+      const [stLabel, stCls] = hwStatusLabel(h.my_status || 'none');
+      return '<div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800"><div class="flex flex-wrap items-center justify-between gap-2"><div class="flex-1 min-w-0"><div class="font-bold text-white text-sm">' + esc(h.title) + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + (h.subject || '') + (h.due_date ? ' · مهلت: ' + jalaliFromISO(h.due_date) : '') + ' · حداکثر نمره: ' + (h.max_score || 10) + '</div></div><span class="text-[10px] px-2.5 py-1.5 rounded-lg ' + stCls + '">' + stLabel + '</span></div>' +
+        (h.description ? '<p class="text-[11px] text-slate-400 mt-2 leading-relaxed">' + esc(h.description).slice(0, 200) + '</p>' : '') +
+        (h.attachment && h.attachment.file ? '<a href="' + h.attachment.file + '" download="' + esc(h.attachment.fileName || 'فایل') + '" class="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-accent-600/20 text-accent-300 text-[11px] hover:bg-accent-600/30 transition"><i class="fa-solid fa-download"></i> دانلود فایل تکلیف</a>' : '') +
+        (h.my_reply ? '<div class="text-[11px] bg-accent-500/10 border border-accent-500/20 rounded-lg px-3 py-2 mt-2"><b class="text-accent-300">پیام دبیر:</b> <span class="text-slate-300">' + esc(h.my_reply) + '</span></div>' : '') +
+        (h.my_score != null ? '<div class="text-[11px] text-emerald-300 mt-1">نمره: <b>' + h.my_score + '</b> از ' + (h.max_score || 10) + '</div>' : '') +
+        '<div class="mt-2"><a href="/homework/' + h.id + '" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/90 hover:bg-amber-500 text-white text-[11px] font-bold transition"><i class="fa-solid fa-' + (h.my_status === 'needs_revision' ? 'rotate' : 'upload') + ' ml-1"></i>' + (h.my_status ? 'مشاهده / ارسال مجدد' : 'انجام تکلیف') + '</a></div></div>';
+    }).join('') : '<p class="text-slate-500 text-sm text-center py-4">تکلیفی ندارید.</p>';
+    // Results
+    const rs = data.results || [];
+    document.getElementById('spResults').innerHTML = rs.length ? rs.map(r => '<button onclick="loadResult(' + r.id + ')" class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-accent-500/40 transition text-right"><div><div class="text-sm text-white font-bold">' + esc(r.quiz_title) + '</div><div class="text-[10px] text-slate-500 mt-0.5">' + jalaliFromISO(r.finished_at, true) + '</div></div><div class="flex items-center gap-3"><span class="text-sm font-black ' + (r.passed ? 'text-emerald-400' : 'text-rose-400') + '">' + r.percent + '٪</span><i class="fa-solid fa-chevron-left text-slate-600 text-xs"></i></div></button>').join('') : '<p class="text-slate-500 text-sm text-center py-4">هنوز آزمونی نداده‌اید.</p>';
+    // Attendance
+    const att = data.attendance || [];
+    const cnt = { present: 0, absent: 0, late: 0, excused: 0 };
+    att.forEach(a => { if (cnt[a.status] !== undefined) cnt[a.status]++; });
+    document.getElementById('spAttStats').innerHTML =
+      [['حاضر', cnt.present, 'text-emerald-400'], ['غایب', cnt.absent, 'text-rose-400'], ['تاخیر', cnt.late, 'text-amber-400'], ['مرخصی', cnt.excused, 'text-slate-300']].map(([l, v, c]) => '<div class="rounded-xl p-2.5 text-center bg-slate-900/50 border border-slate-800"><div class="text-xl font-black ' + c + '">' + v + '</div><div class="text-[9px] text-slate-500">' + l + '</div></div>').join('');
+    const attIcon = { present: ['fa-check', 'text-emerald-400'], absent: ['fa-xmark', 'text-rose-400'], late: ['fa-clock', 'text-amber-400'], excused: ['fa-envelope-open', 'text-slate-400'] };
+    document.getElementById('spAttendance').innerHTML = att.length ? att.map(a => '<div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 border border-slate-800"><span class="text-xs text-slate-300">' + jalaliFromISO(a.date) + (a.class_name ? ' · ' + esc(a.class_name) : '') + '</span><span class="text-xs font-bold ' + (attIcon[a.status] || attIcon.excused)[1] + '"><i class="fa-solid ' + (attIcon[a.status] || attIcon.excused)[0] + ' ml-1"></i>' + ({ present: 'حاضر', absent: 'غایب', late: 'تاخیر', excused: 'مرخصی' }[a.status] || '—') + '</span></div>').join('') : '<p class="text-slate-500 text-sm text-center py-4">سابقه‌ای ثبت نشده.</p>';
+  } catch (err) {
+    if (String(err.message).includes('Unauthorized')) { studentLogout(); }
+    else Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' });
+  }
+}
+
 function updateAttendanceStats() {
   const present = attendanceStudents.filter(s => s.status === 'present').length;
   const absent = attendanceStudents.filter(s => s.status === 'absent').length;
@@ -3926,6 +4150,13 @@ function updateAttendanceStats() {
   if (excusedEl) excusedEl.textContent = excused;
 }
 
+function reopenAttendanceDay(date, className) {
+  document.getElementById('attDate').value = date;
+  document.getElementById('attClassName').value = className || '';
+  loadAttendance();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function loadAttendanceHistory() {
   try {
     const data = await api('/api/attendance/history');
@@ -3936,7 +4167,7 @@ async function loadAttendanceHistory() {
       const total = r.present_count + r.absent_count + r.late_count + (r.leave_count || 0);
       const presentRate = total > 0 ? Math.round((r.present_count / total) * 100) : 0;
       const pctColor = presentRate >= 80 ? 'text-emerald-400' : presentRate >= 60 ? 'text-amber-400' : 'text-rose-400';
-      return '<div class="flex justify-between items-center text-xs p-3 rounded-xl bg-slate-900/50 border border-slate-800 card-hover"><div><div class="text-white font-medium">' + jalaliFromISO(r.date) + (r.class_name ? ' - ' + esc(r.class_name) : '') + '</div><div class="text-slate-400 mt-1">درصد حضور: <span class="' + pctColor + ' font-bold">' + presentRate + '%</span></div></div><div class="flex gap-2 flex-wrap"><span class="text-emerald-400">حاضر: ' + r.present_count + '</span><span class="text-rose-400">غایب: ' + r.absent_count + '</span><span class="text-amber-400">تاخیر: ' + r.late_count + '</span>' + ((r.leave_count || 0) > 0 ? '<span class="text-slate-400">مرخصی: ' + r.leave_count + '</span>' : '') + '</div></div>';
+      return '<button onclick="reopenAttendanceDay(\'' + r.date + '\',\'' + esc(String(r.class_name || '')).replace(/'/g, '') + '\')" class="w-full flex justify-between items-center text-xs p-3 rounded-xl bg-slate-900/50 border border-slate-800 card-hover hover:border-emerald-500/40 text-right transition"><div><div class="text-white font-medium">' + jalaliFromISO(r.date) + (r.class_name ? ' · کلاس ' + esc(r.class_name) : '') + '</div><div class="text-slate-400 mt-1">درصد حضور: <span class="' + pctColor + ' font-bold">' + presentRate + '%</span></div></div><div class="flex gap-2 flex-wrap items-center"><span class="text-emerald-400">حاضر: ' + r.present_count + '</span><span class="text-rose-400">غایب: ' + r.absent_count + '</span><span class="text-amber-400">تاخیر: ' + r.late_count + '</span>' + ((r.leave_count || 0) > 0 ? '<span class="text-slate-400">مرخصی: ' + r.leave_count + '</span>' : '') + '<i class="fa-solid fa-chevron-left text-slate-600 mr-1"></i></div></button>';
     }).join('') + '</div>';
   } catch {}
 }
