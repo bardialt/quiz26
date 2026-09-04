@@ -3365,7 +3365,7 @@ function startExam(e) {
   saveExamState();
   showView('exam-room');
   renderExamSheetAttachment();
-  if (state.stackedMode) renderExamStacked(); else renderExamQuestion();
+  if (!state.splitMode) { if (state.stackedMode) renderExamStacked(); else renderExamQuestion(); }
   renderPalette(); startTimer();
   if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
   if (state.exam.anti_tab) document.addEventListener('visibilitychange', onTabSwitch);
@@ -3651,13 +3651,16 @@ function buildQuestionBlock(q, i) {
   if (q.type === 'mcq' || q.type === 'multi') {
     optsHtml = (q.options || []).map((o, ix) => {
       const checked = q.type === 'mcq' ? (state.answers[q.id] === ix ? 'checked' : '') : (Array.isArray(state.answers[q.id]) && state.answers[q.id].includes(ix) ? 'checked' : '');
-      const inputType = q.type === 'mcq' ? 'radio' : 'checkbox';
-      return '<label class="exam-opt flex items-center p-3 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="' + inputType + '" name="sq_' + q.id + '" value="' + ix + '" ' + checked + ' class="ml-2 text-emerald-500 shrink-0" onchange="setAnswer(' + q.id + ',' + ix + ',\'' + q.type + '\')" /><span class="text-slate-200 text-sm">' + esc(String(o)) + '</span></label>';
+      return examOptionHtml(q, ix, o, checked).split('name="eq_' + q.id + '"').join('name="sq_' + q.id + '"');
     }).join('');
   } else if (q.type === 'tf') {
     ['true', 'false'].forEach(v => {
       const checked = state.answers[q.id] === v ? 'checked' : '';
-      optsHtml += '<label class="exam-opt flex items-center p-3 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="sq_' + q.id + '" value="' + v + '" ' + checked + ' class="ml-2 shrink-0" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" /><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></label>';
+      const square = !!state.splitMode;
+      const shape = square ? 'rounded-xl' : 'rounded-full';
+      const on = 'bg-emerald-500 border-emerald-400 text-white';
+      const off = 'bg-slate-900 border-slate-600 text-slate-300';
+      optsHtml += '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50') + '"><input type="radio" name="sq_' + q.id + '" value="' + v + '" ' + checked + ' class="sr-only" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" /><span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 ' + shape + ' ' + (checked ? on : off) + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i></span><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></label>';
     });
   } else if (q.type === 'essay') {
     const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: '', file: null };
@@ -3704,7 +3707,7 @@ function toggleMarkStacked(i) {
 }
 
 function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delete(state.currentQ); else state.marked.add(state.currentQ); renderPalette(); renderExamQuestion(); }
-function navQ(d) { const n = state.currentQ + d; if (n < 0 || n >= state.questions.length) return; state.currentQ = n; renderExamQuestion(); renderPalette(); }
+function navQ(d) { const n = state.currentQ + d; if (n < 0 || n >= state.questions.length) return; state.currentQ = n; renderExamQuestion(); renderPalette(); const live = document.getElementById('examQuestionArea'); if (live) live.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
 function renderPalette() {
   document.getElementById('examPalette').innerHTML = state.questions.map((q, i) => {
