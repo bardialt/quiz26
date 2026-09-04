@@ -3204,6 +3204,13 @@ async function loadPublicQuiz(id) {
     document.getElementById('stPhone').value = '';
     document.getElementById('stPhone').readOnly = false;
     document.getElementById('stPhone').classList.remove('opacity-60', 'cursor-not-allowed');
+    // Pre-check: has this phone already taken this quiz? Block BEFORE entering.
+    if (!data.quiz.require_login) {
+      try {
+        const savedPhone = localStorage.getItem('q26_last_phone_' + id) || '';
+        if (savedPhone) document.getElementById('stPhone').value = savedPhone;
+      } catch {}
+    }
     if (data.quiz.report_after_end) {
       if (phoneHint) phoneHint.textContent = '(برای مشاهده کارنامه پس از پایان آزمون لازم است)';
       if (phoneSub) phoneSub.textContent = 'این شماره شناسه کارنامه شماست — آن را به‌خاطر بسپارید.';
@@ -3278,6 +3285,29 @@ function startExam(e) {
   if (state.exam.report_after_end && !state.studentInfo && !phone) {
     Swal.fire({ icon: 'warning', title: 'شماره موبایل الزامی است', text: 'برای مشاهده کارنامه پس از پایان آزمون، شماره‌ای که وارد می‌کنید شناسه کارنامه شماست.', background: '#1e293b', color: '#fff' });
     return false;
+  }
+  // Block re-entry: remember locally + confirm with server BEFORE starting
+  if (!state.studentInfo && !state.examResumed) {
+    if (phone && localStorage.getItem('q26_taken_' + state.exam.id + '_' + phone) === '1') {
+      Swal.fire({ icon: 'error', title: 'قبلاً شرکت کرده‌اید', text: 'با این شماره قبلاً در این آزمون شرکت کرده‌اید (هر شماره فقط یک‌بار).', background: '#1e293b', color: '#fff', confirmButtonText: 'متوجه شدم', confirmButtonColor: '#e11d48' });
+      return false;
+    }
+    if (phone) {
+      try { localStorage.setItem('q26_last_phone_' + state.exam.id, phone); } catch {}
+      fetch(API_BASE + '/api/public/quiz/' + state.exam.id + '/check-phone?phone=' + encodeURIComponent(phone)).then(r => r.json()).then(d => {
+        if (d.taken) {
+          try { localStorage.setItem('q26_taken_' + state.exam.id + '_' + phone, '1'); } catch {}
+          state.isExam = false;
+          cleanupExamListeners();
+          clearInterval(state.timerInterval);
+          try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
+          showView('exam-entry');
+          Swal.fire({ icon: 'error', title: 'قبلاً شرکت کرده‌اید', html: '<p class="text-sm">با شماره <b dir="ltr">' + esc(phone) + '</b> قبلاً در این آزمون شرکت شده' + (d.submission ? ' (درصد: <b class="text-emerald-300">' + d.submission.percent + '٪</b>)' : '') + '.<br/>هر شماره فقط یک‌بار مجاز است.</p>', background: '#1e293b', color: '#fff', confirmButtonText: 'متوجه شدم', confirmButtonColor: '#e11d48' });
+        } else {
+          try { localStorage.setItem('q26_taken_' + state.exam.id + '_' + phone, '1'); } catch {}
+        }
+      }).catch(() => {});
+    }
   }
   state.reportPhone = (state.studentInfo ? '' : phone);
   // Grace: if quiz window ends within 90s, student may still enter and finish.
@@ -3409,41 +3439,12 @@ function renderExamQuestion() {
   const q = state.questions[state.currentQ];
   if (!q) return;
   const area = document.getElementById('examQuestionArea');
-  let mediaHtml = '';
-  if (q.image_url) {
-    const u = q.image_url;
-    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
-    else if (u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" onclick="showFileLightbox(\'' + q.id + '\')" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900 cursor-zoom-in" />';
-    else mediaHtml = '<button type="button" onclick="showFileLightbox(\'' + q.id + '\')" class="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl bg-accent-600/90 hover:bg-accent-500 text-white mb-4 transition shadow-lg shadow-accent-500/20"><i class="fa-solid fa-file-arrow-down"></i> مشاهده و دانلود فایل پیوست</button>';
-  }
-  let optsHtml = '';
-  if (q.type === 'mcq' || q.type === 'multi') {
-    optsHtml = (q.options || []).map((o, i) => {
-      const checked = q.type === 'mcq' ? (state.answers[q.id] === i ? 'checked' : '') : (Array.isArray(state.answers[q.id]) && state.answers[q.id].includes(i) ? 'checked' : '');
-      const inputType = q.type === 'mcq' ? 'radio' : 'checkbox';
-      return '<label class="exam-opt flex items-center p-3.5 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10' : '') + '"><input type="' + inputType + '" name="eq_' + q.id + '" value="' + i + '" ' + checked + ' class="ml-3 text-emerald-500" onchange="setAnswer(' + q.id + ',' + i + ',\'' + q.type + '\')" /><span class="text-slate-200 text-sm">' + esc(String(o)) + '</span></label>';
-    }).join('');
-  } else if (q.type === 'tf') {
-    ['true', 'false'].forEach(v => {
-      const label = v === 'true' ? 'درست' : 'نادرست';
-      const checked = state.answers[q.id] === v ? 'checked' : '';
-      optsHtml += '<label class="flex items-center p-3.5 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800/50 transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : '') + '"><input type="radio" name="eq_' + q.id + '" value="' + v + '" ' + checked + ' class="ml-3" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'' + 'tf' + '\')" /><span class="text-slate-200 text-sm">' + label + '</span></label>';
-    });
-  } else if (q.type === 'essay') {
-    const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: state.answers[q.id] || '', file: null, fileName: '' };
-    const textVal = ansObj.text || (typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '');
-    optsHtml = '<textarea id="essayInput" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm leading-relaxed text-white" placeholder="پاسخ تشریحی خود را بنویسید..." style="user-select:text;-webkit-user-select:text">' + esc(textVal) + '</textarea><p class="text-[11px] text-slate-500 mt-2">پاسخ شما پس از آزمون توسط AI یا معلم بررسی می‌شود.</p>';
-  } else {
-    optsHtml = '<input id="shortInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="پاسخ خود را بنویسید..." value="' + escAttr(typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '') + '" style="user-select:text;-webkit-user-select:text" />';
-  }
+  if (!area) return;
+  area.innerHTML = renderExamQuestionHtml(q);
+  bindQuestionInputs(q);
   const progress = state.questions.length > 1 ? ((state.currentQ + 1) / state.questions.length * 100) : 100;
   document.getElementById('examProgress').textContent = 'سوال ' + (state.currentQ + 1) + ' از ' + state.questions.length;
   document.getElementById('examProgressBar').style.width = progress + '%';
-  area.innerHTML = '<div class="flex justify-between text-sm text-slate-400 border-b border-slate-800 pb-2 mb-4"><span class="font-bold text-white text-lg">' + (state.currentQ + 1) + '</span><button type="button" onclick="toggleMark()" class="text-amber-400 hover:text-amber-300 text-sm"><i class="fa-regular fa-bookmark ml-1"></i>' + (state.marked.has(state.currentQ) ? 'برداشتن نشان' : 'نشان‌دار') + '</button></div><div class="text-base leading-loose text-white mb-4">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div><div class="flex justify-between pt-8"><button type="button" onclick="navQ(-1)" class="px-5 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-sm ' + (state.currentQ === 0 ? 'opacity-40 pointer-events-none' : '') + '">قبلی</button><button type="button" onclick="navQ(1)" class="px-5 py-2 btn-gradient text-white rounded-lg text-sm font-medium">' + (state.currentQ === state.questions.length - 1 ? 'پایان لیست' : 'بعدی') + '</button></div>';
-  const essayEl = document.getElementById('essayInput');
-  if (essayEl) essayEl.addEventListener('input', () => { const prev = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : {}; state.answers[q.id] = { text: essayEl.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); });
-  const shortEl = document.getElementById('shortInput');
-  if (shortEl) shortEl.addEventListener('input', () => { state.answers[q.id] = shortEl.value; renderPalette(); });
   if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
 }
 
@@ -3454,8 +3455,13 @@ function renderExamSheetAttachment() {
   const att = state.exam && state.exam.attachment;
   if (!att || !att.file) return;
   window.__sheetUrl = att.file;
+  state.splitMode = true;
   const isPdf = /\.pdf(\?|$)/i.test(att.file) || String(att.file).startsWith('data:application/pdf');
   const isImg = String(att.file).startsWith('data:image');
+  // CRITICAL: neutralize the original area FIRST so nothing ever renders twice
+  area.classList.add('hide');
+  area.removeAttribute('id');
+  area.setAttribute('data-old-area', '1');
   const wrap = document.createElement('div');
   wrap.id = 'examSheetSplit';
   wrap.innerHTML = '<div class="exam-split grid lg:grid-cols-2 gap-4 mb-6">' +
@@ -3466,13 +3472,10 @@ function renderExamSheetAttachment() {
       : isImg
         ? '<img src="' + esc(att.file) + '" class="w-full rounded-xl border border-slate-700 cursor-zoom-in" onclick="showFileUrlLightbox(\'SHEET\')" />'
         : '<a href="' + esc(att.file) + '" download="' + esc(att.fileName || 'برگه') + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-sm"><i class="fa-solid fa-download"></i> دانلود برگهٔ سوالات</a>') +
-    '<p class="text-[10px] text-slate-500 mt-2 text-center">برای بزرگ‌نمایی داخل PDF از دکمه‌های خود مرورگر PDF استفاده کنید یا دکمهٔ «بزرگ» را بزنید.</p>' +
     '</div>' +
     '<div id="examSplitQuestions" class="min-w-0"></div>' +
     '</div>';
   area.parentNode.insertBefore(wrap, area);
-  // In split mode, questions render inside the right column
-  state.splitMode = true;
   const qCol = document.getElementById('examSplitQuestions');
   if (state.stackedMode) {
     qCol.innerHTML = state.questions.map((q, i) => '<div id="sq_' + q.id + '" class="stacked-q glass rounded-2xl p-4 mb-4">' + buildQuestionBlock(q, i) + '</div>').join('') +
@@ -3488,16 +3491,14 @@ function renderExamSheetAttachment() {
 
 /* Render single-question flow inside the split right column: the static area's id is moved here */
 function renderExamQuestionInto(container) {
-  // 1. grab the static examQuestionArea (it exists in DOM before split columns)
-  const staticArea = document.getElementById('examQuestionArea');
-  // 2. create the new live area inside the split column and take over the id
+  // Move the live area id into the split column once; original area stays hidden
   const holder = document.createElement('div');
   holder.className = 'split-live';
-  staticArea.id = 'examQuestionAreaOrig';
-  staticArea.classList.add('hide');
-  holder.id = 'examQuestionArea';
   container.appendChild(holder);
-  // 3. render the first question into it
+  // temporarily neutralize both, then assign
+  const anyArea = document.getElementById('examQuestionArea');
+  if (anyArea) anyArea.removeAttribute('id');
+  holder.id = 'examQuestionArea';
   renderExamQuestion();
 }
 
@@ -3531,6 +3532,58 @@ function showFileSrcLightbox(u) {
   overlay.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%"><button style="position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:50%;background:#e11d48;color:#fff;border:0;cursor:pointer;font-size:15px;z-index:2" title="بستن">✕</button>' + inner + dlBtn + '</div>';
   overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName === 'BUTTON') overlay.remove(); });
   document.body.appendChild(overlay);
+}
+
+/* ===== Shared question rendering (used by normal + split modes) ===== */
+function examOptionHtml(q, idx, text, checked) {
+  const square = !!state.splitMode; // imported-sheet exams use rounded-square number boxes
+  const shape = square ? 'rounded-xl' : 'rounded-full';
+  const on = 'bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/30';
+  const off = square ? 'bg-slate-900/70 border-slate-600 text-slate-200' : 'bg-slate-900 border-slate-600 text-slate-300';
+  return '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
+    '<input type="' + (q.type === 'multi' ? 'checkbox' : 'radio') + '" name="eq_' + q.id + '" value="' + idx + '" ' + (checked ? 'checked' : '') + ' class="sr-only" onchange="setAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" />' +
+    '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? on : off) + '">' + (idx + 1) + '</span>' +
+    '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></label>';
+}
+
+function renderExamQuestionHtml(q) {
+  let mediaHtml = '';
+  if (q.image_url) {
+    const u = q.image_url;
+    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) mediaHtml = '<video src="' + esc(u) + '" controls class="max-w-full rounded-xl mb-4 max-h-64 border border-slate-700"></video>';
+    else if (u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) || u.startsWith('http')) mediaHtml = '<img src="' + esc(u) + '" alt="سوال" onclick="showFileLightbox(\'' + q.id + '\')" class="max-w-full rounded-xl mb-4 max-h-72 object-contain border border-slate-700 bg-slate-900 cursor-zoom-in" />';
+    else mediaHtml = '<button type="button" onclick="showFileLightbox(\'' + q.id + '\')" class="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl bg-accent-600/90 hover:bg-accent-500 text-white mb-4 transition shadow-lg shadow-accent-500/20"><i class="fa-solid fa-file-arrow-down"></i> مشاهده و دانلود فایل پیوست</button>';
+  }
+  let optsHtml = '';
+  if (q.type === 'mcq' || q.type === 'multi') {
+    optsHtml = (q.options || []).map((o, i) => {
+      const checked = q.type === 'mcq' ? (state.answers[q.id] === i ? 'checked' : '') : (Array.isArray(state.answers[q.id]) && state.answers[q.id].includes(i) ? 'checked' : '');
+      return examOptionHtml(q, i, o, checked);
+    }).join('');
+  } else if (q.type === 'tf') {
+    ['true', 'false'].forEach(v => {
+      const checked = state.answers[q.id] === v ? 'checked' : '';
+      const square = !!state.splitMode;
+      const shape = square ? 'rounded-xl' : 'rounded-full';
+      const on = 'bg-emerald-500 border-emerald-400 text-white';
+      const off = 'bg-slate-900 border-slate-600 text-slate-300';
+      optsHtml += '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50') + '"><input type="radio" name="eq_' + q.id + '" value="' + v + '" ' + checked + ' class="sr-only" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" /><span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 ' + shape + ' ' + (checked ? on : off) + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i></span><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></label>';
+    });
+  } else if (q.type === 'essay') {
+    const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: state.answers[q.id] || '', file: null, fileName: '' };
+    const textVal = ansObj.text || (typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '');
+    optsHtml = '<textarea id="essayInput" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm leading-relaxed text-white" placeholder="پاسخ تشریحی خود را بنویسید..." style="user-select:text;-webkit-user-select:text">' + esc(textVal) + '</textarea><p class="text-[11px] text-slate-500 mt-2">پاسخ شما پس از آزمون توسط AI یا معلم بررسی می‌شود.</p>';
+  } else {
+    optsHtml = '<input id="shortInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="پاسخ خود را بنویسید..." value="' + escAttr(typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '') + '" style="user-select:text;-webkit-user-select:text" />';
+  }
+  return '<div class="flex justify-between text-sm text-slate-400 border-b border-slate-800 pb-2 mb-4"><span class="font-bold text-white text-lg">' + (state.currentQ + 1) + '</span><button type="button" onclick="toggleMark()" class="text-amber-400 hover:text-amber-300 text-sm"><i class="fa-regular fa-bookmark ml-1"></i>' + (state.marked.has(state.currentQ) ? 'برداشتن نشان' : 'نشان‌دار') + '</button></div><div class="text-base leading-loose text-white mb-4">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div><div class="flex justify-between pt-8"><button type="button" onclick="navQ(-1)" class="px-5 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-sm ' + (state.currentQ === 0 ? 'opacity-40 pointer-events-none' : '') + '">قبلی</button><button type="button" onclick="navQ(1)" class="px-5 py-2 btn-gradient text-white rounded-lg text-sm font-medium">' + (state.currentQ === state.questions.length - 1 ? 'پایان لیست' : 'بعدی') + '</button></div>';
+}
+
+function bindQuestionInputs(q) {
+  const essayEl = document.getElementById('essayInput');
+  if (essayEl) essayEl.addEventListener('input', () => { const prev = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : {}; state.answers[q.id] = { text: essayEl.value, file: prev.file || null, fileName: prev.fileName || '' }; renderPalette(); });
+  const shortEl = document.getElementById('shortInput');
+  if (shortEl) shortEl.addEventListener('input', () => { state.answers[q.id] = shortEl.value; renderPalette(); });
 }
 
 /* ===== Stacked (all-in-one-page) exam view ===== */

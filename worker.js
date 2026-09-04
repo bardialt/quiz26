@@ -1192,6 +1192,19 @@ export default {
         }, 200, origin);
       }
 
+      // ---------- Pre-check: has this phone already taken this quiz? ----------
+      const quizDupCheckMatch = path.match(/^\/api\/public\/quiz\/(\d+)\/check-phone$/);
+      if (quizDupCheckMatch && method === 'GET') {
+        const qid = Number(quizDupCheckMatch[1]);
+        const url2 = new URL(request.url);
+        const phone = normPhone(url2.searchParams.get('phone') || '');
+        if (!phone) return json({ success: true, taken: false }, 200, origin);
+        const dup = await env.DB.prepare(
+          'SELECT id, student_name, student_family, percent FROM submissions WHERE quiz_id = ? AND student_phone = ? ORDER BY finished_at DESC LIMIT 1'
+        ).bind(qid, phone).first();
+        return json({ success: true, taken: !!dup, submission: dup ? { id: dup.id, student_name: dup.student_name, student_family: dup.student_family, percent: dup.percent } : null }, 200, origin);
+      }
+
       // ---------- Find report by phone (public) ----------
       const repFindMatch = path.match(/^\/api\/public\/quiz\/(\d+)\/report$/);
       if (repFindMatch && method === 'GET') {
