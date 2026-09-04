@@ -2107,13 +2107,13 @@ function startManualImport() {
   Swal.fire({
     title: 'ساخت دستی سوالات',
     html: '<div class="text-right space-y-3">' +
-      '<p class="text-[11px] text-slate-400">طبق فایل‌تان (PDF/عکس/Word) مشخص کنید چند سوال دارید و هر کدام چه نوعی است. بعد در مرحلهٔ بعد متن سوال‌ها را وارد و جواب‌ها را علامت می‌زنید.</p>' +
+      '<p class="text-[11px] text-slate-400">فقط تعداد را بگویید — سوالات در فایل پیوست شما هستند. بعد از ساخت، برای هر سوال فقط گزینهٔ صحیح را علامت می‌زنید. (هیچ متنی لازم نیست بنویسید)</p>' +
       '<div class="grid grid-cols-2 gap-2">' +
       '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد سوال تستی</label><input id="miMcq" type="number" min="0" max="200" value="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
       '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد سوال تشریحی</label><input id="miEssay" type="number" min="0" max="200" value="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
       '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد ص/غ (اختیاری)</label><input id="miTf" type="number" min="0" max="200" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
       '<div><label class="text-[10px] text-slate-400 block mb-1">تعداد پاسخ کوتاه (اختیاری)</label><input id="miShort" type="number" min="0" max="200" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white" /></div>' +
-      '</div><p class="text-[10px] text-slate-500">ترتیب ساخت: اول همهٔ تستی‌ها، بعد ص/غ، بعد کوتاه، بعد تشریحی‌ها — مثل ترتیب فایل شما.</p>' +
+      '</div><p class="text-[10px] text-slate-500">تستی‌ها خودکار گزینه‌های پیش‌فرض «۱ ۲ ۳ ۴» می‌گیرند — شما فقط عدد صحیح را علامت می‌زنید.</p>' +
       '</div>',
     background: '#1e293b', color: '#fff', showCancelButton: true,
     confirmButtonText: 'ساخت', cancelButtonText: 'انصراف', confirmButtonColor: '#6366f1', width: 460,
@@ -2128,7 +2128,7 @@ function startManualImport() {
     const { mcq, tf, short, essay } = r.value;
     if (mcq + tf + short + essay === 0) return;
     const qs = [];
-    for (let i = 0; i < mcq; i++) qs.push({ type: 'mcq', content: '', options: ['', '', '', ''], correct: null });
+    for (let i = 0; i < mcq; i++) qs.push({ type: 'mcq', content: '', options: ['۱', '۲', '۳', '۴'], correct: null });
     for (let i = 0; i < tf; i++) qs.push({ type: 'tf', content: '', options: null, correct: null });
     for (let i = 0; i < short; i++) qs.push({ type: 'short', content: '', options: null, correct: '' });
     for (let i = 0; i < essay; i++) qs.push({ type: 'essay', content: '', options: null, correct: '' });
@@ -2262,7 +2262,7 @@ function renderImportReview(manual) {
   const wrap = document.getElementById('importReview');
   const actions = document.getElementById('importActions');
   const n = importedQuestions.length;
-  document.getElementById('parseSummary').innerHTML = '<b class="text-emerald-400">' + n + '</b> سوال' + (manual ? ' ساخته شد' : ' استخراج شد') + ' — متن سوال‌ها را کامل کنید و جواب‌ها را علامت بزنید.';
+  document.getElementById('parseSummary').innerHTML = '<b class="text-emerald-400">' + n + '</b> سوال' + (manual ? ' ساخته شد — فقط گزینهٔ صحیح هر سوال را علامت بزنید' : ' استخراج شد — جواب‌ها را علامت بزنید') + '.';
   if (!n) { wrap.classList.add('hide'); actions.classList.add('hide'); return; }
   wrap.classList.remove('hide');
   actions.classList.remove('hide');
@@ -2271,17 +2271,29 @@ function renderImportReview(manual) {
   wrap.innerHTML = importedQuestions.map((q, i) => {
     let body = '';
     if (q.type === 'mcq') {
-      const opts = (q.options || []).map((o, oi) =>
-        '<div class="flex items-center gap-1.5"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" title="گزینه صحیح" /><input type="text" value="' + escAttr(String(o || '')) + '" oninput="editImportOption(' + i + ',' + oi + ', this.value)" placeholder="گزینه ' + letters[oi] + '" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white" /></div>'
-      ).join('');
-      body = '<div class="grid sm:grid-cols-2 gap-1.5 mt-2">' + opts + '</div><p class="text-[9px] text-slate-600 mt-1">دایره = گزینه صحیح</p>';
+      // Sheet mode: big 1-4 pick buttons only (options are pre-filled ۱-۴, no text boxes)
+      const sheetPick = manual && (!q.content || !q.content.trim());
+      if (sheetPick) {
+        const opts = (q.options || []).map((o, oi) =>
+          '<button type="button" onclick="markImportAnswer(' + i + ',' + oi + ')" class="imp-pick w-11 h-11 rounded-xl border-2 font-black text-base transition ' + (q.correct === oi ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-110' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-emerald-500/60 hover:text-emerald-300') + '">' + esc(String(o)) + '</button>'
+        ).join('');
+        body = '<div class="flex items-center gap-2 mt-2 flex-wrap">' + opts + '<span class="text-[9px] text-slate-600 mr-1">← عدد صحیح را بزنید</span></div>';
+      } else {
+        const opts = (q.options || []).map((o, oi) =>
+          '<div class="flex items-center gap-1.5"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" title="گزینه صحیح" /><input type="text" value="' + escAttr(String(o || '')) + '" oninput="editImportOption(' + i + ',' + oi + ', this.value)" placeholder="گزینه ' + letters[oi] + '" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white" /></div>'
+        ).join('');
+        body = '<div class="grid sm:grid-cols-2 gap-1.5 mt-2">' + opts + '</div>';
+      }
     } else if (q.type === 'tf') {
       body = '<div class="flex gap-3 mt-2 text-xs"><label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="imptf_' + i + '" ' + (q.correct === 'true' ? 'checked' : '') + ' onchange="markImportTf(' + i + ',\'true\')" class="text-emerald-500" /> درست</label><label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="imptf_' + i + '" ' + (q.correct === 'false' ? 'checked' : '') + ' onchange="markImportTf(' + i + ',\'false\')" class="text-emerald-500" /> نادرست</label></div>';
     } else {
-      body = '<input type="text" value="' + escAttr(typeof q.correct === 'string' ? q.correct : '') + '" oninput="markImportShort(' + i + ', this.value)" placeholder="' + (q.type === 'essay' ? 'کلید پاسخ / نکات تصحیح (اختیاری)' : 'پاسخ صحیح (با کاما برای چند پاسخ)') + '" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />';
+      body = '<input type="text" value="' + escAttr(typeof q.correct === 'string' ? q.correct : '') + '" oninput="markImportShort(' + i + ', this.value)" placeholder="' + (q.type === 'essay' ? 'کلید پاسخ (اختیاری — می‌توانید خالی بگذارید)' : 'پاسخ صحیح (با کاما برای چند پاسخ)') + '" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />';
     }
     const typeSel = '<select onchange="changeImportType(' + i + ', this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-0.5 text-[10px] text-slate-300">' + Object.entries(typeLabel).map(([k, v]) => '<option value="' + k + '" ' + (q.type === k ? 'selected' : '') + '>' + v + '</option>').join('') + '</select>';
-    return '<div class="p-3 rounded-xl bg-slate-900/60 border ' + (q.content ? 'border-slate-800' : 'border-amber-500/30') + ' mb-2"><div class="flex items-start gap-2"><span class="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">' + (i + 1) + '</span><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1">' + typeSel + (manual ? '<span class="text-[9px] text-slate-600">طبق ترتیب فایل</span>' : '') + '</div><textarea rows="2" oninput="editImportContent(' + i + ', this.value)" placeholder="متن سوال را از فایل‌تان اینجا وارد/کپی کنید..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white leading-relaxed">' + esc(q.content || '') + '</textarea>' + body + '</div><button onclick="removeImported(' + i + ')" class="text-rose-400/60 hover:text-rose-400 px-1 shrink-0" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div></div>';
+    const contentBox = manual
+      ? '<input type="text" value="' + escAttr(q.content || '') + '" oninput="editImportContent(' + i + ', this.value)" placeholder="عنوان دلخواه (اختیاری — خالی = سوال ' + (i + 1) + ' از برگه)" class="w-full bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] text-slate-300" />'
+      : '<textarea rows="2" oninput="editImportContent(' + i + ', this.value)" placeholder="متن سوال..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white leading-relaxed">' + esc(q.content || '') + '</textarea>';
+    return '<div class="p-3 rounded-xl bg-slate-900/60 border ' + (q.correct !== null && q.correct !== undefined && q.correct !== '' ? 'border-slate-800' : 'border-amber-500/40') + ' mb-2"><div class="flex items-start gap-2"><span class="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0">' + (i + 1) + '</span><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1">' + typeSel + (q.correct !== null && q.correct !== undefined && q.correct !== '' ? '<span class="text-[9px] text-emerald-400"><i class="fa-solid fa-check"></i> جواب علامت خورد</span>' : '') + '</div>' + contentBox + body + '</div><button onclick="removeImported(' + i + ')" class="text-rose-400/60 hover:text-rose-400 px-1 shrink-0" title="حذف"><i class="fa-solid fa-trash text-xs"></i></button></div></div>';
   }).join('');
 }
 
