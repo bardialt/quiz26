@@ -1136,7 +1136,7 @@ export default {
       if (resultMatch && method === 'GET') {
         const sid = Number(resultMatch[1]);
         const sub = await env.DB.prepare(`
-          SELECT s.*, q.title AS quiz_title, q.pass_score, q.show_result, q.end_at, q.report_after_end, q.require_login
+          SELECT s.*, q.title AS quiz_title, q.pass_score, q.show_result, q.end_at, q.report_after_end, q.require_login, q.negative_mark
           FROM submissions s
           JOIN quizzes q ON s.quiz_id = q.id
           WHERE s.id = ?
@@ -1172,6 +1172,28 @@ export default {
             },
           }, 200, origin);
         }
+        // Build per-question breakdown for the web report card
+        let questions = [];
+        let answers = {};
+        try {
+          const qRows = await env.DB.prepare('SELECT id, type, content, options_json, correct_json, score, sort_order FROM questions WHERE quiz_id = ? ORDER BY sort_order, id').bind(sub.quiz_id).all();
+          questions = (qRows && qRows.results) ? qRows.results : [];
+          answers = JSON.parse(sub.answers_json || '{}');
+        } catch {}
+        const perQ = questions.map((q, i) => {
+          const a = answers[String(q.id)];
+          let user = null, correct = null, status = 'blank';
+          try {
+            const cj = JSON.parse(q.correct_json);
+            correct = Array.isArray(cj) ? cj[0] : cj;
+          } catch {}
+          if (q.type === 'essay') status = 'essay';
+          else if (a === undefined || a === null || a === '') status = 'blank';
+          else if (q.type === 'tf') { user = a; status = (String(user) === String(correct)) ? 'correct' : 'wrong'; }
+          else if (typeof a === 'number') { user = a + 1; status = (user === Number(correct) + 1) ? 'correct' : 'wrong'; }
+          else if (typeof a === 'string') { user = a; status = 'wrong'; }
+          return { n: i + 1, type: q.type, user, correct: q.type === 'tf' ? correct : (correct !== null && correct !== undefined ? Number(correct) + 1 : null), status };
+        });
         return json({
           success: true,
           result: {
@@ -1187,8 +1209,12 @@ export default {
             percent: sub.percent,
             passed: !!sub.passed,
             pass_score: sub.pass_score,
+            negative_mark: !!sub.negative_mark,
             duration_sec: sub.duration_sec,
             finished_at: sub.finished_at,
+            questions,
+            answers_json: sub.answers_json || '{}',
+            per_question: perQ,
           },
         }, 200, origin);
       }

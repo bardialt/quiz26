@@ -206,9 +206,23 @@
     .exam-opt{transition:transform .18s ease,background-color .2s ease,border-color .2s ease}
     .exam-opt:hover{transform:translateX(-4px)}
     body.theme-light .exam-opt:hover{transform:translateX(4px)}
+    /* ===== Option selected/unselected (direct colors, theme-proof) ===== */
+    .qopt-on{background:#4f46e5 !important;border-color:#4f46e5 !important;color:#fff !important;box-shadow:0 4px 12px rgba(79,70,229,.35)}
+    .qopt-on span{color:#fff !important}
+    .qopt-off{background:transparent;border-color:#64748b;color:#94a3b8}
+    .exam-light .qopt-off{border-color:#cbd5e1;color:#475569;background:#fff}
+    .qopt-row-on{border-color:#4f46e5 !important;background:rgba(79,70,229,.08) !important}
+    .qopt-row-off{border-color:#334155;background:rgba(15,23,42,.35)}
+    .qopt-row-off:hover{border-color:#6366f1 !important;background:rgba(79,70,229,.12)}
+    .exam-light .qopt-row-off{border-color:#e2e8f0;background:#fff}
+    .exam-light .qopt-row-off:hover{border-color:#6366f1;background:#eef2ff}
+    .exam-text{color:#e2e8f0}
+    .exam-light .exam-text{color:#0f172a}
+    .exam-text::selection{background:rgba(79,70,229,.35)}
     /* ===== Exam room theme (dark default / light via .exam-light) ===== */
     .exam-bg{background:#0b1220}
     .exam-header{background:#0f172a;border-color:#1e293b}
+    .exam-header button{color:#e2e8f0}
     .exam-timer{color:#f87171}
     .exam-body-text{color:#e2e8f0}
     .exam-subtle{background:rgba(148,163,184,.12);color:#94a3b8}
@@ -234,7 +248,12 @@
     .exam-light .exam-side{background:#ffffff;border-color:#e2e8f0}
     .exam-light .exam-chip-ok{background:#d1fae5;border-color:#6ee7b7}
     .exam-light .exam-chip-mark{background:#fef3c7;border-color:#fcd34d}
-    .exam-light .exam-chip-empty{background:#f1f5f9;border-color:#cbd5e1}
+    .exam-light .exam-chip-empty{background:#f1f5f9;border-color:#cbd5e1;color:#334155}
+    .exam-light #examPalette button{color:#0f172a !important;border-color:#cbd5e1 !important}
+    .exam-light #examPalette button.exam-chip-ok{background:#d1fae5 !important;border-color:#6ee7b7 !important}
+    .exam-light #examPalette button.exam-chip-mark{background:#fef3c7 !important;border-color:#fcd34d !important}
+    .exam-light .exam-timer,.exam-light #examTimer{color:#e11d48 !important}
+    .exam-light .exam-side::-webkit-scrollbar-thumb{background:#cbd5e1}
     .exam-light .exam-q-card{background:#ffffff;border-color:#e2e8f0}
     .exam-light .exam-q-text{color:#0f172a}
     .exam-light .exam-opt{border-color:#cbd5e1;background:#ffffff}
@@ -242,6 +261,23 @@
     .exam-light .exam-opt .exam-num{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
     .exam-light .exam-opt.exam-selected{border-color:#4f46e5;background:#eef2ff}
     .exam-light .exam-opt.exam-selected .exam-num{background:#4f46e5;color:#fff;border-color:#4f46e5}
+    .exam-light .exam-q-card{background:#ffffff !important;border-color:#e2e8f0 !important}
+    .exam-light .exam-q-text{color:#0f172a !important}
+    .exam-light .text-slate-200,.exam-light .text-slate-300,.exam-light .text-slate-400{color:#475569 !important}
+    .exam-light .bg-slate-800,.exam-light .bg-slate-800\/50{background-color:#f1f5f9 !important}
+    .exam-light .border-slate-700{border-color:#cbd5e1 !important}
+    .exam-light .text-white{color:#0f172a !important}
+    .exam-light .bg-slate-900,.exam-light .bg-slate-900\/60,.exam-light .bg-slate-900\/80{background-color:#ffffff !important}
+    .exam-light .border-slate-800{border-color:#e2e8f0 !important}
+    .exam-light .btn-gradient,.exam-light button.bg-indigo-600{background:#4f46e5 !important;color:#fff !important}
+    .exam-light .bg-emerald-500,.exam-light .bg-emerald-500\/30{background-color:#10b981 !important}
+    .exam-light .border-emerald-500{border-color:#10b981 !important}
+    .exam-light .bg-amber-500\/30{background-color:#fbbf24 !important}
+    .exam-light .bg-indigo-500\/30{background-color:#c7d2fe !important}
+    .exam-light .border-indigo-500{border-color:#4f46e5 !important}
+    .exam-light .border-slate-600{border-color:#94a3b8 !important}
+    .exam-light .bg-slate-700{background-color:#e2e8f0 !important}
+    .exam-light .hover\:bg-slate-800:hover{background-color:#e2e8f0 !important}
     .exam-light .exam-q-meta{color:#64748b}
     /* Sheet split-view exam (PDF left, options right) */
     .sheet-frame{height:calc(100vh - 120px);min-height:560px}
@@ -3649,22 +3685,22 @@ function showFileSrcLightbox(u) {
 function examOptionHtml(q, idx, text, checked) {
   const square = !!state.splitMode; // imported-sheet exams use rounded-square number boxes
   const shape = square ? 'rounded-xl' : 'rounded-full';
-  const selected = !!state.examLight; // light theme: blue fill; dark: emerald
+  // Selected = BLUE fill (works in dark & light, direct classes — no theme dependency)
+  const onNum = 'qopt-on';
+  const offNum = 'qopt-off';
   if (square) {
     // OMR grid style: compact square boxes; clicking selected one DESELECTS (blanks the answer)
-    const on = 'exam-selected';
-    const off = '';
-    return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="omr-opt exam-opt w-12 h-12 rounded-xl font-black text-base border-2 transition items-center justify-center inline-flex ' + (checked ? on : off) + '"><span class="exam-num-text">' + (idx + 1) + '</span></button>';
+    return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="omr-opt exam-opt w-12 h-12 rounded-xl font-black text-base border-2 transition items-center justify-center inline-flex ' + (checked ? onNum : offNum) + '"><span>' + (idx + 1) + '</span></button>';
   }
   if (q.type === 'multi') {
-    return '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
+    return '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'qopt-row-on' : 'qopt-row-off') + '">' +
       '<input type="checkbox" name="eq_' + q.id + '" value="' + idx + '" ' + (checked ? 'checked' : '') + ' class="sr-only" onchange="setAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" />' +
-      '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? on : off) + '">' + (idx + 1) + '</span>' +
-      '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></label>';
+      '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? onNum : offNum) + '">' + (idx + 1) + '</span>' +
+      '<span class="exam-text flex-1 text-sm">' + esc(String(text)) + '</span></label>';
   }
-  return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="exam-opt w-full flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 text-right ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
-    '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? on : off) + '">' + (idx + 1) + '</span>' +
-    '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></button>';
+  return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="exam-opt w-full flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 text-right ' + (checked ? 'qopt-row-on' : 'qopt-row-off') + '">' +
+    '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? onNum : offNum) + '">' + (idx + 1) + '</span>' +
+    '<span class="exam-text flex-1 text-sm">' + esc(String(text)) + '</span></button>';
 }
 
 function renderExamQuestionHtml(q) {
@@ -3746,8 +3782,8 @@ function buildQuestionBlock(q, i) {
       const checked = state.answers[q.id] === v ? 'checked' : '';
       const square = !!state.splitMode;
       const shape = square ? 'rounded-xl' : 'rounded-full';
-      const on = 'bg-emerald-500 border-emerald-400 text-white';
-      const off = 'bg-slate-900 border-slate-600 text-slate-300';
+      const onNum = 'qopt-on';
+  const offNum = 'qopt-off';
       optsHtml += '<button type="button" onclick="toggleAnswer(' + q.id + ',\'' + v + '\',\'tf\')" class="omr-opt h-12 px-5 rounded-xl font-black text-sm border-2 transition inline-flex items-center gap-2 ' + (checked ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-500/40' : 'bg-white border-slate-300 text-slate-700') + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i>' + (v === 'true' ? 'درست' : 'نادرست') + '</button>';
     });
     if (state.splitMode) optsHtml = '<div class="omr-row flex gap-2">' + optsHtml + '</div>';
@@ -4444,15 +4480,19 @@ function showWebReport(r) {
   pctEl.style.color = (r.percent ?? 0) < 0 ? '#0f172a' : (r.percent ?? 0) > 50 ? '#047857' : '#0f172a';
   // fetch full questions for compare grid
   api('/api/public/result/' + r.id).then(async full => {
-    const qz = await api('/api/public/quiz-meta/' + (r.quiz_id || 0)).catch(() => null);
+    const data = full.result || full;
+    const qz = await api('/api/public/quiz-meta/' + (data.quiz_id || r.quiz_id || 0)).catch(() => null);
     const keyBtn = document.getElementById('wrKeyBtn');
     if (qz && qz.attachment && qz.attachment.file) { keyBtn.classList.remove('hide'); window.__currentSheetKey = qz.attachment.file; }
     else keyBtn.classList.add('hide');
-    const questions = full.questions || [];
-    const answers = (full.result && full.result.answers_json) ? JSON.parse(full.result.answers_json) : {};
+    const questions = data.questions || [];
+    let answers = {};
+    try { answers = (typeof data.answers_json === 'string') ? JSON.parse(data.answers_json) : (data.answers_json || {}); } catch {}
     let c = 0, wr = 0, b = 0;
     const ansCells = [], cmpCards = [];
+    const perQ = data.per_question || null;
     questions.forEach((q, i) => {
+      const pq = perQ ? perQ[i] : null;
       let cd = null; try { const cj = JSON.parse(q.correct_json); cd = Array.isArray(cj) ? cj[0] : cj; } catch {}
       const a = answers[String(q.id)];
       let userNum = null;
