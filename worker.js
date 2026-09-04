@@ -1176,6 +1176,7 @@ export default {
           success: true,
           result: {
             id: sub.id,
+            quiz_id: sub.quiz_id,
             quiz_title: sub.quiz_title,
             student_name: sub.student_name,
             student_family: sub.student_family,
