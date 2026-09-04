@@ -133,10 +133,12 @@ async function ensureStudentSchema(env) {
   try { await env.DB.prepare("ALTER TABLE submissions ADD COLUMN student_phone TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN report_after_end INTEGER NOT NULL DEFAULT 0').run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN stacked_view INTEGER NOT NULL DEFAULT 0').run(); } catch {}
+  try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN attachment_json TEXT').run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN reply TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN replied_at TEXT").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE homework ADD COLUMN attachment_json TEXT").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN student_phone TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_students_teacher ON students(teacher_id)').run(); } catch {}
   try {
     const t = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='quizzes'").first();
@@ -174,6 +176,7 @@ async function ensureStudentSchema(env) {
           end_at          TEXT,
           report_after_end INTEGER NOT NULL DEFAULT 0,
           stacked_view    INTEGER NOT NULL DEFAULT 0,
+          attachment_json TEXT,
           created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
           updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
         )`,
@@ -253,6 +256,7 @@ async function ensureStudentSchema(env) {
           status          TEXT    NOT NULL DEFAULT 'pending',
           reply           TEXT    DEFAULT '',
           replied_at      TEXT,
+          student_phone   TEXT    DEFAULT '',
           files_json      TEXT    DEFAULT '[]',
           score           REAL,
           feedback        TEXT    DEFAULT '',
@@ -731,6 +735,8 @@ export default {
 
         if (method === 'PUT') {
           const b = await request.json();
+          const existing = quiz;
+          const newAttachment = b.attachment !== undefined ? (b.attachment ? JSON.stringify(b.attachment) : null) : undefined;
           await env.DB.prepare(`
             UPDATE quizzes SET
               title = COALESCE(?, title),
@@ -748,6 +754,7 @@ export default {
               require_login = COALESCE(?, require_login),
               report_after_end = COALESCE(?, report_after_end),
               stacked_view = COALESCE(?, stacked_view),
+              attachment_json = ?,
               start_at = ?,
               end_at = ?,
               updated_at = datetime('now')
@@ -768,6 +775,7 @@ export default {
             b.require_login !== undefined ? (b.require_login ? 1 : 0) : null,
             b.report_after_end !== undefined ? (b.report_after_end ? 1 : 0) : null,
             b.stacked_view !== undefined ? (b.stacked_view ? 1 : 0) : null,
+            newAttachment !== undefined ? newAttachment : (existing.attachment_json || null),
             b.start_at ?? null,
             b.end_at ?? null,
             qid, payload.sub
@@ -895,7 +903,7 @@ export default {
       if (publicQuizMatch && method === 'GET') {
         const qid = Number(publicQuizMatch[1]);
         const quiz = await env.DB.prepare(
-          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view FROM quizzes WHERE id = ?'
+          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view, attachment_json FROM quizzes WHERE id = ?'
         ).bind(qid).first();
         if (!quiz) return error('آزمون یافت نشد.', 404, origin);
         if (quiz.status !== 'active') return error('این آزمون در حال حاضر فعال نیست.', 403, origin);
@@ -977,6 +985,8 @@ export default {
         }
         // Note: option shuffling is done on the frontend to keep correct_json indices aligned
 
+        let quizAttachment = null;
+        try { quizAttachment = quiz.attachment_json ? JSON.parse(quiz.attachment_json) : null; } catch {}
         return json({
           success: true,
           quiz: {
@@ -994,6 +1004,7 @@ export default {
             question_count: questions.length,
             start_at: quiz.start_at,
             end_at: quiz.end_at,
+            attachment: quizAttachment,
           },
           student: studentInfo,
           questions,
@@ -1034,6 +1045,16 @@ export default {
           if (!startedIso || startedIso >= quiz.end_at) {
             return error('مهلت شرکت در آزمون به پایان رسیده است.', 403, origin);
           }
+        }
+
+        // Anti-duplicate: each phone (guest) or student account can submit once.
+        const normSubPhone = (!quiz.require_login || !studentUserId) ? normPhone(student_phone) : '';
+        if (!quiz.require_login) {
+          if (!normSubPhone) return error('شماره موبایل الزامی است (شناسه کارنامه و جلوگیری از ارسال تکراری).', 400, origin);
+          const dupPhone = await env.DB.prepare(
+            'SELECT id FROM submissions WHERE quiz_id = ? AND student_phone = ?'
+          ).bind(qid, normSubPhone).first();
+          if (dupPhone) return error('این شماره قبلاً در این آزمون شرکت کرده است (هر شماره فقط یک‌بار).', 409, origin);
         }
 
         // For logged-in students, identity comes from the account (not user-supplied fields)
@@ -1080,7 +1101,7 @@ export default {
           (request.headers.get('User-Agent') || '').slice(0, 300),
           body.started_at || null,
           studentUserId,
-          (quiz.require_login && studentUserId) ? '' : normPhone(student_phone)
+          (quiz.require_login && studentUserId) ? '' : normSubPhone
         ).run();
 
         const result = {
@@ -1793,16 +1814,21 @@ export default {
         if (method === 'GET') {
           const hw = await env.DB.prepare('SELECT * FROM homework WHERE id = ? AND teacher_id = ?').bind(hid, payload.sub).first();
           if (!hw) return error('تکلیف یافت نشد.', 404, origin);
+          let attachment = null;
+          try { attachment = hw.attachment_json ? JSON.parse(hw.attachment_json) : null; } catch {}
           const subs = (await env.DB.prepare('SELECT * FROM homework_submissions WHERE homework_id = ? ORDER BY submitted_at DESC').bind(hid).all()).results || [];
-          return json({ success: true, homework: hw, submissions: subs }, 200, origin);
+          return json({ success: true, homework: { ...hw, attachment }, submissions: subs }, 200, origin);
         }
         if (method === 'PUT') {
+          const hw = await env.DB.prepare('SELECT id, attachment_json FROM homework WHERE id = ? AND teacher_id = ?').bind(hid, payload.sub).first();
+          if (!hw) return error('تکلیف یافت نشد.', 404, origin);
           const b = await request.json();
+          const newAttachment = b.attachment !== undefined ? (b.attachment ? JSON.stringify(b.attachment) : null) : hw.attachment_json;
           await env.DB.prepare(`UPDATE homework SET title = COALESCE(?, title), description = COALESCE(?, description),
             subject = COALESCE(?, subject), due_date = ?, max_score = COALESCE(?, max_score),
-            status = COALESCE(?, status) WHERE id = ? AND teacher_id = ?`).bind(
+            status = COALESCE(?, status), attachment_json = ? WHERE id = ? AND teacher_id = ?`).bind(
             b.title ?? null, b.description ?? null, b.subject ?? null, b.due_date ?? null,
-            b.max_score ?? null, b.status ?? null, hid, payload.sub
+            b.max_score ?? null, b.status ?? null, newAttachment, hid, payload.sub
           ).run();
           return json({ success: true }, 200, origin);
         }
@@ -2043,27 +2069,51 @@ export default {
         if (!hw) return error('تکلیف یافت نشد.', 404, origin);
         const b = await request.json();
         if (!b.student_name) return error('نام دانش‌آموز الزامی است.', 400, origin);
-        const r = await env.DB.prepare(`INSERT INTO homework_submissions (homework_id, student_name, student_family, school, class_name, answer_text, files_json)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`).bind(
+        // Anti-duplicate: same name (+family) can submit each homework only once — teacher can reply with "needs_revision" for resubmission
+        const dupHw = await env.DB.prepare(
+          'SELECT id, status FROM homework_submissions WHERE homework_id = ? AND student_name = ? AND student_family = ?'
+        ).bind(hid, b.student_name, b.student_family || '').first();
+        if (dupHw && dupHw.status !== 'needs_revision') {
+          return error('شما قبلاً این تکلیف را ارسال کرده‌اید. برای مشاهده نتیجه از دکمه «مشاهده وضعیت» استفاده کنید.', 409, origin);
+        }
+        if (dupHw && dupHw.status === 'needs_revision') {
+          // Resubmission after teacher requested revision: update existing row
+          await env.DB.prepare(`UPDATE homework_submissions SET answer_text = ?, files_json = ?, status = 'pending', reply = '', student_phone = ?, submitted_at = datetime('now') WHERE id = ?`)
+            .bind(b.answer_text || '', JSON.stringify(b.files || []), normPhone(b.student_phone || ''), dupHw.id).run();
+          return json({ success: true, id: dupHw.id, status: 'pending', resubmitted: true }, 200, origin);
+        }
+        const r = await env.DB.prepare(`INSERT INTO homework_submissions (homework_id, student_name, student_family, school, class_name, answer_text, student_phone, files_json)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(
           hid, b.student_name, b.student_family || '', b.school || '', b.class_name || '',
-          b.answer_text || '', JSON.stringify(b.files || [])
+          b.answer_text || '', normPhone(b.student_phone || ''), JSON.stringify(b.files || [])
         ).run();
         return json({ success: true, id: r.meta.last_row_id, status: 'pending' }, 201, origin);
       }
 
-      // Public: student fetches their own homework submission status (by name + homework)
+      // Public: student fetches their own homework submission status (by phone or name)
       const pubHwStatusMatch = path.match(/^\/api\/public\/homework\/(\d+)\/status$/);
       if (pubHwStatusMatch && method === 'GET') {
         const hid = Number(pubHwStatusMatch[1]);
         const url2 = new URL(request.url);
+        const phone = normPhone(url2.searchParams.get('phone') || '');
         const nm = String(url2.searchParams.get('name') || '').trim();
         const fam = String(url2.searchParams.get('family') || '').trim();
-        if (!nm) return error('نام الزامی است.', 400, origin);
-        const rows = (await env.DB.prepare(`
-          SELECT id, student_name, student_family, answer_text, files_json, score, status, reply, replied_at, submitted_at, graded_at
-          FROM homework_submissions WHERE homework_id = ? AND student_name = ? AND (student_family = ? OR ? = '')
-          ORDER BY submitted_at DESC LIMIT 1
-        `).bind(hid, nm, fam, fam).all()).results || [];
+        if (!phone && !nm) return error('شماره یا نام الزامی است.', 400, origin);
+        let rows = [];
+        if (phone) {
+          rows = (await env.DB.prepare(`
+            SELECT id, student_name, student_family, answer_text, files_json, score, status, reply, replied_at, submitted_at, graded_at
+            FROM homework_submissions WHERE homework_id = ? AND student_phone = ?
+            ORDER BY submitted_at DESC LIMIT 1
+          `).bind(hid, phone).all()).results || [];
+        }
+        if (!rows.length && nm) {
+          rows = (await env.DB.prepare(`
+            SELECT id, student_name, student_family, answer_text, files_json, score, status, reply, replied_at, submitted_at, graded_at
+            FROM homework_submissions WHERE homework_id = ? AND student_name = ? AND (student_family = ? OR ? = '')
+            ORDER BY submitted_at DESC LIMIT 1
+          `).bind(hid, nm, fam, fam).all()).results || [];
+        }
         if (!rows.length) return json({ success: true, submission: null }, 200, origin);
         return json({ success: true, submission: rows[0] }, 200, origin);
       }

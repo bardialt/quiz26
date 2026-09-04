@@ -550,29 +550,39 @@
     <!-- Attendance -->
     <section id="view-attendance" class="view hide space-y-6 fade-in">
       <div class="glass rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-400"></i> حضور و غیاب</h2>
-          <div class="flex gap-2 items-center">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h2 class="font-bold text-white flex items-center gap-2 text-lg"><span class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25"><i class="fa-solid fa-clipboard-check text-white"></i></span> حضور و غیاب</h2>
+          <div class="flex flex-wrap gap-2 items-center">
             <input type="date" id="attDate" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" onchange="loadAttendance()" />
-            <button onclick="saveAttendance()" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-save ml-1"></i> ذخیره</button>
+            <span id="attDateJalali" class="clock-pill clock-pill-sm" aria-live="off"></span>
+            <button onclick="attSetAll('present')" class="px-3 py-2 text-xs rounded-lg bg-emerald-600/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/25 transition font-bold"><i class="fa-solid fa-check-double ml-1"></i> همه حاضر</button>
+            <button onclick="saveAttendance()" id="attSaveBtn" class="px-4 py-2 text-sm rounded-xl btn-gradient text-white font-medium"><i class="fa-solid fa-save ml-1"></i> ذخیره</button>
           </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-emerald-400" id="attPresent">0</div><div class="text-[10px] text-slate-500">حاضر</div></div>
-          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-rose-400" id="attAbsent">0</div><div class="text-[10px] text-slate-500">غایب</div></div>
-          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-amber-400" id="attLate">0</div><div class="text-[10px] text-slate-500">تاخیر</div></div>
-          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-slate-400" id="attExcused">0</div><div class="text-[10px] text-slate-500">مرخصی</div></div>
-          <div class="bg-slate-900/50 rounded-xl p-3 text-center"><div class="text-2xl font-black text-white" id="attTotal">0</div><div class="text-[10px] text-slate-500">کل</div></div>
+        <div class="grid grid-cols-3 md:grid-cols-5 gap-2.5 mb-5">
+          <div class="rounded-xl p-3 text-center bg-gradient-to-b from-emerald-500/10 to-transparent border border-emerald-500/20"><div class="text-2xl font-black text-emerald-400" id="attPresent">0</div><div class="text-[10px] text-slate-500 mt-0.5">حاضر</div></div>
+          <div class="rounded-xl p-3 text-center bg-gradient-to-b from-rose-500/10 to-transparent border border-rose-500/20"><div class="text-2xl font-black text-rose-400" id="attAbsent">0</div><div class="text-[10px] text-slate-500 mt-0.5">غایب</div></div>
+          <div class="rounded-xl p-3 text-center bg-gradient-to-b from-amber-500/10 to-transparent border border-amber-500/20"><div class="text-2xl font-black text-amber-400" id="attLate">0</div><div class="text-[10px] text-slate-500 mt-0.5">تاخیر</div></div>
+          <div class="rounded-xl p-3 text-center bg-gradient-to-b from-slate-500/10 to-transparent border border-slate-500/20"><div class="text-2xl font-black text-slate-300" id="attExcused">0</div><div class="text-[10px] text-slate-500 mt-0.5">مرخصی</div></div>
+          <div class="rounded-xl p-3 text-center bg-slate-900/50 border border-slate-700 col-span-3 md:col-span-1"><div class="text-2xl font-black text-white" id="attTotal">0</div><div class="text-[10px] text-slate-500 mt-0.5">کل دانش‌آموزان</div></div>
         </div>
-        <div class="flex gap-2 mb-4">
-          <input id="attNewName" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام دانش‌آموز" />
-          <input id="attNewFamily" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام خانوادگی" />
-          <button onclick="addAttendanceRow()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm"><i class="fa-solid fa-plus"></i></button>
+        <div id="attProgressBarWrap" class="mb-5">
+          <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>درصد حضور روز</span><span id="attPctLabel">—</span></div>
+          <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden"><div id="attProgressBar" class="h-full bg-gradient-to-l from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width:0%"></div></div>
         </div>
-        <div id="attendanceList" class="space-y-2"></div>
+        <div class="flex flex-wrap gap-2 mb-4 p-3 rounded-xl bg-slate-900/40 border border-slate-800">
+          <input id="attNewName" type="text" class="flex-1 min-w-[140px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام دانش‌آموز" />
+          <input id="attNewFamily" type="text" class="flex-1 min-w-[140px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm" placeholder="نام خانوادگی" />
+          <button onclick="addAttendanceRow()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold"><i class="fa-solid fa-user-plus ml-1"></i> افزودن</button>
+        </div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-slate-400 font-bold">لیست دانش‌آموزان</span>
+          <input id="attSearch" type="text" oninput="renderAttendanceList()" placeholder="🔍 جستجوی سریع..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs w-44" />
+        </div>
+        <div id="attendanceList" class="space-y-1.5"></div>
       </div>
       <div class="glass rounded-2xl p-5">
-        <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-history text-slate-400"></i> تاریخچه</h3>
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-accent-400"></i> تاریخچه (۵۰ جلسه آخر)</h3>
         <div id="attHistory"><p class="text-slate-500 text-sm text-center py-4">هنوز سابقه‌ای نیست.</p></div>
       </div>
     </section>
@@ -753,6 +763,7 @@
           <div><label class="text-xs text-slate-400 mb-1 block">نام *</label><input id="hwStName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
           <div><label class="text-xs text-slate-400 mb-1 block">نام خانوادگی *</label><input id="hwStFamily" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" /></div>
         </div>
+        <div><label class="text-xs text-slate-400 mb-1 block"><i class="fa-solid fa-id-card text-emerald-400 ml-1"></i> شماره موبایل * <span class="text-[10px] text-slate-500">(شناسه پیگیری وضعیت تکلیف)</span></label><input id="hwStPhone" type="tel" inputmode="tel" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-left" placeholder="09xxxxxxxxx" /></div>
         <div><label class="text-xs text-slate-400 mb-1 block">توضیحات پاسخ (اختیاری)</label><textarea id="hwStAnswer" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm" placeholder="هر توضیحی دربارهٔ پاسخ‌تان..."></textarea></div>
         <div>
           <label class="text-xs text-slate-400 mb-1 block"><i class="fa-solid fa-paperclip text-emerald-400 ml-1"></i> آپلود فایل پاسخ (عکس / PDF / Word / هر فایلی — تا ۴MB، چند فایل)</label>
@@ -762,7 +773,11 @@
         <button onclick="submitHomeworkPublic()" id="hwSubmitBtn" class="w-full py-3.5 rounded-xl btn-emerald text-white font-bold">ارسال تکلیف</button>
       </div>
       <div id="hwPubStatus" class="hide mt-6 pt-5 border-t border-slate-700/60">
-        <button onclick="checkHwStatus()" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-500/10 border border-accent-500/25 text-accent-300 text-sm font-bold hover:bg-accent-500/15 transition"><i class="fa-solid fa-magnifying-glass"></i> مشاهده وضعیت و پاسخ دبیر</button>
+        <button onclick="toggleHwStatusBox()" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent-500/10 border border-accent-500/25 text-accent-300 text-sm font-bold hover:bg-accent-500/15 transition"><i class="fa-solid fa-magnifying-glass"></i> مشاهده وضعیت و نظر دبیر</button>
+        <div id="hwStatusBox" class="hide mt-3 space-y-2">
+          <input id="hwLookupPhone" type="tel" inputmode="tel" dir="ltr" class="w-full bg-slate-900 border border-accent-500/30 rounded-xl px-4 py-2.5 text-sm text-left focus:border-accent-400/60" placeholder="شماره‌ای که هنگام ارسال وارد کردید" onkeydown="if(event.key==='Enter'){event.preventDefault();checkHwStatus();}" />
+          <button onclick="checkHwStatus()" id="hwLookupBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-l from-accent-600 to-indigo-500 text-white text-sm font-bold hover:brightness-110 transition"><i class="fa-solid fa-chart-line ml-1"></i> جستجو</button>
+        </div>
         <div id="hwStatusResult" class="hide mt-3"></div>
       </div>
     </div>
@@ -860,6 +875,10 @@
       <label class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition">
         <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)
         <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
+      </label>
+      <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30 cursor-pointer text-xs text-violet-300 font-bold" title="سوالات داخل همین فایل PDF/عکس هستند — فایل به خود آزمون پیوست می‌شود و شما فقط جواب‌ها را وارد می‌کنید">
+        <input type="checkbox" id="importAsAttachment" class="rounded text-violet-500" onchange="toggleImportAttachmentMode()" />
+        <i class="fa-solid fa-paperclip"></i> فایل، خودِ برگهٔ سوالات است (پیوست به آزمون)
       </label>
       <button type="button" onclick="loadImportSample()" class="px-3 py-2 text-xs rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles ml-1"></i> نمونه ببین</button>
       <button type="button" onclick="startManualImport()" id="manualImportBtn" class="px-3 py-2 text-xs rounded-lg border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 transition"><i class="fa-solid fa-hand-pointer ml-1"></i> ساخت دستی (بدون فایل متنی)</button>
@@ -1091,10 +1110,31 @@ async function api(path, opts = {}) {
 }
 
 function localDateStr(d) { d = d || new Date(); const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+/* Jalali (Shamsi) date formatting — used across the site for any visible date */
+function jalaliFromISO(isoOrDate, withTime) {
+  try {
+    let d;
+    if (!isoOrDate) return '—';
+    if (typeof isoOrDate === 'string') {
+      // Pure date (yyyy-mm-dd) → parse as UTC noon to avoid TZ shift
+      if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate.trim())) {
+        const [y, m, dd] = isoOrDate.trim().split('-').map(Number);
+        d = new Date(Date.UTC(y, m - 1, dd, 12));
+      } else {
+        d = new Date(isoOrDate);
+      }
+    } else d = isoOrDate;
+    if (isNaN(d.getTime())) return String(isoOrDate);
+    const datePart = d.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    if (!withTime) return datePart;
+    const timePart = d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+    return datePart + ' - ' + timePart;
+  } catch { return String(isoOrDate || '—'); }
+}
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function escAttr(s) { return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function quizPublicUrl(id) { return location.origin + '/quiz/' + id; }
-function fmtDT(iso) { try { return new Date(iso).toLocaleString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return iso || '—'; } }
+function fmtDT(iso) { try { return jalaliFromISO(iso, true); } catch { return iso || '—'; } }
 function isoToLocalInput(iso) {
   try {
     const d = new Date(iso);
@@ -1793,28 +1833,8 @@ function fileLabelFor(u) {
 
 function showFileLightbox(qid) {
   const q = (state.questions || []).find(x => String(x.id) === String(qid));
-  const u = q ? q.image_url : '';
-  if (!u) return;
-  const meta = fileLabelFor(u);
-  const isImg = u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u);
-  const isPdf = /\.pdf(\?|$)/i.test(u) || u.startsWith('data:application/pdf');
-  const isVid = /\.(mp4|webm|ogg)(\?|$)/i.test(u) || u.startsWith('data:video');
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
-  let inner;
-  if (isImg) {
-    inner = '<img src="' + esc(u) + '" style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65);display:block;object-fit:contain" />';
-  } else if (isPdf) {
-    inner = '<iframe src="' + esc(u) + '" style="width:min(94vw,1000px);height:86vh;border:0;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.65)"></iframe>';
-  } else if (isVid) {
-    inner = '<video src="' + esc(u) + '" controls autoplay style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65)"></video>';
-  } else {
-    inner = '<div style="text-align:center;color:#e2e8f0;padding:40px 60px;background:rgba(15,23,42,.9);border:1px solid rgba(148,163,184,.2);border-radius:20px"><i class="fa-solid ' + meta.icon + '" style="font-size:56px;color:' + meta.color + '"></i><div style="margin-top:14px;font-weight:800">فایل ' + meta.label + '</div><div style="color:#64748b;font-size:12px;margin-top:4px">این نوع فایل داخل صفحه قابل نمایش نیست — دانلود کنید</div></div>';
-  }
-  const dlBtn = '<a href="' + esc(u) + '" download style="position:absolute;bottom:-16px;right:50%;transform:translateX(50%);display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#4f46e5,#059669);color:#fff;border:0;border-radius:999px;padding:10px 22px;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:inherit"><i class="fa-solid fa-download"></i> دانلود فایل</a>';
-  overlay.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%"><button style="position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:50%;background:#e11d48;color:#fff;border:0;cursor:pointer;font-size:15px;z-index:2" title="بستن">✕</button>' + inner + dlBtn + '</div>';
-  overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName === 'BUTTON') overlay.remove(); });
-  document.body.appendChild(overlay);
+  if (!q || !q.image_url) return;
+  showFileSrcLightbox(q.image_url);
 }
 
 let editingQuestionId = null;
@@ -1956,6 +1976,17 @@ closeModal = function (id) {
 function handleImportFile(file) {
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۵ مگابایت.', background: '#1e293b', color: '#fff' }); return; }
+  // Attachment mode: file becomes the quiz attachment itself (PDF/image = the question sheet)
+  if (document.getElementById('importAsAttachment')?.checked) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      __importAttachmentFile = { file: reader.result, fileName: file.name };
+      document.getElementById('importFileInfo').innerHTML = '📎 <b class="text-violet-300">' + esc(file.name) + '</b> (' + Math.round(file.size / 1024) + 'KB) — به آزمون پیوست می‌شود';
+      document.getElementById('importPdfHint').classList.add('hide');
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     const text = String(reader.result || '');
@@ -1988,6 +2019,22 @@ function loadImportSample() {
 }
 
 /* Manual builder: teacher defines count & per-question type, matching a PDF/image file */
+let __importAttachmentFile = null;
+
+function toggleImportAttachmentMode() {
+  const on = document.getElementById('importAsAttachment').checked;
+  document.getElementById('importText').disabled = on;
+  document.getElementById('importText').classList.toggle('opacity-40', on);
+  document.getElementById('parseImportBtn').disabled = on;
+  document.getElementById('parseImportBtn').classList.toggle('opacity-40', on);
+  if (on) {
+    document.getElementById('parseSummary').innerHTML = '<span class="text-violet-300">حالت پیوست فعال: فایل انتخاب‌شده به خود آزمون پیوست می‌شود؛ فقط «ساخت دستی» را بزنید، تعداد سوالات را مطابق فایل وارد کنید و جواب‌ها را علامت بزنید.</span>';
+    if (!__importAttachmentFile) document.getElementById('importFile').click();
+  } else {
+    document.getElementById('parseSummary').textContent = '';
+  }
+}
+
 function startManualImport() {
   Swal.fire({
     title: 'ساخت دستی سوالات',
@@ -2221,9 +2268,22 @@ async function saveImportedQuestions() {
     } catch (err) { console.error(err); }
   }
   btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double ml-1"></i> افزودن به آزمون';
+  // Attachment mode: attach the uploaded PDF/image as a global quiz attachment (stored on first question's quiz — use quiz-level via mqMediaUrl on each? Instead store on quiz description field is wrong; use dedicated approach: attach to every question as fallback sheet)
+  const attachFile = __importAttachmentFile;
+  __importAttachmentFile = null;
   closeModal('modalUploadImport');
-  loadQuestions(state.editingQuizId);
-  Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال ناقص رد شد (متن یا جواب نداشت).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
+  const finish = () => {
+    loadQuestions(state.editingQuizId);
+    Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال ناقص رد شد (متن یا جواب نداشت).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
+  };
+  if (attachFile) {
+    try {
+      await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify({ attachment: attachFile }) });
+      Swal.fire({ icon: 'info', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد و در صفحهٔ آزمون، بالای سوالات برای دانش‌آموز نمایش داده می‌شود.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
+      return;
+    } catch { finish(); return; }
+  }
+  finish();
 }
 
 function printBankQuestions() {
@@ -2362,24 +2422,44 @@ async function loadHomework() {
     const el = document.getElementById('homeworkList');
     const hw = data.homework || [];
     if (!hw.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">هنوز تکلیفی نیست.</p>'; return; }
-    el.innerHTML = hw.map(h => '<div class="glass rounded-xl p-4 flex items-center justify-between card-hover"><div class="flex-1"><div class="font-bold text-white">' + esc(h.title) + '</div><div class="text-xs text-slate-400">' + (h.subject || '—') + ' · ' + (h.due_date || 'بدون مهلت') + (h.attachment ? ' · <i class="fa-solid fa-paperclip text-accent-400" title="فایل پیوست دارد"></i>' : '') + '</div></div><div class="flex items-center gap-2"><button onclick="showHomeworkSubmissions(' + h.id + ')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs" title="مشاهده تحویل‌ها"><i class="fa-solid fa-eye ml-1"></i> ' + (h.submission_count || 0) + ' تحویل</button><span class="text-xs text-emerald-400">' + (h.graded_count || 0) + ' بررسی</span><button onclick="copyHomeworkLink(' + h.id + ')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-accent-500/20 text-accent-300 text-xs" title="کپی لینک دانش‌آموز"><i class="fa-solid fa-link"></i></button><button onclick="deleteHomework(' + h.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2"><i class="fa-solid fa-trash"></i></button></div></div>').join('');
+    el.innerHTML = hw.map(h => '<div class="glass rounded-xl p-4 flex items-center justify-between card-hover"><div class="flex-1"><div class="font-bold text-white">' + esc(h.title) + '</div><div class="text-xs text-slate-400">' + (h.subject || '—') + ' · مهلت: ' + (h.due_date ? jalaliFromISO(h.due_date) : 'ندارد') + (h.attachment ? ' · <i class="fa-solid fa-paperclip text-accent-400" title="فایل پیوست دارد"></i>' : '') + '</div></div><div class="flex items-center gap-2"><button onclick="showHomeworkSubmissions(' + h.id + ')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs" title="مشاهده تحویل‌ها"><i class="fa-solid fa-eye ml-1"></i> ' + (h.submission_count || 0) + ' تحویل</button><span class="text-xs text-emerald-400">' + (h.graded_count || 0) + ' بررسی</span><button onclick="copyHomeworkLink(' + h.id + ')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-accent-500/20 text-accent-300 text-xs" title="کپی لینک دانش‌آموز"><i class="fa-solid fa-link"></i></button><button onclick="openAddHomework(' + h.id + ')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-emerald-300 text-xs" title="ویرایش"><i class="fa-solid fa-pen"></i></button><button onclick="deleteHomework(' + h.id + ')" class="text-rose-400 hover:text-rose-300 text-sm px-2" title="حذف"><i class="fa-solid fa-trash"></i></button></div></div>').join('');
   } catch (err) { document.getElementById('homeworkList').innerHTML = '<p class="text-rose-400 text-sm text-center">' + esc(err.message) + '</p>'; }
 }
 
-function openAddHomework() {
-  Swal.fire({
-    title: 'تکلیف جدید',
-    html: '<div class="text-right space-y-2"><input id="hwTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="عنوان تکلیف *" /><input id="hwSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="درس" /><textarea id="hwDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="3" placeholder="توضیحات تکلیف برای دانش‌آموز (خواسته‌ها، فصل کتاب، نحوهٔ ارسال...)"></textarea><div class="grid grid-cols-2 gap-2"><input id="hwDue" type="date" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" /><input id="hwScore" type="number" value="10" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="حداکثر نمره" /></div><div><label class="text-[10px] text-slate-400 block mb-1 text-right">فایل پیوست تکلیف (PDF / عکس / Word / هر فایلی — اختیاری)</label><input id="hwFile" type="file" class="w-full text-xs text-slate-400 file:ml-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-accent-600 file:text-white file:text-xs file:cursor-pointer" onchange="handleHwFile(this)" /><div id="hwFilePreview" class="hide mt-2 text-[11px] text-emerald-300 text-right"></div></div></div>',
-    background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: 'ذخیره', confirmButtonColor: '#10b981', width: 520,
-    preConfirm: () => {
-      const title = document.getElementById('hwTitle').value.trim();
-      if (!title) { Swal.showValidationMessage('عنوان الزامی'); return false; }
-      return { title, subject: document.getElementById('hwSubject').value, description: document.getElementById('hwDesc').value, due_date: document.getElementById('hwDue').value || null, max_score: Number(document.getElementById('hwScore').value) || 10, attachment: window.__hwAttachment || null };
-    }
-  }).then(async (r) => {
-    if (!r.isConfirmed) return;
-    try { await api('/api/homework', { method: 'POST', body: JSON.stringify(r.value) }); loadHomework(); window.__hwAttachment = null; Swal.fire({ icon: 'success', title: 'تکلیف ساخته شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' }); } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
-  });
+function openAddHomework(editId) {
+  const isEdit = !!editId;
+  const build = (h) => {
+    window.__hwAttachment = h && h.attachment ? h.attachment : null;
+    Swal.fire({
+      title: isEdit ? 'ویرایش تکلیف' : 'تکلیف جدید',
+      html: '<div class="text-right space-y-2"><input id="hwTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="عنوان تکلیف *" value="' + escAttr(h ? h.title || '' : '') + '" /><input id="hwSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="درس" value="' + escAttr(h ? h.subject || '' : '') + '" /><textarea id="hwDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" rows="3" placeholder="توضیحات تکلیف برای دانش‌آموز (خواسته‌ها، فصل کتاب، نحوهٔ ارسال...)">' + esc(h ? h.description || '' : '') + '</textarea><div class="grid grid-cols-2 gap-2"><input id="hwDue" type="date" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" value="' + escAttr(h ? h.due_date || '' : '') + '" /><input id="hwScore" type="number" value="' + (h ? h.max_score || 10 : 10) + '" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-sm text-white" placeholder="حداکثر نمره" /></div><div><label class="text-[10px] text-slate-400 block mb-1 text-right">فایل پیوست تکلیف (PDF / عکس / Word / هر فایلی — اختیاری)</label><input id="hwFile" type="file" class="w-full text-xs text-slate-400 file:ml-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-accent-600 file:text-white file:text-xs file:cursor-pointer" onchange="handleHwFile(this)" /><div id="hwFilePreview" class="mt-2 text-[11px] text-right ' + (window.__hwAttachment ? 'text-emerald-300' : 'hide') + '">' + (window.__hwAttachment ? '✓ پیوست فعلی: ' + esc(window.__hwAttachment.fileName || 'فایل') : '') + '</div>' + (window.__hwAttachment ? '<button type="button" onclick="removeHwAttachment()" class="text-[10px] text-rose-400/80 hover:text-rose-400 mt-1">حذف پیوست</button>' : '') + '</div></div>',
+      background: '#1e293b', color: '#fff', showCancelButton: true, confirmButtonText: isEdit ? 'ذخیره تغییرات' : 'ذخیره', confirmButtonColor: '#10b981', width: 520,
+      preConfirm: () => {
+        const title = document.getElementById('hwTitle').value.trim();
+        if (!title) { Swal.showValidationMessage('عنوان الزامی'); return false; }
+        return { title, subject: document.getElementById('hwSubject').value, description: document.getElementById('hwDesc').value, due_date: document.getElementById('hwDue').value || null, max_score: Number(document.getElementById('hwScore').value) || 10, attachment: window.__hwAttachment };
+      }
+    }).then(async (r) => {
+      if (!r.isConfirmed) return;
+      try {
+        if (isEdit) await api('/api/homework/' + editId, { method: 'PUT', body: JSON.stringify(r.value) });
+        else await api('/api/homework', { method: 'POST', body: JSON.stringify(r.value) });
+        loadHomework(); window.__hwAttachment = null;
+        Swal.fire({ icon: 'success', title: isEdit ? 'تغییرات ذخیره شد' : 'تکلیف ساخته شد', timer: 1200, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+      } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+    });
+  };
+  if (isEdit) {
+    api('/api/homework/' + editId).then(d => build(d.homework)).catch(err => Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }));
+  } else build(null);
+}
+
+function removeHwAttachment() {
+  window.__hwAttachment = null;
+  const prev = document.getElementById('hwFilePreview');
+  if (prev) { prev.textContent = 'پیوست حذف شد — ذخیره کنید تا اعمال شود.'; prev.className = 'mt-2 text-[11px] text-rose-300 text-right'; }
+  const btn = Swal.getPopup()?.querySelector('button[onclick="removeHwAttachment()"]');
+  if (btn) btn.remove();
 }
 
 async function handleHwFile(input) {
@@ -2502,22 +2582,58 @@ function setAttStatus(idx, status) {
 
 function renderAttendanceList() {
   const el = document.getElementById('attendanceList');
-  if (!attendanceStudents.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">دانش‌آموزی اضافه نشده.</p>'; updateAttStats(); return; }
+  if (!attendanceStudents.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-6">دانش‌آموزی اضافه نشده — از کادر بالا نام‌ها را وارد کنید.</p>'; updateAttStats(); return; }
+  const q = (document.getElementById('attSearch')?.value || '').trim().toLowerCase();
+  const idxMap = [];
+  attendanceStudents.forEach((s, i) => {
+    const full = (s.name + ' ' + s.family).toLowerCase();
+    if (!q || full.includes(q)) idxMap.push(i);
+  });
+  if (!idxMap.length) { el.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">چیزی مطابق جستجو پیدا نشد.</p>'; updateAttStats(); return; }
   const statusMap = { present: ['حاضر', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'], absent: ['غایب', 'bg-rose-500/20 text-rose-400 border-rose-500/30'], late: ['تاخیر', 'bg-amber-500/20 text-amber-400 border-amber-500/30'], excused: ['مرخصی', 'bg-slate-700/50 text-slate-400 border-slate-600'] };
-  el.innerHTML = attendanceStudents.map((s, i) => {
+  const stIcon = { present: 'fa-check', absent: 'fa-xmark', late: 'fa-clock', excused: 'fa-envelope-open' };
+  el.innerHTML = idxMap.map(i => {
+    const s = attendanceStudents[i];
     const [label, cls] = statusMap[s.status] || statusMap.present;
-    return '<div class="flex items-center gap-2 p-2 rounded-xl bg-slate-900/50 border border-slate-800"><span class="text-sm text-white font-medium min-w-[120px]">' + esc(s.name) + ' ' + esc(s.family) + '</span><div class="flex gap-1">' +
-      Object.entries(statusMap).map(([k, [l, c]]) => '<button onclick="setAttStatus(' + i + ',\'' + k + '\')" class="px-2 py-1 text-[10px] rounded-lg border ' + (s.status === k ? c : 'border-slate-700 text-slate-500') + '">' + l + '</button>').join('') +
-      '</div><button onclick="removeAttendanceRow(' + i + ')" class="text-rose-400 hover:text-rose-300 text-xs mr-auto"><i class="fa-solid fa-xmark"></i></button></div>';
+    return '<div class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition"><span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-400 flex items-center justify-center shrink-0">' + (i + 1) + '</span><span class="text-sm text-white font-medium min-w-[130px] flex-1">' + esc(s.name) + ' ' + esc(s.family) + '</span><div class="flex gap-1 flex-wrap">' +
+      Object.entries(statusMap).map(([k, [l, c]]) => '<button onclick="setAttStatus(' + i + ',\'' + k + '\')" class="px-2.5 py-1 text-[10px] rounded-lg border font-bold transition ' + (s.status === k ? c : 'border-slate-700 text-slate-500 hover:text-slate-300') + '"><i class="fa-solid ' + stIcon[k] + ' ml-0.5"></i>' + l + '</button>').join('') +
+      '</div><button onclick="removeAttendanceRow(' + i + ')" class="text-rose-400/60 hover:text-rose-400 text-xs px-1" title="حذف"><i class="fa-solid fa-xmark"></i></button></div>';
   }).join('');
   updateAttStats();
 }
 
+function attSetAll(status) {
+  if (!attendanceStudents.length) return Swal.fire({ icon: 'info', title: 'اول دانش‌آموز اضافه کنید', background: '#1e293b', color: '#fff' });
+  attendanceStudents.forEach(s => s.status = status);
+  renderAttendanceList();
+  Swal.fire({ icon: 'success', title: 'همه «' + ({ present: 'حاضر', absent: 'غایب', late: 'تاخیر', excused: 'مرخصی' }[status]) + '» شدند', timer: 1000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+}
+
 function updateAttStats() {
   updateAttendanceStats();
+  const wrap = document.getElementById('attProgressBarWrap');
+  if (!wrap) return;
+  const present = attendanceStudents.filter(s => s.status === 'present').length;
+  const late = attendanceStudents.filter(s => s.status === 'late').length;
+  const total = attendanceStudents.length;
+  const pct = total ? Math.round(((present + late) / total) * 100) : 0;
+  document.getElementById('attProgressBar').style.width = pct + '%';
+  document.getElementById('attPctLabel').textContent = total ? pct + '% (' + (present + late) + ' از ' + total + ')' : '—';
+}
+
+function attJalaliLabel() {
+  const d = document.getElementById('attDate')?.value;
+  const el = document.getElementById('attDateJalali');
+  if (!el) return;
+  try {
+    const [y, m, dd] = (d || localDateStr()).split('-').map(Number);
+    const jd = new Date(Date.UTC(y, m - 1, dd)).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    el.innerHTML = '<i class="fa-regular fa-calendar"></i><span>' + jd + '</span>';
+  } catch { el.textContent = d || ''; }
 }
 
 async function loadAttendance() {
+  attJalaliLabel();
   const date = document.getElementById('attDate')?.value || localDateStr();
   try {
     const data = await api('/api/attendance?date=' + date);
@@ -2540,7 +2656,7 @@ async function loadSettings() {
   try {
     const data = await api('/api/auth/me');
     const t = data.teacher || {};
-    document.getElementById('settAccountInfo').innerHTML = '<div class="grid grid-cols-2 gap-3 text-sm"><div><span class="text-slate-500">نام کاربری:</span> <span class="text-white">' + esc(t.username) + '</span></div><div><span class="text-slate-500">نام نمایشی:</span> <span class="text-white">' + esc(t.full_name) + '</span></div><div><span class="text-slate-500">مدرسه:</span> <span class="text-white">' + esc(t.school_name || '—') + '</span></div><div><span class="text-slate-500">عضویت:</span> <span class="text-white">' + (t.created_at || '—') + '</span></div></div>';
+    document.getElementById('settAccountInfo').innerHTML = '<div class="grid grid-cols-2 gap-3 text-sm"><div><span class="text-slate-500">نام کاربری:</span> <span class="text-white">' + esc(t.username) + '</span></div><div><span class="text-slate-500">نام نمایشی:</span> <span class="text-white">' + esc(t.full_name) + '</span></div><div><span class="text-slate-500">مدرسه:</span> <span class="text-white">' + esc(t.school_name || '—') + '</span></div><div><span class="text-slate-500">عضویت:</span> <span class="text-white">' + jalaliFromISO(t.created_at) + '</span></div></div>';
   } catch {}
   try {
     const data = await api('/api/branding');
@@ -3062,6 +3178,7 @@ function startExam(e) {
   if (badge) { badge.textContent = ''; badge.classList.add('hide'); }
   saveExamState();
   showView('exam-room');
+  renderExamSheetAttachment();
   if (state.stackedMode) renderExamStacked(); else renderExamQuestion();
   renderPalette(); startTimer();
   if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
@@ -3206,6 +3323,46 @@ function renderExamQuestion() {
   const shortEl = document.getElementById('shortInput');
   if (shortEl) shortEl.addEventListener('input', () => { state.answers[q.id] = shortEl.value; renderPalette(); });
   if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
+}
+
+/* Quiz-level sheet attachment (PDF/image uploaded via import) — shown at top of exam */
+function renderExamSheetAttachment() {
+  const area = document.getElementById('examQuestionArea');
+  if (!area) return;
+  const att = state.exam && state.exam.attachment;
+  if (!att || !att.file) return;
+  const holder = document.createElement('div');
+  holder.id = 'examSheetAttachment';
+  holder.className = 'mb-5';
+  const isImg = String(att.file).startsWith('data:image');
+  holder.innerHTML = '<div class="glass rounded-2xl p-4 border-violet-500/30"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-violet-300"><i class="fa-solid fa-file-pdf ml-1"></i> برگهٔ سوالات آزمون</span><button type="button" onclick="showFileUrlLightbox(\'' + 'SHEET' + '\')" class="px-3 py-1.5 rounded-lg bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-bold transition"><i class="fa-solid fa-expand ml-1"></i> مشاهده در اندازهٔ بزرگ</button></div>' +
+    (isImg ? '<img src="' + att.file + '" class="max-h-56 rounded-xl border border-slate-700 cursor-zoom-in w-full object-contain" onclick="showFileUrlLightbox(\'SHEET\')" />' : '<p class="text-xs text-slate-400">فایل <b>' + esc(att.fileName || 'برگه') + '</b> — برای مشاهده دکمهٔ بالا را بزنید.</p>') + '</div>';
+  area.parentNode.insertBefore(holder, area);
+  window.__sheetUrl = att.file;
+}
+
+function showFileUrlLightbox(token) {
+  const src = token === 'SHEET' ? (window.__sheetUrl || '') : (state.questions || []).find(q => String(q.id) === token)?.image_url || '';
+  if (!src) return;
+  showFileSrcLightbox(src);
+}
+
+function showFileSrcLightbox(u) {
+  const meta = fileLabelFor(u);
+  const isImg = u.startsWith('data:image') || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u);
+  const isPdf = /\.pdf(\?|$)/i.test(u) || u.startsWith('data:application/pdf');
+  const isVid = /\.(mp4|webm|ogg)(\?|$)/i.test(u) || u.startsWith('data:video');
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.94);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  let inner;
+  if (isImg) inner = '<img src="' + esc(u) + '" style="max-width:94vw;max-height:84vh;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.65);display:block;object-fit:contain" />';
+  else if (isPdf) inner = '<iframe src="' + esc(u) + '" style="width:min(94vw,1000px);height:86vh;border:0;border-radius:16px;background:#fff"></iframe>';
+  else if (isVid) inner = '<video src="' + esc(u) + '" controls autoplay style="max-width:94vw;max-height:84vh;border-radius:16px"></video>';
+  else inner = '<div style="text-align:center;color:#e2e8f0;padding:40px 60px;background:rgba(15,23,42,.9);border:1px solid rgba(148,163,184,.2);border-radius:20px"><i class="fa-solid ' + meta.icon + '" style="font-size:56px;color:' + meta.color + '"></i><div style="margin-top:14px;font-weight:800">فایل ' + meta.label + '</div></div>';
+  const dlBtn = '<a href="' + esc(u) + '" download style="position:absolute;bottom:-16px;right:50%;transform:translateX(50%);display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#4f46e5,#059669);color:#fff;border:0;border-radius:999px;padding:10px 22px;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.5)"><i class="fa-solid fa-download"></i> دانلود فایل</a>';
+  overlay.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%"><button style="position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:50%;background:#e11d48;color:#fff;border:0;cursor:pointer;font-size:15px;z-index:2" title="بستن">✕</button>' + inner + dlBtn + '</div>';
+  overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName === 'BUTTON') overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function setAnswer(qid, val, type) {
@@ -3601,7 +3758,7 @@ function showHomeworkSubmissions(homeworkId) {
       let files = []; try { files = JSON.parse(s.files_json || '[]'); } catch {}
       const [stLabel, stCls] = hwStatusLabel(s.status || (s.score != null ? 'approved' : 'pending'));
       html += '<div class="p-3 rounded-xl bg-slate-800 border border-slate-700">';
-      html += '<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</div><div class="text-xs text-slate-400">' + (s.submitted_at || '') + '</div></div>';
+      html += '<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-white">' + esc(s.student_name) + ' ' + esc(s.student_family) + '</div><div class="text-xs text-slate-400">' + (s.submitted_at ? jalaliFromISO(s.submitted_at, true) : '') + '</div></div>';
       html += '<div class="flex items-center gap-2"><span class="text-[10px] px-2 py-1 rounded-lg ' + stCls + '">' + stLabel + '</span><div class="text-sm"><span class="text-emerald-400 font-bold">' + (s.score ?? '—') + '</span> / ' + '؟</div></div></div>';
       if (s.answer_text) html += '<div class="text-xs text-slate-300 bg-slate-900/60 rounded-lg px-3 py-2 leading-relaxed mb-2">' + esc(s.answer_text) + '</div>';
       if (files.length) {
@@ -3702,17 +3859,19 @@ function hwCollectFiles() {
 async function submitHomeworkPublic() {
   const name = document.getElementById('hwStName').value.trim();
   const family = document.getElementById('hwStFamily').value.trim();
+  const phone = String(document.getElementById('hwStPhone').value || '').replace(/[^\d+]/g, '').trim();
   if (!name || !family) return Swal.fire({ icon: 'warning', title: 'نام و نام خانوادگی الزامی است', background: '#1e293b', color: '#fff' });
+  if (!phone || phone.length < 8) return Swal.fire({ icon: 'warning', title: 'شماره موبایل الزامی است', text: 'با این شماره بعداً وضعیت و نظر دبیر را می‌بینید.', background: '#1e293b', color: '#fff' });
   const files = hwCollectFiles();
   if (files === null) return;
   const btn = document.getElementById('hwSubmitBtn');
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> در حال ارسال...';
-  const payload = { student_name: name, student_family: family, answer_text: document.getElementById('hwStAnswer').value.trim(), files: [] };
+  const payload = { student_name: name, student_family: family, student_phone: phone, answer_text: document.getElementById('hwStAnswer').value.trim(), files: [] };
   const readAs = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res({ file: r.result, fileName: f.name }); r.onerror = rej; r.readAsDataURL(f); });
   try {
     for (const f of files) payload.files.push(await readAs(f));
-    await api('/api/public/homework/' + __hwPubId + '/submit', { method: 'POST', body: JSON.stringify(payload) });
-    Swal.fire({ icon: 'success', title: 'تکلیف ارسال شد ✅', html: '<p class="text-sm">وضعیت فعلی: <b class="text-amber-300">در انتظار بررسی</b></p><p class="text-xs text-slate-400 mt-2">بعداً با همین نام از دکمهٔ «مشاهده وضعیت و پاسخ دبیر» نتیجه را ببینید.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
+    const res = await api('/api/public/homework/' + __hwPubId + '/submit', { method: 'POST', body: JSON.stringify(payload) });
+    Swal.fire({ icon: 'success', title: res.resubmitted ? 'اصلاحیه ثبت شد ✅' : 'تکلیف ارسال شد ✅', html: '<p class="text-sm">وضعیت فعلی: <b class="text-amber-300">در انتظار بررسی</b></p><p class="text-xs text-slate-400 mt-2">با شماره <b dir="ltr" class="text-emerald-300">' + phone + '</b> از دکمهٔ «مشاهده وضعیت و نظر دبیر» نتیجه را ببینید.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' });
     document.getElementById('hwPubStatus').classList.remove('hide');
     document.getElementById('hwStFiles').value = '';
     document.getElementById('hwStFilesList').innerHTML = '';
@@ -3721,23 +3880,34 @@ async function submitHomeworkPublic() {
   } finally { btn.disabled = false; btn.innerHTML = 'ارسال تکلیف'; }
 }
 
+function toggleHwStatusBox() {
+  document.getElementById('hwStatusBox').classList.toggle('hide');
+}
+
 async function checkHwStatus() {
+  const phone = String(document.getElementById('hwLookupPhone')?.value || '').replace(/[^\d+]/g, '').trim();
   const name = document.getElementById('hwStName').value.trim();
   const family = document.getElementById('hwStFamily').value.trim();
-  if (!name) return Swal.fire({ icon: 'warning', title: 'نام را وارد کنید', text: 'همان نامی که هنگام ارسال نوشتید.', background: '#1e293b', color: '#fff' });
+  if (!phone && !name) return Swal.fire({ icon: 'warning', title: 'شماره را وارد کنید', text: 'همان شماره‌ای که هنگام ارسال نوشتید.', background: '#1e293b', color: '#fff' });
+  const btn = document.getElementById('hwLookupBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-1"></i> جستجو...'; }
   try {
-    const data = await api('/api/public/homework/' + __hwPubId + '/status?name=' + encodeURIComponent(name) + '&family=' + encodeURIComponent(family));
+    let url = '/api/public/homework/' + __hwPubId + '/status?phone=' + encodeURIComponent(phone);
+    if (!phone) url += '&name=' + encodeURIComponent(name) + '&family=' + encodeURIComponent(family);
+    const data = await api(url);
     const box = document.getElementById('hwStatusResult');
     box.classList.remove('hide');
-    if (!data.submission) { box.innerHTML = '<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-sm text-slate-300 text-center">با این نام تکلیفی پیدا نشد — هنوز ارسال نکرده‌اید؟</div>'; return; }
+    if (!data.submission) { box.innerHTML = '<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-sm text-slate-300 text-center">با این شماره تکلیفی پیدا نشد.</div>'; return; }
     const s = data.submission;
     const [stLabel, stCls] = hwStatusLabel(s.status || (s.score != null ? 'approved' : 'pending'));
     box.innerHTML = '<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 space-y-2">' +
+      '<div class="flex items-center justify-between"><span class="text-xs text-slate-400">دانش‌آموز:</span><span class="text-sm text-white font-bold">' + esc(s.student_name) + ' ' + esc(s.student_family || '') + '</span></div>' +
       '<div class="flex items-center justify-between"><span class="text-xs text-slate-400">وضعیت:</span><span class="text-xs px-2 py-1 rounded-lg ' + stCls + '">' + stLabel + '</span></div>' +
       (s.score != null ? '<div class="flex items-center justify-between"><span class="text-xs text-slate-400">نمره:</span><span class="text-emerald-300 font-bold">' + s.score + '</span></div>' : '') +
       (s.reply ? '<div class="text-xs bg-accent-500/10 border border-accent-500/20 rounded-lg px-3 py-2"><b class="text-accent-300">پیام دبیر:</b> <span class="text-slate-300">' + esc(s.reply) + '</span></div>' : '<div class="text-[11px] text-slate-500 text-center">هنوز پیامی از دبیر نرسیده.</div>') +
       '</div>';
   } catch (err) { Swal.fire({ icon: 'error', title: err.message, background: '#1e293b', color: '#fff' }); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-chart-line ml-1"></i> جستجو'; } }
 }
 
 function updateAttendanceStats() {
@@ -3765,7 +3935,8 @@ async function loadAttendanceHistory() {
     el.innerHTML = '<div class="space-y-2">' + h.map(r => {
       const total = r.present_count + r.absent_count + r.late_count + (r.leave_count || 0);
       const presentRate = total > 0 ? Math.round((r.present_count / total) * 100) : 0;
-      return '<div class="flex justify-between items-center text-xs p-3 rounded-xl bg-slate-900/50 border border-slate-800 card-hover"><div><div class="text-white font-medium">' + esc(r.date) + ' - ' + esc(r.class_name || '') + '</div><div class="text-slate-400 mt-1">درصد حضور: <span class="text-emerald-400 font-bold">' + presentRate + '%</span></div></div><div class="flex gap-2"><span class="text-emerald-400">حاضر: ' + r.present_count + '</span><span class="text-rose-400">غایب: ' + r.absent_count + '</span><span class="text-amber-400">تاخیر: ' + r.late_count + '</span>' + ((r.leave_count || 0) > 0 ? '<span class="text-slate-400">مرخصی: ' + r.leave_count + '</span>' : '') + '</div></div>';
+      const pctColor = presentRate >= 80 ? 'text-emerald-400' : presentRate >= 60 ? 'text-amber-400' : 'text-rose-400';
+      return '<div class="flex justify-between items-center text-xs p-3 rounded-xl bg-slate-900/50 border border-slate-800 card-hover"><div><div class="text-white font-medium">' + jalaliFromISO(r.date) + (r.class_name ? ' - ' + esc(r.class_name) : '') + '</div><div class="text-slate-400 mt-1">درصد حضور: <span class="' + pctColor + ' font-bold">' + presentRate + '%</span></div></div><div class="flex gap-2 flex-wrap"><span class="text-emerald-400">حاضر: ' + r.present_count + '</span><span class="text-rose-400">غایب: ' + r.absent_count + '</span><span class="text-amber-400">تاخیر: ' + r.late_count + '</span>' + ((r.leave_count || 0) > 0 ? '<span class="text-slate-400">مرخصی: ' + r.leave_count + '</span>' : '') + '</div></div>';
     }).join('') + '</div>';
   } catch {}
 }
