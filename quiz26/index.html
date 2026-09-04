@@ -229,7 +229,7 @@
     .exam-subtle:hover{background:rgba(148,163,184,.22);color:#e2e8f0}
     .exam-accent-btn{background:#4f46e5}
     .exam-accent-btn:hover{background:#6366f1}
-    .exam-subbar{background:rgba(15,23,42,.85)}
+    .exam-subbar{background:rgba(15,23,42,.85);border-bottom:1px solid #1e293b}
     .exam-muted{color:#94a3b8}
     .exam-track{background:#1e293b}
     .exam-side{background:rgba(15,23,42,.55);border-color:#1e293b}
@@ -242,7 +242,9 @@
     .exam-light .exam-body-text{color:#0f172a}
     .exam-light .exam-subtle{background:#f1f5f9;color:#64748b}
     .exam-light .exam-subtle:hover{background:#e2e8f0;color:#334155}
-    .exam-light .exam-subbar{background:#ffffff}
+    .exam-light .exam-subbar{background:#ffffff;border-bottom:1px solid #e2e8f0}
+    .exam-light #examProgress{color:#334155 !important;font-weight:700}
+    .exam-light .exam-track{background:#e2e8f0 !important}
     .exam-light .exam-muted{color:#64748b}
     .exam-light .exam-track{background:#e2e8f0}
     .exam-light .exam-side{background:#ffffff;border-color:#e2e8f0}
@@ -274,6 +276,31 @@
     .exam-light .glass .exam-q-text,.exam-light .glass .text-white{color:#0f172a !important}
     .exam-light #examSplitQuestions .text-slate-400,.exam-light #examSplitQuestions .text-slate-500{color:#64748b !important}
     .exam-light .sheet-frame{background:#ffffff !important;border-color:#e2e8f0 !important}
+    /* v2.10.1 — catch remaining dark patches */
+    .exam-light, .exam-light *{border-color-scheme:light}
+    .exam-light #view-exam-room, .exam-light section, .exam-light div{color:inherit}
+    .exam-light .exam-bg *{color:#1e293b}
+    .exam-light .exam-header *, .exam-light .exam-side *, .exam-light .exam-subbar *{color:#334155}
+    .exam-light .exam-header .text-white, .exam-light .exam-header button:not(.bg-rose-600):not(.exam-accent-btn){color:#0f172a}
+    .exam-light .bg-slate-950,.exam-light .bg-slate-900\/95,.exam-light .bg-slate-900\/70{background-color:#f8fafc !important}
+    .exam-light .bg-black\/70,.exam-light .bg-black\/50{background-color:rgba(241,245,249,.75) !important}
+    .exam-light .border-slate-600,.exam-light .border-slate-700,.exam-light .border-slate-800{border-color:#cbd5e1 !important}
+    .exam-light .text-emerald-400{color:#059669 !important}
+    .exam-light .text-violet-300,.exam-light .text-violet-400{color:#6d28d9 !important}
+    .exam-light .text-red-400{color:#dc2626 !important}
+    .exam-light .text-amber-400{color:#b45309 !important}
+    .exam-light .text-slate-500{color:#64748b !important}
+    .exam-light .text-slate-400{color:#64748b !important}
+    .exam-light .text-slate-300{color:#475569 !important}
+    .exam-light .text-slate-200{color:#334155 !important}
+    .exam-light .text-white{color:#0f172a !important}
+    .exam-light .bg-emerald-500\/10{background-color:rgba(16,185,129,.12) !important}
+    .exam-light .glass,.exam-light .stacked-q{background:#ffffff !important;box-shadow:0 1px 3px rgba(15,23,42,.08) !important}
+    .exam-light .omr-row .omr-opt:not(.qopt-on){background:#ffffff !important;color:#334155 !important;border-color:#94a3b8 !important}
+    .exam-light .exam-opt:not(.qopt-on){background:#ffffff !important;border-color:#cbd5e1 !important}
+    .exam-light .exam-opt .exam-text{color:#1e293b !important}
+    .exam-light .exam-timer,.exam-light .exam-timer *{color:#e11d48 !important}
+    .exam-light .fa-solid,.exam-light .fa-regular{color:inherit}
     .exam-light .text-slate-200,.exam-light .text-slate-300,.exam-light .text-slate-400{color:#475569 !important}
     .exam-light .bg-slate-800,.exam-light .bg-slate-800\/50{background-color:#f1f5f9 !important}
     .exam-light .border-slate-700{border-color:#cbd5e1 !important}
@@ -1096,15 +1123,12 @@
     <span id="answerKeyStatus" class="hide text-[11px] text-violet-300 font-bold"></span>
     <p class="text-[11px] text-slate-500 mb-4"><b class="text-violet-300">دو حالت دارد:</b> ① اگر سوالات تایپی دارید، فایل متنی بدهید تا استخراج شود. ② اگر سوالات در PDF/عکس هستند، چک‌باکس «فایل، خودِ برگهٔ سوالات است» را بزنید — همین فایل به‌عنوان <b>برگهٔ سوالات</b> به آزمون پیوست می‌شود و بعد از آزمون، همان فایل به‌عنوان <b>پاسخنامهٔ تشریحی</b> در کارنامهٔ دانش‌آموز قابل دانلود است.</p>
     <div class="flex flex-wrap items-center gap-2 mb-4">
-      <label class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition">
-        <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)
-        <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
-      </label>
+      <button type="button" onclick="document.getElementById('importFile').click()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition"><i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)</button>
+      <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
       <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30 cursor-pointer text-xs text-violet-300 font-bold" title="سوالات داخل همین فایل PDF/عکس هستند — فایل به خود آزمون پیوست می‌شود و شما فقط جواب‌ها را وارد می‌کنید">
         <input type="checkbox" id="importAsAttachment" class="rounded text-violet-500" onchange="toggleImportAttachmentMode()" />
         <i class="fa-solid fa-paperclip"></i> فایل، خودِ برگهٔ سوالات است (پیوست به آزمون)
       </label>
-      <button type="button" onclick="loadImportSample()" class="px-3 py-2 text-xs rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-wand-magic-sparkles ml-1"></i> نمونه ببین</button>
       <button type="button" onclick="startManualImport()" id="manualImportBtn" class="px-3 py-2 text-xs rounded-lg border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 transition"><i class="fa-solid fa-hand-pointer ml-1"></i> ساخت دستی (بدون فایل متنی)</button>
       <span id="importFileInfo" class="text-[11px] text-slate-500"></span>
     </div>
@@ -1362,7 +1386,7 @@ function jalaliFromISO(isoOrDate, withTime) {
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function escAttr(s) { return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
-function quizPublicUrl(id) { return location.origin + '/quiz/' + id; }
+function quizPublicUrl(id) { return location.origin + '/quiz/' + encodeURIComponent(teacherSlug()) + '/' + id; }
 function fmtDT(iso) { try { return jalaliFromISO(iso, true); } catch { return iso || '—'; } }
 function isoToLocalInput(iso) {
   try {
@@ -3924,6 +3948,8 @@ function toggleMarkStacked(i) {
   renderPalette();
 }
 
+function __q26ProgressRefresh() { try { updateExamProgress(); } catch {} }
+
 function toggleAnswer(qid, val, type) {
   // Clicking the currently-selected option DESELECTS it (question becomes unanswered)
   const cur = state.answers[qid];
@@ -3956,6 +3982,7 @@ function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delet
 function navQ(d) { const n = state.currentQ + d; if (n < 0 || n >= state.questions.length) return; state.currentQ = n; renderExamQuestion(); renderPalette(); const live = document.getElementById('examQuestionArea'); if (live) live.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
 function renderPalette() {
+  try { updateExamProgress(); } catch {}
   document.getElementById('examPalette').innerHTML = state.questions.map((q, i) => {
     const a = state.answers[q.id];
     let answered = false;
