@@ -608,6 +608,7 @@
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-emerald-500/30 transition"><input id="qShuffleO" type="checkbox" checked class="rounded text-emerald-500" /> برهم‌زدن گزینه‌ها</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-emerald-500/30 transition"><input id="qAntiCopy" type="checkbox" checked class="rounded text-emerald-500" /> مسدود کپی</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-rose-500/30 transition"><input id="qAntiTab" type="checkbox" checked class="rounded text-rose-500" /> رصد ترک تب</label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-indigo-500/30 transition"><input id="qFullscreen" type="checkbox" class="rounded text-indigo-500" /> تمام‌صفحهٔ اجباری</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer text-sm hover:border-accent-500/30 transition"><input id="qRequireLogin" type="checkbox" class="rounded text-accent-500" /> ورود فقط با حساب دانش‌آموزی</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 cursor-pointer text-sm hover:border-amber-500/40 transition" title="نمره دانش‌آموز تا پایان تاریخ آزمون مخفی می‌ماند و بعد از آن کارنامه منتشر می‌شود"><input id="qReportAfterEnd" type="checkbox" class="rounded text-amber-500" /> <i class="fa-solid fa-hourglass-half text-amber-400"></i> نمایش کارنامه پس از پایان تاریخ آزمون</label>
           <label class="flex items-center gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 cursor-pointer text-sm hover:border-blue-500/40 transition" title="همه سوالات زیر هم در یک صفحه نمایش داده می‌شوند"><input id="qStackedView" type="checkbox" class="rounded text-blue-500" /> <i class="fa-solid fa-layer-group text-blue-400"></i> نمایش سوالات زیر هم (تک‌صفحه‌ای)</label>
@@ -1773,6 +1774,7 @@ function resetStudio() {
   document.getElementById('qShuffleO').checked = true;
   document.getElementById('qAntiCopy').checked = true;
   document.getElementById('qAntiTab').checked = true;
+  document.getElementById('qFullscreen').checked = false;
   document.getElementById('qRequireLogin').checked = false;
   document.getElementById('qReportAfterEnd').checked = false;
   document.getElementById('qStackedView').checked = false;
@@ -1805,6 +1807,7 @@ async function saveQuiz() {
     shuffle_opt: document.getElementById('qShuffleO').checked,
     anti_copy: document.getElementById('qAntiCopy').checked,
     anti_tab: document.getElementById('qAntiTab').checked,
+    fullscreen: document.getElementById('qFullscreen').checked,
     require_login: document.getElementById('qRequireLogin').checked,
     report_after_end: document.getElementById('qReportAfterEnd').checked,
     stacked_view: document.getElementById('qStackedView').checked,
@@ -1843,6 +1846,7 @@ async function editQuiz(id) {
     document.getElementById('qShuffleO').checked = !!q.shuffle_opt;
     document.getElementById('qAntiCopy').checked = !!q.anti_copy;
     document.getElementById('qAntiTab').checked = !!q.anti_tab;
+    document.getElementById('qFullscreen').checked = !!q.fullscreen;
     document.getElementById('qRequireLogin').checked = !!q.require_login;
     document.getElementById('qReportAfterEnd').checked = !!q.report_after_end;
     document.getElementById('qStackedView').checked = !!q.stacked_view;
@@ -3594,6 +3598,7 @@ function startExam(e) {
   saveExamState();
   showView('exam-room');
   applyExamTheme();
+  if (examFullscreenEnabled()) { examEnterFullscreen(); examBindFullscreenGuard(); }
   renderExamSheetAttachment();
   if (!state.splitMode) { if (state.stackedMode) renderExamStacked(); else renderExamQuestion(); }
   state.examLight = document.getElementById('view-exam-room').classList.contains('exam-light');
@@ -3958,6 +3963,45 @@ function toggleAnswer(qid, val, type) {
   setAnswer(qid, val, type);
 }
 
+// ===== Forced fullscreen (per-quiz option) =====
+function examFullscreenEnabled() {
+  const q = state.exam && state.exam.quiz;
+  return !!(q && (q.fullscreen === 1 || q.fullscreen === true));
+}
+
+function examEnterFullscreen() {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if (req && !document.fullscreenElement) {
+    try { req.call(el).catch(() => {}); } catch {}
+  }
+}
+
+function examExitFullscreen() {
+  if (document.fullscreenElement && document.exitFullscreen) {
+    try { document.exitFullscreen().catch(() => {}); } catch {}
+  }
+}
+
+function examBindFullscreenGuard() {
+  document.removeEventListener('fullscreenchange', __fsChange);
+  if (examFullscreenEnabled()) document.addEventListener('fullscreenchange', __fsChange);
+}
+
+function __fsChange() {
+  if (!examFullscreenEnabled()) return;
+  if (!document.fullscreenElement && !state.examFinished) {
+    // left fullscreen mid-exam → warn + force back in
+    Swal.fire({
+      icon: 'warning', title: 'خروج از حالت تمام‌صفحه ممنوع است',
+      text: 'این آزمون در حالت تمام‌صفحه برگزار می‌شود. برای ادامه، تأیید کنید.',
+      confirmButtonText: 'بازگشت به آزمون', allowOutsideClick: false, allowEscapeKey: false,
+      background: '#1e293b', color: '#fff', confirmButtonColor: '#4f46e5',
+    }).then(() => examEnterFullscreen());
+    setTimeout(() => { if (!document.fullscreenElement) examEnterFullscreen(); }, 400);
+  }
+}
+
 function examToggleTheme() {
   const sec = document.getElementById('view-exam-room');
   const light = !sec.classList.contains('exam-light');
@@ -4002,6 +4046,8 @@ function renderPalette() {
 }
 
 function confirmEndExam() {
+  document.removeEventListener('fullscreenchange', __fsChange);
+  examExitFullscreen();
   Swal.fire({ title: 'پایان آزمون؟', text: 'پاسخ‌ها ثبت نهایی می‌شوند.', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#334155', confirmButtonText: 'ثبت نهایی', cancelButtonText: 'ادامه', background: '#1e293b', color: '#fff' }).then(r => { if (r.isConfirmed) submitExam(false); });
 }
 

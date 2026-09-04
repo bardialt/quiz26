@@ -132,6 +132,7 @@ async function ensureStudentSchema(env) {
   try { await env.DB.prepare('ALTER TABLE submissions ADD COLUMN student_user_id INTEGER').run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE submissions ADD COLUMN student_phone TEXT DEFAULT ''").run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN report_after_end INTEGER NOT NULL DEFAULT 0').run(); } catch {}
+  try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN fullscreen INTEGER NOT NULL DEFAULT 0').run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN stacked_view INTEGER NOT NULL DEFAULT 0').run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE quizzes ADD COLUMN attachment_json TEXT').run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE homework_submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'").run(); } catch {}
@@ -702,7 +703,7 @@ export default {
         const r = await env.DB.prepare(`
           INSERT INTO quizzes (
             teacher_id, title, description, duration_min, pass_score,
-            shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab,
+            shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, fullscreen,
             max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
@@ -717,6 +718,7 @@ export default {
           b.show_result !== false ? 1 : 0,
           b.anti_copy !== false ? 1 : 0,
           b.anti_tab !== false ? 1 : 0,
+            b.fullscreen ? 1 : 0,
           b.max_attempts ?? 1,
           b.status || 'draft',
           b.start_at || null,
@@ -762,6 +764,7 @@ export default {
               show_result = COALESCE(?, show_result),
               anti_copy = COALESCE(?, anti_copy),
               anti_tab = COALESCE(?, anti_tab),
+          fullscreen = COALESCE(?, fullscreen),
               max_attempts = COALESCE(?, max_attempts),
               status = COALESCE(?, status),
               require_login = COALESCE(?, require_login),
@@ -783,6 +786,7 @@ export default {
             b.show_result !== undefined ? (b.show_result ? 1 : 0) : null,
             b.anti_copy !== undefined ? (b.anti_copy ? 1 : 0) : null,
             b.anti_tab !== undefined ? (b.anti_tab ? 1 : 0) : null,
+          b.fullscreen !== undefined ? (b.fullscreen ? 1 : 0) : null,
             b.max_attempts ?? null,
             b.status ?? null,
             b.require_login !== undefined ? (b.require_login ? 1 : 0) : null,
@@ -916,7 +920,7 @@ export default {
       if (publicQuizMatch && method === 'GET') {
         const qid = Number(publicQuizMatch[1]);
         const quiz = await env.DB.prepare(
-          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view, attachment_json FROM quizzes WHERE id = ?'
+          'SELECT id, teacher_id, title, description, duration_min, pass_score, shuffle_q, shuffle_opt, negative_mark, show_result, anti_copy, anti_tab, fullscreen, max_attempts, status, start_at, end_at, require_login, report_after_end, stacked_view, attachment_json FROM quizzes WHERE id = ?'
         ).bind(qid).first();
         if (!quiz) return error('آزمون یافت نشد.', 404, origin);
         if (quiz.status !== 'active') return error('این آزمون در حال حاضر فعال نیست.', 403, origin);

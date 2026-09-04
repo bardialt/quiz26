@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
   anti_copy       INTEGER NOT NULL DEFAULT 1,
   anti_tab        INTEGER NOT NULL DEFAULT 1,
   max_attempts    INTEGER NOT NULL DEFAULT 1,
+  fullscreen      INTEGER NOT NULL DEFAULT 0,
   status          TEXT    NOT NULL DEFAULT 'draft',
   start_at        TEXT,
   end_at          TEXT,
