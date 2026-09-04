@@ -352,7 +352,7 @@
         </div>
       </div>
       <div class="flex gap-2">
-        <input id="aiChatInput" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="سوال خود را بنویسید..." onkeydown="if(event.key==='Enter')sendAIChat()" />
+        <input id="aiChatInput" type="text" name="q26-ai-chat-msg-{{RANDOM}}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="سوال خود را بنویسید..." onkeydown="if(event.key==='Enter')sendAIChat()" onfocus="this.removeAttribute('readonly')" readonly />
         <button onclick="sendAIChat()" id="aiChatBtn" class="px-5 py-3 rounded-xl btn-gradient text-white font-bold text-sm shrink-0"><i class="fa-solid fa-paper-plane ml-1"></i> ارسال</button>
       </div>
     </div>
@@ -1085,6 +1085,11 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 1000);
+
+/* Anti-autofill: randomize non-login input names so Chrome doesn't fill saved passwords into chat/search boxes */
+document.querySelectorAll('input[name*="{{RANDOM}}"]').forEach(el => {
+  el.name = el.name.replace('{{RANDOM}}', Math.random().toString(36).slice(2, 8));
+});
 
 /* ============================================================
    Landing Page Image Slider Logic
