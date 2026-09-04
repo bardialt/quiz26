@@ -206,6 +206,43 @@
     .exam-opt{transition:transform .18s ease,background-color .2s ease,border-color .2s ease}
     .exam-opt:hover{transform:translateX(-4px)}
     body.theme-light .exam-opt:hover{transform:translateX(4px)}
+    /* ===== Exam room theme (dark default / light via .exam-light) ===== */
+    .exam-bg{background:#0b1220}
+    .exam-header{background:#0f172a;border-color:#1e293b}
+    .exam-timer{color:#f87171}
+    .exam-body-text{color:#e2e8f0}
+    .exam-subtle{background:rgba(148,163,184,.12);color:#94a3b8}
+    .exam-subtle:hover{background:rgba(148,163,184,.22);color:#e2e8f0}
+    .exam-accent-btn{background:#4f46e5}
+    .exam-accent-btn:hover{background:#6366f1}
+    .exam-subbar{background:rgba(15,23,42,.85)}
+    .exam-muted{color:#94a3b8}
+    .exam-track{background:#1e293b}
+    .exam-side{background:rgba(15,23,42,.55);border-color:#1e293b}
+    .exam-chip-ok{background:rgba(16,185,129,.25);border-color:rgba(16,185,129,.4)}
+    .exam-chip-mark{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.4)}
+    .exam-chip-empty{background:#1e293b;border-color:#334155}
+    .exam-light .exam-bg{background:#f1f5f9}
+    .exam-light .exam-header{background:#ffffff;border-color:#e2e8f0;box-shadow:0 1px 3px rgba(15,23,42,.06)}
+    .exam-light .exam-timer{color:#e11d48}
+    .exam-light .exam-body-text{color:#0f172a}
+    .exam-light .exam-subtle{background:#f1f5f9;color:#64748b}
+    .exam-light .exam-subtle:hover{background:#e2e8f0;color:#334155}
+    .exam-light .exam-subbar{background:#ffffff}
+    .exam-light .exam-muted{color:#64748b}
+    .exam-light .exam-track{background:#e2e8f0}
+    .exam-light .exam-side{background:#ffffff;border-color:#e2e8f0}
+    .exam-light .exam-chip-ok{background:#d1fae5;border-color:#6ee7b7}
+    .exam-light .exam-chip-mark{background:#fef3c7;border-color:#fcd34d}
+    .exam-light .exam-chip-empty{background:#f1f5f9;border-color:#cbd5e1}
+    .exam-light .exam-q-card{background:#ffffff;border-color:#e2e8f0}
+    .exam-light .exam-q-text{color:#0f172a}
+    .exam-light .exam-opt{border-color:#cbd5e1;background:#ffffff}
+    .exam-light .exam-opt:hover{border-color:#6366f1;background:#eef2ff}
+    .exam-light .exam-opt .exam-num{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
+    .exam-light .exam-opt.exam-selected{border-color:#4f46e5;background:#eef2ff}
+    .exam-light .exam-opt.exam-selected .exam-num{background:#4f46e5;color:#fff;border-color:#4f46e5}
+    .exam-light .exam-q-meta{color:#64748b}
     /* Sheet split-view exam (PDF left, options right) */
     .sheet-frame{height:calc(100vh - 120px);min-height:560px}
     @media(max-width:1023px){.sheet-frame{height:60vh}}
@@ -509,7 +546,7 @@
           <h3 class="font-bold text-white">سوالات آزمون <span id="editingQuizId" class="text-emerald-400 text-sm font-mono"></span></h3>
           <div class="flex gap-2">
             <button onclick="openAIGenerate()" class="px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 text-white font-medium"><i class="fa-solid fa-brain ml-1"></i> تولید با AI</button>
-            <button onclick="openUploadImport()" class="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium"><i class="fa-solid fa-file-import ml-1"></i> آپلود فایل سوالات</button>
+            <button onclick="openUploadImport()" class="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium"><i class="fa-solid fa-file-import ml-1"></i> آپلود برگه سوالات / پاسخنامه تشریحی</button>
             <button onclick="openAddQuestion()" class="px-4 py-2 text-sm rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium"><i class="fa-solid fa-plus ml-1"></i> افزودن سوال</button>
           </div>
         </div>
@@ -710,44 +747,40 @@
 </section>
 
 <!-- Exam Room -->
-<section id="view-exam-room" class="view hide fixed inset-0 z-[100] bg-slate-950 flex flex-col no-select">
-  <div class="h-14 bg-slate-900 border-b border-slate-800 flex justify-between items-center px-4 md:px-6 shrink-0">
+<section id="view-exam-room" class="view hide fixed inset-0 z-[100] exam-bg flex flex-col no-select">
+  <div class="exam-header h-14 border-b flex justify-between items-center px-4 md:px-6 shrink-0">
     <div class="flex items-center gap-3 min-w-0">
-      <span class="text-rose-400 font-bold font-mono text-lg exam-timer flex items-center gap-2 shrink-0"><i class="fa-regular fa-clock"></i> <span id="examTimer">00:00</span></span>
-      <div class="h-5 w-px bg-slate-700 hidden sm:block"></div>
-      <h2 id="examTitle" class="font-bold text-slate-200 text-sm truncate max-w-[120px] md:max-w-xs hidden sm:block"></h2>
-      <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer ml-2" title="حالت مرور">
-        <input type="checkbox" id="examReviewMode" onchange="toggleReviewMode()" class="rounded text-emerald-500" />
-        <span class="hidden md:inline">مرور</span>
-      </label>
+      <span class="exam-timer font-bold font-mono text-lg flex items-center gap-2 shrink-0"><i class="fa-regular fa-clock"></i> <span id="examTimer">00:00</span></span>
+      <div class="h-5 w-px bg-slate-300 dark:divider hidden sm:block"></div>
+      <h2 id="examTitle" class="font-bold exam-body-text text-sm truncate max-w-[120px] md:max-w-xs hidden sm:block"></h2>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-      <button type="button" onclick="uploadAnswerSheet()" id="btnAnswerSheet" class="px-3 py-1.5 bg-accent-600/90 hover:bg-accent-500 text-white text-xs sm:text-sm rounded-lg font-medium flex items-center gap-1.5">
+      <button type="button" onclick="examToggleTheme()" class="w-9 h-9 rounded-lg exam-subtle flex items-center justify-center transition" title="حالت روشن / تیره"><i id="examThemeIcon" class="fa-solid fa-sun"></i></button>
+      <button type="button" onclick="uploadAnswerSheet()" id="btnAnswerSheet" class="px-3 py-1.5 exam-accent-btn text-white text-xs sm:text-sm rounded-lg font-medium flex items-center gap-1.5">
         <i class="fa-solid fa-upload"></i><span class="hidden sm:inline">بارگذاری پاسخنامه</span><span class="sm:hidden">پاسخنامه</span>
       </button>
       <span id="sheetBadge" class="hide text-[10px] text-emerald-400 max-w-[80px] truncate"></span>
       <div id="answerSheetList"></div>
-      <button type="button" onclick="toggleFocusMode()" class="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg font-medium" title="حالت تمرکز"><i class="fa-solid fa-expand"></i></button>
       <button type="button" onclick="confirmEndExam()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm rounded-lg font-medium">پایان آزمون</button>
     </div>
   </div>
-  <div class="bg-slate-900/80 px-4 py-2 shrink-0">
+  <div class="exam-subbar px-4 py-2 shrink-0">
     <div class="max-w-3xl mx-auto flex items-center gap-3">
-      <span class="text-xs text-slate-500 whitespace-nowrap" id="examProgress">سوال 1 از 1</span>
-      <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden"><div id="examProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-accent-500 rounded-full transition-all duration-300" style="width:0%"></div></div>
+      <span class="text-xs exam-muted whitespace-nowrap" id="examProgress">سوال 1 از 1</span>
+      <div class="flex-1 h-2 exam-track rounded-full overflow-hidden"><div id="examProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-full transition-all duration-300" style="width:0%"></div></div>
     </div>
   </div>
   <div class="flex-1 flex overflow-hidden">
     <div class="flex-1 p-4 md:p-8 overflow-y-auto">
       <div class="max-w-3xl mx-auto" id="examQuestionArea"></div>
     </div>
-    <div class="w-56 md:w-64 bg-slate-900/60 border-r border-slate-800 p-4 flex flex-col shrink-0 overflow-y-auto">
-      <h3 class="font-bold text-xs text-slate-400 mb-3">پالت سوالات</h3>
+    <div class="w-56 md:w-64 exam-side border-r p-4 flex flex-col shrink-0 overflow-y-auto">
+      <h3 class="font-bold text-xs exam-muted mb-3">پالت سوالات</h3>
       <div id="examPalette" class="grid grid-cols-4 gap-1.5 mb-4"></div>
-      <div class="mt-auto space-y-1.5 text-[10px] text-slate-400">
-        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-emerald-500/30 border border-emerald-500/40"></div> پاسخ‌داده</div>
-        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-amber-500/30 border border-amber-500/40"></div> نشان‌دار</div>
-        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-slate-800 border border-slate-700"></div> بی‌پاسخ</div>
+      <div class="mt-auto space-y-1.5 text-[10px] exam-muted">
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded exam-chip-ok border"></div> پاسخ‌داده</div>
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded exam-chip-mark border"></div> نشان‌دار</div>
+        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded exam-chip-empty border"></div> بی‌پاسخ</div>
       </div>
     </div>
   </div>
@@ -865,34 +898,56 @@
 </div>
 
 <!-- Web Report Card (light theme, image-2 style) -->
-<section id="view-report-web" class="view hide min-h-screen bg-slate-100 p-4">
-  <div class="max-w-3xl mx-auto py-6 space-y-4">
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 text-center">
-      <h1 class="text-xl font-black text-slate-900" id="wrTitle">کارنامه</h1>
-      <div id="wrBanner" class="hide mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-700"></div>
-      <div class="mt-4 text-sm text-slate-700"><b id="wrStudent" class="text-slate-900"></b></div>
-      <div class="text-xs text-slate-500 mt-1" id="wrPhone"></div>
-    </div>
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-      <div class="text-xs text-slate-500 mb-1">نمره (درصد)</div>
-      <div class="text-4xl font-black" id="wrPercent">—</div>
-      <div class="grid grid-cols-3 gap-3 mt-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-3 text-center"><div class="text-[10px] text-slate-500 mb-1">صحیح</div><div class="text-xl font-black text-emerald-600" id="wrCorrect">۰</div></div>
-        <div class="bg-white rounded-xl border border-slate-200 p-3 text-center"><div class="text-[10px] text-slate-500 mb-1">غلط</div><div class="text-xl font-black text-rose-600" id="wrWrong">۰</div></div>
-        <div class="bg-white rounded-xl border border-slate-200 p-3 text-center"><div class="text-[10px] text-slate-500 mb-1">نزده</div><div class="text-xl font-black text-slate-400" id="wrBlank">۰</div></div>
+<section id="view-report-web" class="view hide min-h-screen bg-slate-100 p-3 sm:p-6 md:p-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-5 sm:p-8 space-y-5">
+      <div class="text-center pt-1">
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" id="wrTitle">کارنامه</h1>
       </div>
-      <div class="flex flex-wrap gap-2 mt-4 justify-center">
-        <button onclick="downloadReportCard()" id="wrPdfBtn" class="px-5 py-2.5 rounded-full bg-indigo-50 text-indigo-600 text-sm font-bold hover:bg-indigo-100 transition"><i class="fa-solid fa-file-pdf ml-1"></i> دانلود کارنامه PDF</button>
-        <button onclick="downloadSheetKey()" id="wrKeyBtn" class="hide px-5 py-2.5 rounded-full bg-sky-50 text-sky-600 text-sm font-bold hover:bg-sky-100 transition"><i class="fa-solid fa-book-open ml-1"></i> دانلود پاسخنامه تشریحی</button>
+      <div id="wrBanner" class="hide bg-amber-50/80 border border-amber-200/90 text-amber-900 text-xs sm:text-sm px-4 py-3 rounded-xl text-center font-medium leading-relaxed"></div>
+      <div class="text-center space-y-2 text-slate-700">
+        <div id="wrStudent" class="text-lg font-bold text-slate-900"></div>
+        <div id="wrPhone" class="text-sm font-semibold tracking-wider text-slate-600 inline-block"></div>
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-600 pt-1"><span>نتیجه:</span><span id="wrPass" class="font-bold text-slate-800">—</span></div>
       </div>
-    </div>
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5">
-      <div class="bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 mb-3">پاسخ‌های شما</div>
-      <div id="wrAnswers" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2"></div>
-    </div>
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5">
-      <div class="bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 mb-3">مقایسه با کلید</div>
-      <div id="wrCompare" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"></div>
+      <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 sm:p-7 bg-slate-50/30">
+        <div class="text-center space-y-2 mb-6">
+          <span class="text-xs sm:text-sm text-slate-500 font-medium">نمره (درصد)</span>
+          <div id="wrPercent" class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">—</div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center border-t border-slate-100 pt-5">
+          <div class="space-y-1"><div class="text-xs sm:text-sm text-slate-500 font-medium">صحیح</div><div id="wrCorrect" class="text-xl sm:text-2xl font-black text-emerald-600">۰</div><div class="w-1.5 h-1.5 bg-emerald-500 rounded-full mx-auto"></div></div>
+          <div class="space-y-1"><div class="text-xs sm:text-sm text-slate-500 font-medium">غلط</div><div id="wrWrong" class="text-xl sm:text-2xl font-black text-red-600">۰</div><div class="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto"></div></div>
+          <div class="space-y-1"><div class="text-xs sm:text-sm text-slate-500 font-medium">نزده</div><div id="wrBlank" class="text-xl sm:text-2xl font-black text-slate-500">۰</div><div class="w-1.5 h-1.5 bg-slate-300 rounded-full mx-auto"></div></div>
+        </div>
+      </div>
+      <div class="pt-1 text-center">
+        <button onclick="downloadSheetKey()" id="wrKeyBtn" class="hide w-full sm:w-auto min-w-[280px] inline-flex items-center justify-center gap-2 bg-blue-50/90 hover:bg-blue-100 text-blue-700 font-bold py-3 px-8 rounded-2xl transition border border-blue-100/60">
+          <i class="fa-solid fa-file-arrow-down text-blue-600"></i><span>دانلود پاسخنامه تشریحی</span>
+        </button>
+      </div>
+      <section class="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-white space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">پاسخ‌های شما</h2>
+          <span class="text-xs text-slate-400" id="wrTotal"></span>
+        </div>
+        <div id="wrAnswers" class="grid grid-cols-5 gap-2 text-xs sm:text-sm font-semibold"></div>
+      </section>
+      <section class="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-white space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">مقایسه با کلید</h2>
+          <div class="flex items-center gap-3 text-[10px] text-slate-500">
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-100 border border-red-300"></span> نادرست</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-300"></span> درست</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-slate-300"></span> نزده</span>
+          </div>
+        </div>
+        <div id="wrCompare" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs sm:text-[13px]"></div>
+      </section>
+      <div class="flex flex-wrap justify-center gap-2 pt-2 no-print">
+        <button onclick="downloadReportCard()" id="wrPdfBtn" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition"><i class="fa-solid fa-file-pdf text-slate-600"></i> دانلود کارنامه PDF</button>
+        <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition"><i class="fa-solid fa-print text-slate-600"></i> چاپ</button>
+      </div>
     </div>
   </div>
 </section>
@@ -984,7 +1039,7 @@
   <div class="glass rounded-2xl p-6 w-full max-w-3xl max-h-[92vh] overflow-y-auto relative">
     <button type="button" onclick="closeModal('modalUploadImport')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-rose-500/80 text-slate-400 hover:text-white flex items-center justify-center transition" title="بستن (Esc)"><i class="fa-solid fa-xmark"></i></button>
     <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i> آپلود فایل سوالات</h3>
-    <p class="text-[11px] text-slate-500 mb-4">فایل متنی سوالات را آپلود یا متن را بچسبانید؛ سوالات استخراج می‌شوند، بعد جواب‌ها را علامت می‌زنید و به آزمون اضافه می‌کنید.</p>
+    <p class="text-[11px] text-slate-500 mb-4"><b class="text-violet-300">دو حالت دارد:</b> ① اگر سوالات تایپی دارید، فایل متنی بدهید تا استخراج شود. ② اگر سوالات در PDF/عکس هستند، چک‌باکس «فایل، خودِ برگهٔ سوالات است» را بزنید — همین فایل به‌عنوان <b>برگهٔ سوالات</b> به آزمون پیوست می‌شود و بعد از آزمون، همان فایل به‌عنوان <b>پاسخنامهٔ تشریحی</b> در کارنامهٔ دانش‌آموز قابل دانلود است.</p>
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <label class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition">
         <i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)
@@ -1667,7 +1722,7 @@ async function saveQuiz() {
     duration_min: Number(document.getElementById('qDuration').value) || 30,
     pass_score: Number(document.getElementById('qPass').value) || 50,
     status: document.getElementById('qStatus').value,
-    shuffle_q: document.getElementById('qShuffleQ').checked,
+    shuffle_q: window.__sheetImported ? false : document.getElementById('qShuffleQ').checked,
     shuffle_opt: document.getElementById('qShuffleO').checked,
     anti_copy: document.getElementById('qAntiCopy').checked,
     anti_tab: document.getElementById('qAntiTab').checked,
@@ -1705,6 +1760,7 @@ async function editQuiz(id) {
     document.getElementById('qStartAt').value = q.start_at ? isoToJStr(q.start_at) : '';
     document.getElementById('qEndAt').value = q.end_at ? isoToJStr(q.end_at) : '';
     document.getElementById('qShuffleQ').checked = !!q.shuffle_q;
+    window.__sheetImported = !!q.attachment_json;
     document.getElementById('qShuffleO').checked = !!q.shuffle_opt;
     document.getElementById('qAntiCopy').checked = !!q.anti_copy;
     document.getElementById('qAntiTab').checked = !!q.anti_tab;
@@ -2395,7 +2451,7 @@ async function saveImportedQuestions() {
     const q = valid[qi];
     try {
       // In sheet mode each question references the attached sheet; students see the sheet on the left.
-      const img = sheetFile ? sheetFile : (q.image_url || null);
+      const img = null; // sheet is attached at quiz level — no per-question file (keeps order & cleanliness)
       const payload = q.type === 'mcq'
         ? { type: 'mcq', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: (q.options || []).map(o => String(o || '').trim()).filter(Boolean), correct_json: q.correct, score: 1, image_url: img }
         : q.type === 'tf'
@@ -2417,6 +2473,7 @@ async function saveImportedQuestions() {
   };
   if (attachFile) {
     try {
+      window.__sheetImported = true;
       await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify({ attachment: attachFile }) });
       Swal.fire({ icon: 'info', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد — در صفحهٔ آزمون، برگه سمت چپ و گزینه‌ها سمت راست نمایش داده می‌شود.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
       return;
@@ -3397,8 +3454,10 @@ function startExam(e) {
   if (badge) { badge.textContent = ''; badge.classList.add('hide'); }
   saveExamState();
   showView('exam-room');
+  applyExamTheme();
   renderExamSheetAttachment();
   if (!state.splitMode) { if (state.stackedMode) renderExamStacked(); else renderExamQuestion(); }
+  state.examLight = document.getElementById('view-exam-room').classList.contains('exam-light');
   renderPalette(); startTimer();
   if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
   if (state.exam.anti_tab) document.addEventListener('visibilitychange', onTabSwitch);
@@ -3486,21 +3545,6 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === ' ') { e.preventDefault(); toggleMark(); }
 });
 
-function toggleFocusMode() {
-  const sidebar = document.querySelector('#view-exam-room .w-56');
-  const header = document.querySelector('#view-exam-room > div:first-child');
-  const progress = document.querySelector('#view-exam-room > div:nth-child(2)');
-  state.focusMode = !state.focusMode;
-  if (state.focusMode) {
-    if (sidebar) sidebar.classList.add('hide');
-    if (header) header.classList.add('hide');
-    if (progress) progress.classList.add('hide');
-  } else {
-    if (sidebar) sidebar.classList.remove('hide');
-    if (header) header.classList.remove('hide');
-    if (progress) progress.classList.remove('hide');
-  }
-}
 
 function renderExamQuestion() {
   const q = state.questions[state.currentQ];
@@ -3604,18 +3648,23 @@ function showFileSrcLightbox(u) {
 /* ===== Shared question rendering (used by normal + split modes) ===== */
 function examOptionHtml(q, idx, text, checked) {
   const square = !!state.splitMode; // imported-sheet exams use rounded-square number boxes
-  const shape = square ? 'rounded-lg' : 'rounded-full';
-  // image 1: selected = blue/indigo fill; default options are just numbers
-  const on = square ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-500/40' : 'bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/30';
-  const off = square ? 'bg-white border-slate-300 text-slate-700' : 'bg-slate-900 border-slate-600 text-slate-300';
+  const shape = square ? 'rounded-xl' : 'rounded-full';
+  const selected = !!state.examLight; // light theme: blue fill; dark: emerald
   if (square) {
-    // OMR grid style (image 1): compact square number boxes in a row — options are ۱..۴, no text
-    return '<button type="button" onclick="setAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="omr-opt w-12 h-12 rounded-xl font-black text-base border-2 transition ' + (checked ? on : off) + '" style="' + (checked ? '' : 'background:#fff') + '">' + (idx + 1) + '</button>';
+    // OMR grid style: compact square boxes; clicking selected one DESELECTS (blanks the answer)
+    const on = 'exam-selected';
+    const off = '';
+    return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="omr-opt exam-opt w-12 h-12 rounded-xl font-black text-base border-2 transition items-center justify-center inline-flex ' + (checked ? on : off) + '"><span class="exam-num-text">' + (idx + 1) + '</span></button>';
   }
-  return '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
-    '<input type="' + (q.type === 'multi' ? 'checkbox' : 'radio') + '" name="eq_' + q.id + '" value="' + idx + '" ' + (checked ? 'checked' : '') + ' class="sr-only" onchange="setAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" />' +
+  if (q.type === 'multi') {
+    return '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
+      '<input type="checkbox" name="eq_' + q.id + '" value="' + idx + '" ' + (checked ? 'checked' : '') + ' class="sr-only" onchange="setAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" />' +
+      '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? on : off) + '">' + (idx + 1) + '</span>' +
+      '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></label>';
+  }
+  return '<button type="button" onclick="toggleAnswer(' + q.id + ',' + idx + ',\'' + q.type + '\')" class="exam-opt w-full flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 text-right ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/50') + '">' +
     '<span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 transition ' + shape + ' ' + (checked ? on : off) + '">' + (idx + 1) + '</span>' +
-    '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></label>';
+    '<span class="text-slate-200 text-sm flex-1">' + esc(String(text)) + '</span></button>';
 }
 
 function renderExamQuestionHtml(q) {
@@ -3639,7 +3688,7 @@ function renderExamQuestionHtml(q) {
       const shape = square ? 'rounded-xl' : 'rounded-full';
       const on = 'bg-emerald-500 border-emerald-400 text-white';
       const off = 'bg-slate-900 border-slate-600 text-slate-300';
-      optsHtml += '<label class="exam-opt flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50') + '"><input type="radio" name="eq_' + q.id + '" value="' + v + '" ' + checked + ' class="sr-only" onchange="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" /><span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 ' + shape + ' ' + (checked ? on : off) + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i></span><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></label>';
+      optsHtml += '<button type="button" onclick="toggleAnswer(' + q.id + ',\'' + v + '\',\'tf\')" class="exam-opt w-full flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition mb-2 text-right ' + (checked ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-700 hover:border-emerald-500/50') + '"><span class="w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm border-2 ' + shape + ' ' + (checked ? on : off) + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i></span><span class="text-slate-200 text-sm">' + (v === 'true' ? 'درست' : 'نادرست') + '</span></button>';
     });
   } else if (q.type === 'essay') {
     const ansObj = (typeof state.answers[q.id] === 'object' && state.answers[q.id]) ? state.answers[q.id] : { text: state.answers[q.id] || '', file: null, fileName: '' };
@@ -3648,7 +3697,7 @@ function renderExamQuestionHtml(q) {
   } else {
     optsHtml = '<input id="shortInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white" placeholder="پاسخ خود را بنویسید..." value="' + escAttr(typeof state.answers[q.id] === 'string' ? state.answers[q.id] : '') + '" style="user-select:text;-webkit-user-select:text" />';
   }
-  return '<div class="flex justify-between text-sm text-slate-400 border-b border-slate-800 pb-2 mb-4"><span class="font-bold text-white text-lg">' + (state.currentQ + 1) + '</span><button type="button" onclick="toggleMark()" class="text-amber-400 hover:text-amber-300 text-sm"><i class="fa-regular fa-bookmark ml-1"></i>' + (state.marked.has(state.currentQ) ? 'برداشتن نشان' : 'نشان‌دار') + '</button></div><div class="text-base leading-loose text-white mb-4">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div><div class="flex justify-between pt-8"><button type="button" onclick="navQ(-1)" class="px-5 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-slate-300 text-sm ' + (state.currentQ === 0 ? 'opacity-40 pointer-events-none' : '') + '">قبلی</button><button type="button" onclick="navQ(1)" class="px-5 py-2 btn-gradient text-white rounded-lg text-sm font-medium">' + (state.currentQ === state.questions.length - 1 ? 'پایان لیست' : 'بعدی') + '</button></div>';
+  return '<div class="flex justify-between text-sm exam-q-meta border-b pb-2 mb-4" style="border-color:rgba(148,163,184,.25)"><span class="font-bold exam-body-text text-lg">' + (state.currentQ + 1) + '</span><button type="button" onclick="toggleMark()" class="text-amber-400 hover:text-amber-300 text-sm"><i class="fa-regular fa-bookmark ml-1"></i>' + (state.marked.has(state.currentQ) ? 'برداشتن نشان' : 'نشان‌دار') + '</button></div><div class="text-base leading-loose exam-q-text mb-4">' + esc(q.content) + '</div>' + mediaHtml + '<div>' + optsHtml + '</div><div class="flex justify-between pt-8"><button type="button" onclick="navQ(-1)" class="px-5 py-2 exam-subtle rounded-lg text-sm ' + (state.currentQ === 0 ? 'opacity-40 pointer-events-none' : '') + '">قبلی</button><button type="button" onclick="navQ(1)" class="px-5 py-2 exam-accent-btn text-white rounded-lg text-sm font-medium">' + (state.currentQ === state.questions.length - 1 ? 'پایان لیست' : 'بعدی') + '</button></div>';
 }
 
 function bindQuestionInputs(q) {
@@ -3699,7 +3748,7 @@ function buildQuestionBlock(q, i) {
       const shape = square ? 'rounded-xl' : 'rounded-full';
       const on = 'bg-emerald-500 border-emerald-400 text-white';
       const off = 'bg-slate-900 border-slate-600 text-slate-300';
-      optsHtml += '<button type="button" onclick="setAnswer(' + q.id + ',\'' + v + '\',\'tf\')" class="omr-opt h-12 px-5 rounded-xl font-black text-sm border-2 transition inline-flex items-center gap-2 ' + (checked ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-500/40' : 'bg-white border-slate-300 text-slate-700') + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i>' + (v === 'true' ? 'درست' : 'نادرست') + '</button>';
+      optsHtml += '<button type="button" onclick="toggleAnswer(' + q.id + ',\'' + v + '\',\'tf\')" class="omr-opt h-12 px-5 rounded-xl font-black text-sm border-2 transition inline-flex items-center gap-2 ' + (checked ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-500/40' : 'bg-white border-slate-300 text-slate-700') + '"><i class="fa-solid ' + (v === 'true' ? 'fa-check' : 'fa-xmark') + '"></i>' + (v === 'true' ? 'درست' : 'نادرست') + '</button>';
     });
     if (state.splitMode) optsHtml = '<div class="omr-row flex gap-2">' + optsHtml + '</div>';
   } else if (q.type === 'essay') {
@@ -3746,6 +3795,34 @@ function toggleMarkStacked(i) {
   const q = state.questions[i];
   if (q) refreshStackedQuestion(q.id);
   renderPalette();
+}
+
+function toggleAnswer(qid, val, type) {
+  // Clicking the currently-selected option DESELECTS it (question becomes unanswered)
+  const cur = state.answers[qid];
+  const isSame = type === 'tf' ? cur === val : (type === 'multi' ? Array.isArray(cur) && cur.includes(val) : Number(cur) === Number(val));
+  if (isSame) { delete state.answers[qid]; renderPalette(); if (state.stackedMode || state.splitMode) refreshStackedQuestion(qid); else renderExamQuestion(); return; }
+  setAnswer(qid, val, type);
+}
+
+function examToggleTheme() {
+  const sec = document.getElementById('view-exam-room');
+  const light = !sec.classList.contains('exam-light');
+  sec.classList.toggle('exam-light', light);
+  localStorage.setItem('q26_exam_theme', light ? 'light' : 'dark');
+  const ic = document.getElementById('examThemeIcon');
+  if (ic) ic.className = 'fa-solid ' + (light ? 'fa-moon' : 'fa-sun');
+}
+
+function applyExamTheme() {
+  const saved = localStorage.getItem('q26_exam_theme') || 'dark';
+  const sec = document.getElementById('view-exam-room');
+  if (!sec) return;
+  const light = saved === 'light';
+  sec.classList.toggle('exam-light', light);
+  state.examLight = light;
+  const ic = document.getElementById('examThemeIcon');
+  if (ic) ic.className = 'fa-solid ' + (light ? 'fa-moon' : 'fa-sun');
 }
 
 function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delete(state.currentQ); else state.marked.add(state.currentQ); renderPalette(); renderExamQuestion(); }
@@ -4354,14 +4431,17 @@ function downloadSheetKey() {
 /* ===== Web report card (light, image-2 style) ===== */
 function showWebReport(r) {
   showView('report-web');
+  const fa = n => String(n).replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[x]);
   document.getElementById('wrTitle').textContent = r.quiz_title || 'کارنامه';
-  document.getElementById('wrStudent').textContent = (r.student_name || '') + ' ' + (r.student_family || '');
-  document.getElementById('wrPhone').textContent = r.student_phone ? 'شماره: ' + r.student_phone : '';
+  document.getElementById('wrStudent').textContent = ((r.student_name || '') + ' ' + (r.student_family || '')).trim() || '—';
+  document.getElementById('wrPhone').textContent = r.student_phone || '';
   const deferred = r.deferred;
   document.getElementById('wrBanner').classList.toggle('hide', !deferred);
   if (deferred) document.getElementById('wrBanner').textContent = 'این کارنامه پس از پایان مهلت آزمون کامل می‌شود — نمره فعلی موقت است.';
-  document.getElementById('wrPercent').textContent = (r.percent ?? 0) + '٪';
-  document.getElementById('wrPercent').style.color = (r.percent ?? 0) >= (r.pass_score || 50) ? '#059669' : '#e11d48';
+  document.getElementById('wrPass').textContent = r.passed ? 'قبول' : 'مردود';
+  const pctEl = document.getElementById('wrPercent');
+  pctEl.textContent = (r.percent ?? 0) + '٪';
+  pctEl.style.color = (r.percent ?? 0) < 0 ? '#0f172a' : (r.percent ?? 0) > 50 ? '#047857' : '#0f172a';
   // fetch full questions for compare grid
   api('/api/public/result/' + r.id).then(async full => {
     const qz = await api('/api/public/quiz-meta/' + (r.quiz_id || 0)).catch(() => null);
@@ -4384,15 +4464,30 @@ function showWebReport(r) {
       if (blank) b++; else if (q.type === 'essay') { /* pending */ } else if (isOk) c++; else wr++;
       const fa = n => String(n).replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[x]);
       ansCells.push('<div class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] text-center">' + (blank ? '<span class="text-slate-400">سوال ' + fa(i + 1) + ': —</span>' : '<span class="' + (isOk ? 'text-emerald-600' : 'text-slate-700') + ' font-bold">سوال ' + fa(i + 1) + ': ' + (q.type === 'tf' ? (userNum === 'true' ? 'درست' : 'نادرست') : userNum) + '</span>') + '</div>');
-      const bg = blank ? 'bg-white border-slate-200' : (isOk ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200');
+      const bg = blank ? 'bg-slate-50/70 border-slate-200 text-slate-700' : (isOk ? 'bg-emerald-50/50 border-emerald-300 text-emerald-950' : 'bg-rose-50/40 border-rose-300 text-rose-950');
       const keyTxt = q.type === 'tf' ? (cd === 'true' ? 'درست' : 'نادرست') : (cd !== null && cd !== undefined && cd !== '' ? fa(Number(cd) + 1) : '—');
-      const userTxt = blank ? '—' : (q.type === 'tf' ? (userNum === 'true' ? 'درست' : 'نادرست') : userNum);
-      cmpCards.push('<div class="' + bg + ' border rounded-xl p-3 text-xs space-y-1"><div class="font-bold text-slate-800">سوال ' + fa(i + 1) + '</div><div class="flex justify-between"><span class="text-slate-500">شماره:</span><b class="text-slate-800">' + userTxt + '</b></div><div class="flex justify-between"><span class="text-slate-500">کلید:</span><b class="text-slate-800">' + keyTxt + '</b></div></div>');
+      const userTxt = blank ? 'نزده' : (q.type === 'tf' ? (userNum === 'true' ? 'درست' : 'نادرست') : userNum);
+      cmpCards.push('<div class="' + bg + ' border rounded-xl p-3 font-medium flex items-center justify-center gap-1.5 flex-wrap"><span class="font-bold">سوال ' + fa(i + 1) + '</span><span class="text-slate-400 font-normal">—</span><span class="text-slate-600">شما:</span><span class="' + (blank ? 'text-slate-500 font-bold' : isOk ? 'text-emerald-700 font-extrabold' : 'text-rose-700 font-extrabold') + '">' + userTxt + '</span><span class="text-slate-400 font-normal">/</span><span class="text-slate-600">کلید:</span><span class="font-bold text-slate-800">' + keyTxt + '</span></div>');
     });
-    document.getElementById('wrCorrect').textContent = c;
-    document.getElementById('wrWrong').textContent = wr;
-    document.getElementById('wrBlank').textContent = b;
-    document.getElementById('wrAnswers').innerHTML = ansCells.join('');
+    document.getElementById('wrCorrect').textContent = fa(c);
+    document.getElementById('wrWrong').textContent = fa(wr);
+    document.getElementById('wrBlank').textContent = fa(b);
+    document.getElementById('wrTotal').textContent = 'تعداد کل: ' + fa(questions.length) + ' سوال';
+    // artifact style: 5-per-row, each row reversed (RTL reading: ۵..۱)
+    const rowsHtml = [];
+    for (let rr = 0; rr < questions.length; rr += 5) {
+      const rowItems = questions.slice(rr, rr + 5).map((q2, k) => ({ q: q2, idx: rr + k })).reverse();
+      rowItems.forEach(({ q: q2, idx }) => {
+        const a2 = answers[String(q2.id)];
+        let u2 = null;
+        if (q2.type === 'tf') u2 = (a2 === 'true' || a2 === 'false') ? a2 : null;
+        else if (typeof a2 === 'number') u2 = a2 + 1;
+        else if (typeof a2 === 'string' && a2 && q2.type !== 'essay') u2 = a2;
+        const userChoice = u2 === null ? '—' : (typeof u2 === 'number' ? fa(u2) : u2);
+        rowsHtml.push('<div class="bg-slate-50/80 hover:bg-slate-100 border border-slate-200 py-2.5 px-1 rounded-xl text-center text-slate-700 font-medium transition-colors"><span class="text-slate-600">سوال ' + fa(idx + 1) + ':</span><span class="font-bold text-slate-900 mr-0.5">' + userChoice + '</span></div>');
+      });
+    }
+    document.getElementById('wrAnswers').innerHTML = rowsHtml.join('');
     document.getElementById('wrCompare').innerHTML = cmpCards.join('');
   }).catch(() => {});
 }
@@ -4455,43 +4550,6 @@ function playWarningSound() {
       oscillator.stop();
     }, 200);
   } catch {}
-}
-
-function toggleReviewMode() {
-  const isReviewMode = document.getElementById('examReviewMode')?.checked;
-  if (isReviewMode) {
-    showExamReview();
-  } else {
-    renderExamQuestion();
-    renderPalette();
-  }
-}
-
-function showExamReview() {
-  const area = document.getElementById('examQuestionArea');
-  let html = '<div class="space-y-4"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-list-check ml-2 text-emerald-400"></i> مرور سوالات</h3>';
-  
-  state.questions.forEach((q, i) => {
-    const av = state.answers[q.id];
-    const answered = av !== undefined && av !== null && av !== '' && (!Array.isArray(av) || av.length > 0) && (typeof av !== 'object' || Array.isArray(av) || !!(av.text || av.file));
-    const marked = state.marked.has(i);
-    let statusClass = 'border-slate-700';
-    if (answered) statusClass = 'border-emerald-500/50';
-    if (marked) statusClass = 'border-amber-500/50';
-    
-    html += '<div class="p-4 rounded-xl bg-slate-900/50 border ' + statusClass + '">';
-    html += '<div class="flex items-center justify-between mb-2"><span class="text-emerald-400 font-bold">سوال ' + (i + 1) + '</span><div class="flex gap-2">';
-    if (answered) html += '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">پاسخ داده</span>';
-    else html += '<span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">بی‌پاسخ</span>';
-    if (marked) html += '<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">نشان‌دار</span>';
-    html += '</div></div>';
-    html += '<div class="text-sm text-slate-300 mb-2">' + esc(q.content).slice(0, 150) + (q.content.length > 150 ? '...' : '') + '</div>';
-    html += '<button onclick="state.currentQ=' + i + ';document.getElementById(\'examReviewMode\').checked=false;renderExamQuestion();renderPalette()" class="text-xs text-accent-400 hover:text-accent-300">رفتن به سوال</button>';
-    html += '</div>';
-  });
-  
-  html += '</div>';
-  area.innerHTML = html;
 }
 
 async function exportAllData() {
