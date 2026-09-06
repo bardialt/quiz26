@@ -326,7 +326,9 @@
     .exam-light #view-exam-room .exam-muted{color:#64748b !important}
     .exam-light #view-exam-room .exam-body-text{color:#0f172a !important}
     .exam-light #view-exam-room .exam-chip-empty{background:#f1f5f9 !important;border-color:#cbd5e1 !important}
-    .exam-light #view-exam-room .imp-pick:not(.bg-emerald-500){background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .imp-pick:not(.bg-blue-600){background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .imp-pick.bg-blue-600{background:#2563eb !important;border-color:#3b82f6 !important;color:#ffffff !important}
+    .imp-pick .imp-num{pointer-events:none}
     .exam-light #view-exam-room .text-amber-400{color:#b45309 !important}
     .exam-light #view-exam-room .text-emerald-400{color:#047857 !important}
     .exam-light #view-exam-room .text-violet-300{color:#6d28d9 !important}
@@ -2297,6 +2299,7 @@ function importWizardNext() {
   importedQuestions = [];
   for (let i = 0; i < n; i++) importedQuestions.push({ type: 'mcq', content: '', options: ['', '', '', ''], correct: null });
   window.__sheetImportedPending = true;
+  window.__importManualMode = true;
   renderImportReview(true);
   document.getElementById('importReview').scrollIntoView({ behavior: 'smooth' });
 }
@@ -2527,10 +2530,16 @@ function renderImportReview(manual) {
       const sheetPick = manual && (!q.content || !q.content.trim());
       if (sheetPick) {
         const faNum = ['۱', '۲', '۳', '۴', '۵', '۶'];
-        const opts = (q.options || []).map((o, oi) =>
-          '<button type="button" onclick="markImportAnswer(' + i + ',' + oi + ')" class="imp-pick w-11 h-11 rounded-xl border-2 font-black text-base transition ' + (q.correct === oi ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-110' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-emerald-500/60 hover:text-emerald-300') + '">' + (String(o || '').trim() ? esc(String(o)) : faNum[oi] || (oi + 1)) + '</button>'
-        ).join('');
-        body = '<div class="flex items-center gap-2 mt-2 flex-wrap">' + opts + '<span class="text-[9px] text-slate-600 mr-1">← عدد صحیح را بزنید</span></div>';
+        const opts = (q.options || []).map((o, oi) => {
+          const num = String(o || '').trim() ? esc(String(o)) : (faNum[oi] || (oi + 1));
+          const isOn = q.correct === oi;
+          // same tile in both states — number ALWAYS visible; selected = solid blue + check
+          return '<button type="button" onclick="markImportAnswer(' + i + ',' + oi + ')" class="imp-pick w-12 h-12 rounded-xl border-2 font-black text-lg transition flex items-center justify-center ' + (isOn
+            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/40 scale-105'
+            : 'bg-slate-900 border-slate-600 text-slate-200 hover:border-blue-400 hover:text-blue-300') + '">'
+            + '<span class="imp-num">' + num + '</span>' + (isOn ? '<i class="fa-solid fa-check text-xs mr-1"></i>' : '') + '</button>';
+        }).join('');
+        body = '<div class="flex items-center gap-2.5 mt-2 flex-wrap">' + opts + '<span class="text-[10px] text-slate-400 mr-1">← گزینهٔ صحیح را انتخاب کنید</span></div>';
       } else {
         const opts = (q.options || []).map((o, oi) =>
           '<div class="flex items-center gap-1.5"><input type="radio" name="imp_' + i + '" ' + (q.correct === oi ? 'checked' : '') + ' onchange="markImportAnswer(' + i + ',' + oi + ')" class="text-emerald-500 shrink-0" title="گزینه صحیح" /><input type="text" value="' + escAttr(String(o || '')) + '" oninput="editImportOption(' + i + ',' + oi + ', this.value)" placeholder="گزینه ' + letters[oi] + '" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-white" /></div>'
@@ -2561,9 +2570,10 @@ function changeImportType(i, t) {
 }
 function markImportTf(i, v) { importedQuestions[i].correct = v; }
 
+window.__importManualMode = false;
 function markImportAnswer(qi, oi) {
   importedQuestions[qi].correct = oi;
-  renderImportReview();
+  renderImportReview(window.__importManualMode);
 }
 
 function markImportShort(qi, val) {
@@ -2572,7 +2582,7 @@ function markImportShort(qi, val) {
 
 function removeImported(i) {
   importedQuestions.splice(i, 1);
-  renderImportReview();
+  renderImportReview(window.__importManualMode);
 }
 
 async function saveImportedQuestions() {
