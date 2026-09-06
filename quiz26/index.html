@@ -3886,6 +3886,9 @@ function showFileSrcLightbox(u) {
 function examOptionHtml(q, idx, text, checked) {
   const square = !!state.splitMode; // imported-sheet exams use rounded-square number boxes
   const shape = square ? 'rounded-xl' : 'rounded-full';
+  // Sheet-import questions may carry empty option labels — always show «گزینه N» so students see choices
+  const faLabel = ['گزینه ۱', 'گزینه ۲', 'گزینه ۳', 'گزینه ۴', 'گزینه ۵', 'گزینه ۶'];
+  if (!String(text || '').trim()) text = faLabel[idx] || ('گزینه ' + (idx + 1));
   // Selected = BLUE fill (works in dark & light, direct classes — no theme dependency)
   const onNum = 'qopt-on';
   const offNum = 'qopt-off';
@@ -4102,7 +4105,7 @@ function examToggleTheme() {
   const sec = document.getElementById('view-exam-room');
   const light = !sec.classList.contains('exam-light');
   sec.classList.toggle('exam-light', light);
-  localStorage.setItem('q26_exam_theme', light ? 'light' : 'dark');
+  sessionStorage.setItem('q26_exam_theme', light ? 'light' : 'dark');
   const ic = document.getElementById('examThemeIcon');
   if (ic) ic.className = 'fa-solid ' + (light ? 'fa-moon' : 'fa-sun');
   examApplyInlineTheme(sec, light);
@@ -4115,7 +4118,8 @@ function examToggleTheme() {
 }
 
 function applyExamTheme() {
-  const saved = localStorage.getItem('q26_exam_theme') || 'dark';
+  // Default DARK for every fresh visit; user's toggle lasts only the current tab session
+  const saved = sessionStorage.getItem('q26_exam_theme') || 'dark';
   const sec = document.getElementById('view-exam-room');
   if (!sec) return;
   const light = saved === 'light';
