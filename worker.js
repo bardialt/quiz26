@@ -414,7 +414,7 @@ function scoreSubmission(questions, answers, negativeMark = 0) {
     if (correct) score += qScore;
     else if (negativeMark > 0 && ans !== undefined && ans !== null && ans !== '' && q.type !== 'essay') score -= negativeMark;
   }
-  score = Math.max(0, score);
+  // negative score allowed (negative marking) → percent can be negative and is shown in report
   const percent = maxScore > 0 ? Math.round((score / maxScore) * 10000) / 100 : 0;
   return { score, maxScore, percent };
 }

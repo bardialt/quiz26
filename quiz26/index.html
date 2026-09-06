@@ -301,6 +301,36 @@
     .exam-light .exam-opt .exam-text{color:#1e293b !important}
     .exam-light .exam-timer,.exam-light .exam-timer *{color:#e11d48 !important}
     .exam-light .fa-solid,.exam-light .fa-regular{color:inherit}
+    /* v2.13 — light sweep with !important on every rule (Tailwind CDN injects late) */
+    .exam-light #view-exam-room{background:#f1f5f9 !important}
+    .exam-light #view-exam-room *{border-color:#e2e8f0}
+    .exam-light #view-exam-room .bg-white{background:#ffffff !important}
+    .exam-light #view-exam-room .bg-slate-900,.exam-light #view-exam-room .bg-slate-950{background:#f8fafc !important;color:#0f172a}
+    .exam-light #view-exam-room .border-slate-700,.exam-light #view-exam-room .border-slate-800,.exam-light #view-exam-room .border-slate-600{border-color:#cbd5e1 !important}
+    .exam-light #view-exam-room .text-white{color:#0f172a !important}
+    .exam-light #view-exam-room .text-slate-200,.exam-light #view-exam-room .text-slate-300{color:#334155 !important}
+    .exam-light #view-exam-room .text-slate-400,.exam-light #view-exam-room .text-slate-500{color:#64748b !important}
+    .exam-light #view-exam-room .text-slate-700{color:#334155 !important}
+    .exam-light #view-exam-room .hover\:bg-slate-800:hover{background-color:#e2e8f0 !important}
+    .exam-light #view-exam-room .omr-opt:not(.qopt-on){background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .omr-opt.qopt-on{background:#4f46e5 !important;border-color:#4f46e5 !important;color:#ffffff !important}
+    .exam-light #view-exam-room .exam-opt:not(.qopt-on){background:#ffffff !important;border-color:#cbd5e1 !important}
+    .exam-light #view-exam-room .exam-text{color:#1e293b !important}
+    .exam-light #view-exam-room .glass{background:#ffffff !important;border:1px solid #e2e8f0 !important;backdrop-filter:none !important}
+    .exam-light #view-exam-room .stacked-q{background:#ffffff !important;border:1px solid #e2e8f0 !important}
+    .exam-light #view-exam-room textarea,.exam-light #view-exam-room input[type="text"],.exam-light #view-exam-room input[type="tel"],.exam-light #view-exam-room input[type="number"],.exam-light #view-exam-room input[type="password"]{background:#ffffff !important;color:#0f172a !important;border-color:#cbd5e1 !important}
+    .exam-light #view-exam-room .exam-timer{color:#e11d48 !important}
+    .exam-light #view-exam-room .exam-side{background:#ffffff !important;border-color:#e2e8f0 !important}
+    .exam-light #view-exam-room .exam-header{background:#ffffff !important;border-color:#e2e8f0 !important}
+    .exam-light #view-exam-room .exam-subbar{background:#ffffff !important;border-color:#e2e8f0 !important}
+    .exam-light #view-exam-room .exam-muted{color:#64748b !important}
+    .exam-light #view-exam-room .exam-body-text{color:#0f172a !important}
+    .exam-light #view-exam-room .exam-chip-empty{background:#f1f5f9 !important;border-color:#cbd5e1 !important}
+    .exam-light #view-exam-room .imp-pick:not(.bg-emerald-500){background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .text-amber-400{color:#b45309 !important}
+    .exam-light #view-exam-room .text-emerald-400{color:#047857 !important}
+    .exam-light #view-exam-room .text-violet-300{color:#6d28d9 !important}
+    .exam-light #view-exam-room .exam-subtle{background:#f1f5f9 !important;color:#475569 !important}
     /* v2.12 — FINAL light sweep: force every remaining dark surface */
     .exam-light #view-exam-room{background:#f1f5f9 !important}
     .exam-light #view-exam-room .glass{background:#ffffff !important;border-color:#e2e8f0 !important;box-shadow:0 1px 4px rgba(15,23,42,.07) !important}
@@ -2496,8 +2526,9 @@ function renderImportReview(manual) {
       // Sheet mode: big 1-4 pick buttons only (options are pre-filled ۱-۴, no text boxes)
       const sheetPick = manual && (!q.content || !q.content.trim());
       if (sheetPick) {
+        const faNum = ['۱', '۲', '۳', '۴', '۵', '۶'];
         const opts = (q.options || []).map((o, oi) =>
-          '<button type="button" onclick="markImportAnswer(' + i + ',' + oi + ')" class="imp-pick w-11 h-11 rounded-xl border-2 font-black text-base transition ' + (q.correct === oi ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-110' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-emerald-500/60 hover:text-emerald-300') + '">' + esc(String(o)) + '</button>'
+          '<button type="button" onclick="markImportAnswer(' + i + ',' + oi + ')" class="imp-pick w-11 h-11 rounded-xl border-2 font-black text-base transition ' + (q.correct === oi ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-110' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-emerald-500/60 hover:text-emerald-300') + '">' + (String(o || '').trim() ? esc(String(o)) : faNum[oi] || (oi + 1)) + '</button>'
         ).join('');
         body = '<div class="flex items-center gap-2 mt-2 flex-wrap">' + opts + '<span class="text-[9px] text-slate-600 mr-1">← عدد صحیح را بزنید</span></div>';
       } else {
@@ -2549,7 +2580,11 @@ async function saveImportedQuestions() {
   const valid = importedQuestions.filter(q => {
     // In sheet mode (questions live in the attached PDF/image), content is optional — only the answer key matters
     if (!sheetMode && (!q.content || !q.content.trim())) return false;
-    if (q.type === 'mcq') { const filled = (q.options || []).filter(o => String(o || '').trim()); return filled.length >= 2 && q.correct !== null && q.correct !== undefined; }
+    if (q.type === 'mcq') {
+      if (sheetMode) return q.correct !== null && q.correct !== undefined;
+      const filled = (q.options || []).filter(o => String(o || '').trim());
+      return filled.length >= 2 && q.correct !== null && q.correct !== undefined;
+    }
     if (q.type === 'tf') return q.correct === 'true' || q.correct === 'false';
     if (q.type === 'essay') return true; // essay: answer key optional
     return q.correct !== null && q.correct !== undefined && String(q.correct).trim() !== '';
@@ -3618,6 +3653,7 @@ function startExam(e) {
   showView('exam-room');
   applyExamTheme();
   if (examFullscreenEnabled()) { examEnterFullscreen(); examBindFullscreenGuard(); }
+  else { document.removeEventListener('fullscreenchange', __fsChange); examExitFullscreen(); }
   renderExamSheetAttachment();
   if (!state.splitMode) { if (state.stackedMode) renderExamStacked(); else renderExamQuestion(); }
   state.examLight = document.getElementById('view-exam-room').classList.contains('exam-light');
@@ -4663,7 +4699,7 @@ function showWebReport(r) {
   document.getElementById('wrPass').textContent = r.passed ? 'قبول' : 'مردود';
   const pctEl = document.getElementById('wrPercent');
   pctEl.textContent = (r.percent ?? 0) + '٪';
-  pctEl.style.color = (r.percent ?? 0) < 0 ? '#0f172a' : (r.percent ?? 0) > 50 ? '#047857' : '#0f172a';
+  pctEl.style.color = (r.percent ?? 0) < 0 ? '#be123c' : (r.percent ?? 0) > 50 ? '#047857' : '#0f172a';
   // fetch full questions for compare grid
   api('/api/public/result/' + r.id).then(async full => {
     const data = full.result || full;
