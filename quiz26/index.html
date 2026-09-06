@@ -301,6 +301,33 @@
     .exam-light .exam-opt .exam-text{color:#1e293b !important}
     .exam-light .exam-timer,.exam-light .exam-timer *{color:#e11d48 !important}
     .exam-light .fa-solid,.exam-light .fa-regular{color:inherit}
+    /* v2.12 — FINAL light sweep: force every remaining dark surface */
+    .exam-light #view-exam-room{background:#f1f5f9 !important}
+    .exam-light #view-exam-room .glass{background:#ffffff !important;border-color:#e2e8f0 !important;box-shadow:0 1px 4px rgba(15,23,42,.07) !important}
+    .exam-light #view-exam-room .stacked-q{background:#ffffff !important;border-color:#e2e8f0 !important}
+    .exam-light #view-exam-room textarea,.exam-light #view-exam-room input[type=text],.exam-light #view-exam-room input[type=tel],.exam-light #view-exam-room input[type=number]{background:#ffffff !important;color:#0f172a !important;border-color:#cbd5e1 !important}
+    .exam-light #view-exam-room .text-white{color:#0f172a !important}
+    .exam-light #view-exam-room .text-slate-100,.exam-light #view-exam-room .text-slate-200,.exam-light #view-exam-room .text-slate-300{color:#334155 !important}
+    .exam-light #view-exam-room .text-slate-400,.exam-light #view-exam-room .text-slate-500{color:#64748b !important}
+    .exam-light #view-exam-room .bg-slate-900,.exam-light #view-exam-room .bg-slate-800,.exam-light #view-exam-room .bg-slate-950{background-color:#f8fafc !important}
+    .exam-light #view-exam-room .bg-slate-900\/50,.exam-light #view-exam-room .bg-slate-800\/50,.exam-light #view-exam-room .bg-slate-900\/60{background-color:rgba(241,245,249,.8) !important}
+    .exam-light #view-exam-room .border-slate-700,.exam-light #view-exam-room .border-slate-800{border-color:#e2e8f0 !important}
+    .exam-light #view-exam-room .border-slate-600{border-color:#94a3b8 !important}
+    .exam-light #view-exam-room button{color:#0f172a}
+    .exam-light #view-exam-room button.bg-rose-600,.exam-light #view-exam-room button.bg-indigo-600,.exam-light #view-exam-room button.exam-accent-btn{color:#ffffff !important}
+    .exam-light #view-exam-room .omr-opt{background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .omr-opt.qopt-on{background:#4f46e5 !important;border-color:#4f46e5 !important;color:#ffffff !important}
+    .exam-light #view-exam-room .exam-opt{background:#ffffff !important}
+    .exam-light #view-exam-room .exam-text{color:#1e293b !important}
+    .exam-light #view-exam-room .exam-chip-empty{background:#f1f5f9 !important;border-color:#cbd5e1 !important;color:#334155 !important}
+    .exam-light #view-exam-room .bg-gradient-to-r,.exam-light #view-exam-room .bg-gradient-to-l{visibility:visible}
+    .exam-light #view-exam-room .exam-track{background:#e2e8f0 !important}
+    .exam-light #view-exam-room .text-emerald-300,.exam-light #view-exam-room .text-emerald-400{color:#047857 !important}
+    .exam-light #view-exam-room .text-rose-300,.exam-light #view-exam-room .text-rose-400{color:#be123c !important}
+    .exam-light #view-exam-room .text-indigo-300,.exam-light #view-exam-room .text-indigo-400{color:#4338ca !important}
+    .exam-light #view-exam-room .text-violet-300,.exam-light #view-exam-room .text-violet-400{color:#6d28d9 !important}
+    .exam-light #view-exam-room .text-blue-300,.exam-light #view-exam-room .text-blue-400{color:#1d4ed8 !important}
+    .exam-light #view-exam-room .text-amber-300,.exam-light #view-exam-room .text-amber-400{color:#b45309 !important}
     .exam-light .text-slate-200,.exam-light .text-slate-300,.exam-light .text-slate-400{color:#475569 !important}
     .exam-light .bg-slate-800,.exam-light .bg-slate-800\/50{background-color:#f1f5f9 !important}
     .exam-light .border-slate-700{border-color:#cbd5e1 !important}
@@ -1115,23 +1142,25 @@
 <div id="modalUploadImport" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hide flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modalUploadImport')">
   <div class="glass rounded-2xl p-6 w-full max-w-3xl max-h-[92vh] overflow-y-auto relative">
     <button type="button" onclick="closeModal('modalUploadImport')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-800 hover:bg-rose-500/80 text-slate-400 hover:text-white flex items-center justify-center transition" title="بستن (Esc)"><i class="fa-solid fa-xmark"></i></button>
-    <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i> آپلود برگهٔ سوالات / پاسخنامه</h3>
-    <div class="grid grid-cols-2 gap-2 mb-3">
-      <button type="button" onclick="document.getElementById('importFile').click()" class="px-3 py-2.5 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-bold transition"><i class="fa-solid fa-file-circle-plus ml-1"></i> آپلود فایل سوالات</button>
-      <button type="button" onclick="pickAnswerKeyFile()" class="px-3 py-2.5 rounded-xl bg-violet-600/90 hover:bg-violet-500 text-white text-xs font-bold transition"><i class="fa-solid fa-file-circle-check ml-1"></i> آپلود پاسخنامهٔ تشریحی</button>
+    <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i> آپلود برگهٔ سوالات و پاسخنامه</h3>
+    <p class="text-[11px] text-slate-500 mb-4">① فایل سوالات (PDF/عکس/متنی) را آپلود کنید — سوالات در فایل هستند و شما فقط جواب‌ها را علامت می‌زنید. ② اگر پاسخنامهٔ تشریحی دارید آپلود کنید (اختیاری — فقط برای دانلود دانش‌آموز در کارنامه).</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+      <div class="rounded-xl border p-4" style="border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06)">
+        <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-file-circle-question text-blue-400"></i><b class="text-sm text-blue-300">۱. فایل سوالات</b><span id="qFileBadge" class="hide text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">✓ انتخاب شد</span></div>
+        <button type="button" onclick="document.getElementById('importFile').click()" class="w-full px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition"><i class="fa-solid fa-upload ml-1"></i> آپلود سوالات</button>
+        <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
+        <div id="importFileInfo" class="text-[10px] text-slate-400 mt-2 truncate"></div>
+      </div>
+      <div class="rounded-xl border p-4" style="border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.06)">
+        <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-book-open text-violet-400"></i><b class="text-sm text-violet-300">۲. پاسخنامهٔ تشریحی</b><span class="text-[10px] text-slate-500">(اختیاری)</span><span id="answerKeyStatus" class="hide text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">✓ انتخاب شد</span></div>
+        <button type="button" onclick="pickAnswerKeyFile()" class="w-full px-3 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition"><i class="fa-solid fa-upload ml-1"></i> آپلود پاسخنامه</button>
+        <input type="file" id="answerKeyFile" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" class="hidden" onchange="handleAnswerKeyFile(this)" />
+        <div id="answerKeyFileInfo" class="text-[10px] text-slate-400 mt-2 truncate">اگر ندهید، دکمهٔ دانلود پاسخنامه در کارنامهٔ دانش‌آموز نمایش داده نمی‌شود.</div>
+      </div>
     </div>
-    <input type="file" id="answerKeyFile" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" class="hide" onchange="handleAnswerKeyFile(this)" />
-    <span id="answerKeyStatus" class="hide text-[11px] text-violet-300 font-bold"></span>
-    <p class="text-[11px] text-slate-500 mb-4"><b class="text-violet-300">دو حالت دارد:</b> ① اگر سوالات تایپی دارید، فایل متنی بدهید تا استخراج شود. ② اگر سوالات در PDF/عکس هستند، چک‌باکس «فایل، خودِ برگهٔ سوالات است» را بزنید — همین فایل به‌عنوان <b>برگهٔ سوالات</b> به آزمون پیوست می‌شود و بعد از آزمون، همان فایل به‌عنوان <b>پاسخنامهٔ تشریحی</b> در کارنامهٔ دانش‌آموز قابل دانلود است.</p>
     <div class="flex flex-wrap items-center gap-2 mb-4">
-      <button type="button" onclick="document.getElementById('importFile').click()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition"><i class="fa-solid fa-file-arrow-up ml-1"></i> انتخاب فایل (هر فرمتی)</button>
-      <input type="file" id="importFile" class="hidden" onchange="handleImportFile(this.files[0])" />
-      <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30 cursor-pointer text-xs text-violet-300 font-bold" title="سوالات داخل همین فایل PDF/عکس هستند — فایل به خود آزمون پیوست می‌شود و شما فقط جواب‌ها را وارد می‌کنید">
-        <input type="checkbox" id="importAsAttachment" class="rounded text-violet-500" onchange="toggleImportAttachmentMode()" />
-        <i class="fa-solid fa-paperclip"></i> فایل، خودِ برگهٔ سوالات است (پیوست به آزمون)
-      </label>
-      <button type="button" onclick="startManualImport()" id="manualImportBtn" class="px-3 py-2 text-xs rounded-lg border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 transition"><i class="fa-solid fa-hand-pointer ml-1"></i> ساخت دستی (بدون فایل متنی)</button>
-      <span id="importFileInfo" class="text-[11px] text-slate-500"></span>
+      <button type="button" onclick="startManualImport()" id="manualImportBtn" class="px-3 py-2 text-xs rounded-lg border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10 transition"><i class="fa-solid fa-hand-pointer ml-1"></i> ساخت دستی (بدون فایل)</button>
+      <button type="button" onclick="importWizardNext()" id="wizardNextBtn" class="hide px-6 py-2.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-500 text-white text-sm font-bold hover:brightness-110 transition"><i class="fa-solid fa-arrow-left ml-1"></i> مرحلهٔ بعد</button>
     </div>
     <div><label class="text-xs text-slate-400 mb-1 block">متن سوالات (یا محتوای فایل متنی)</label><textarea id="importText" rows="7" dir="rtl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm leading-relaxed font-mono" placeholder="مثال:
 1) پایتخت ایران کدام است؟
@@ -2231,44 +2260,40 @@ closeModal = function (id) {
   if (id === 'modalUploadImport' && __importEscHandler) { document.removeEventListener('keydown', __importEscHandler); __importEscHandler = null; }
 };
 
+function importWizardNext() {
+  // Binary sheet (PDF/image): build placeholder questions then jump to answer-marking grid
+  const n = Math.max(1, parseInt(prompt('تعداد سوالات فایل را وارد کنید:', '10'), 10) || 0);
+  if (!n) return;
+  importedQuestions = [];
+  for (let i = 0; i < n; i++) importedQuestions.push({ type: 'mcq', content: '', options: ['', '', '', ''], correct: null });
+  window.__sheetImportedPending = true;
+  renderImportReview(true);
+  document.getElementById('importReview').scrollIntoView({ behavior: 'smooth' });
+}
+
 function handleImportFile(file) {
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۵ مگابایت.', background: '#1e293b', color: '#fff' }); return; }
-  // Attachment mode: file becomes the quiz attachment itself (PDF/image = the question sheet)
-  if (document.getElementById('importAsAttachment')?.checked) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      __importAttachmentFile = { file: reader.result, fileName: file.name };
-      document.getElementById('importFileInfo').innerHTML = '📎 <b class="text-violet-300">' + esc(file.name) + '</b> (' + Math.round(file.size / 1024) + 'KB) — به آزمون پیوست می‌شود';
-      document.getElementById('importPdfHint').classList.add('hide');
-    };
-    reader.readAsDataURL(file);
-    return;
-  }
+  if (file.size > 8 * 1024 * 1024) { Swal.fire({ icon: 'warning', title: 'فایل بزرگ است', text: 'حداکثر ۸ مگابایت.', background: '#1e293b', color: '#fff' }); return; }
+  __questionsFileObj = file;
+  // Questions file = the sheet attached to the exam (left panel for students)
   const reader = new FileReader();
   reader.onload = () => {
-    const text = String(reader.result || '');
-    // Binary sniff: null bytes or too many replacement chars → not a text format (docx/pdf/xlsx…)
-    const sample = text.slice(0, 3000);
-    const nulls = (sample.match(/\u0000/g) || []).length;
-    const repl = (sample.match(/\uFFFD/g) || []).length;
-    if (nulls > 2 || repl > sample.length * 0.08) {
-      const ext = (file.name.split('.').pop() || '').toUpperCase();
-      document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' — باینری (ساخت دستی)';
-      document.getElementById('importPdfHint').classList.remove('hide');
-      Swal.fire({
-        icon: 'info', title: 'این فایل متنی (خوانا) نیست',
-        html: '<p class="text-xs text-slate-300 text-right leading-relaxed">فایل <b dir="ltr">' + esc(ext || '؟') + '</b> قابل استخراج خودکار نیست.<br/>دکمهٔ <b class="text-indigo-300">«ساخت دستی»</b> را بزنید: تعداد سوالات و نوع هر سوال (تستی/تشریحی) را طبق فایل خودتان تعریف کنید، متن سوال‌ها را کپی کنید و جواب‌ها را علامت بزنید.</p>',
-        background: '#1e293b', color: '#fff', confirmButtonText: 'متوجه شدم', confirmButtonColor: '#10b981'
-      });
-      return;
+    __importAttachmentFile = { file: reader.result, fileName: file.name };
+    const badge = document.getElementById('qFileBadge');
+    if (badge) badge.classList.remove('hide');
+    document.getElementById('importFileInfo').innerHTML = '<b class="text-emerald-300">✓ ' + esc(file.name) + '</b> (' + Math.round(file.size / 1024) + 'KB)';
+    const nb = document.getElementById('wizardNextBtn');
+    if (nb) nb.classList.remove('hide');
+    // Text file? also offer auto-parse
+    if (/\.(txt|md)$/i.test(file.name)) {
+      fetch(reader.result).then(r => r.text()).then(t => {
+        document.getElementById('importText').value = t;
+        parseImportedText();
+      }).catch(() => {});
     }
-    document.getElementById('importText').value = text;
-    document.getElementById('importFileInfo').textContent = '📄 ' + file.name + ' (' + Math.round(file.size / 1024) + 'KB)';
-    parseImportedText();
   };
   reader.onerror = () => Swal.fire({ icon: 'error', title: 'خطا در خواندن فایل', background: '#1e293b', color: '#fff' });
-  reader.readAsText(file, 'utf-8');
+  reader.readAsDataURL(file);
 }
 
 function loadImportSample() {
@@ -2280,6 +2305,7 @@ function loadImportSample() {
 let __importAttachmentFile = null;
 
 let __answerKeyFile = null;
+let __questionsFileObj = null;
 function pickAnswerKeyFile() { document.getElementById('answerKeyFile').click(); }
 function handleAnswerKeyFile(input) {
   const f = input.files && input.files[0];
@@ -2289,25 +2315,15 @@ function handleAnswerKeyFile(input) {
   reader.onload = () => {
     __answerKeyFile = { file: reader.result, name: f.name, type: f.type || 'application/octet-stream' };
     const st = document.getElementById('answerKeyStatus');
-    if (st) { st.textContent = '✓ ' + f.name; st.classList.remove('hide'); }
+    if (st) { st.classList.remove('hide'); }
+    const ki = document.getElementById('answerKeyFileInfo');
+    if (ki) ki.innerHTML = '<b class="text-emerald-300">✓ ' + esc(f.name) + '</b> (' + Math.round(f.size / 1024) + 'KB)';
     Swal.fire({ icon: 'success', title: 'پاسخنامه ضمیمه شد', text: f.name + ' — پس از پایان آزمون در کارنامهٔ دانش‌آموز قابل دانلود است.', background: '#1e293b', color: '#fff', timer: 2600, showConfirmButton: false });
   };
   reader.readAsDataURL(f);
 }
 
-function toggleImportAttachmentMode() {
-  const on = document.getElementById('importAsAttachment').checked;
-  document.getElementById('importText').disabled = on;
-  document.getElementById('importText').classList.toggle('opacity-40', on);
-  document.getElementById('parseImportBtn').disabled = on;
-  document.getElementById('parseImportBtn').classList.toggle('opacity-40', on);
-  if (on) {
-    document.getElementById('parseSummary').innerHTML = '<span class="text-violet-300">حالت پیوست فعال: فایل انتخاب‌شده به خود آزمون پیوست می‌شود؛ فقط «ساخت دستی» را بزنید، تعداد سوالات را مطابق فایل وارد کنید و جواب‌ها را علامت بزنید.</span>';
-    if (!__importAttachmentFile) document.getElementById('importFile').click();
-  } else {
-    document.getElementById('parseSummary').textContent = '';
-  }
-}
+function toggleImportAttachmentMode() { /* obsolete: questions file is always the sheet now */ }
 
 function startManualImport() {
   Swal.fire({
@@ -2580,12 +2596,15 @@ async function saveImportedQuestions() {
     Swal.fire({ icon: 'success', title: saved + ' سوال اضافه شد', text: empty > 0 ? empty + ' سوال رد شد (جواب علامت نخورده بود).' : 'همه سوالات با موفقیت ثبت شدند.', background: '#1e293b', color: '#fff' });
   };
   const keyFile = (typeof __answerKeyFile !== 'undefined' && __answerKeyFile) ? __answerKeyFile : null;
-  const finalAttach = keyFile ? { file: keyFile.file, name: keyFile.name, type: keyFile.type } : attachFile;
-  if (finalAttach) {
+  // Sheet (questions file) drives the exam view; answer key is stored alongside for the report only
+  if (attachFile) {
     try {
       window.__sheetImported = true;
-      await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify({ attachment: finalAttach }) });
-      Swal.fire({ icon: 'info', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد — در صفحهٔ آزمون، برگه سمت چپ و گزینه‌ها سمت راست نمایش داده می‌شود.</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
+      const payload = { attachment: { file: attachFile.file, fileName: attachFile.fileName, type: attachFile.type || '' } };
+      if (keyFile) payload.answer_key = { file: keyFile.file, name: keyFile.name, type: keyFile.type || '' };
+      await api('/api/quizzes/' + state.editingQuizId, { method: 'PUT', body: JSON.stringify(payload) });
+      Swal.fire({ icon: 'success', title: 'برگهٔ سوالات پیوست شد', html: '<p class="text-xs text-slate-300">فایل <b>' + esc(attachFile.fileName) + '</b> به آزمون پیوست شد — در صفحهٔ آزمون، برگه سمت چپ و گزینه‌ها سمت راست نمایش داده می‌شود.' + (keyFile ? '<br/>پاسخنامهٔ تشریحی هم ذخیره شد (فقط برای کارنامه).' : '') + '</p>', background: '#1e293b', color: '#fff', confirmButtonColor: '#10b981' }).then(finish);
+      __answerKeyFile = null;
       return;
     } catch { finish(); return; }
   }
@@ -3690,6 +3709,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 
+function updateExamProgress() {
+  const el = document.getElementById('examProgress');
+  if (!el || !state.questions) return;
+  el.textContent = 'پاسخ‌داده ' + countAnswered() + ' از ' + state.questions.length;
+  const bar = document.getElementById('examProgressBar');
+  if (bar) bar.style.width = (countAnswered() / Math.max(1, state.questions.length) * 100) + '%';
+}
+
 function countAnswered() {
   let n = 0;
   for (const q of state.questions) {
@@ -3709,9 +3736,7 @@ function renderExamQuestion() {
   if (!area) return;
   area.innerHTML = renderExamQuestionHtml(q);
   bindQuestionInputs(q);
-  const progress = state.questions.length > 1 ? ((state.currentQ + 1) / state.questions.length * 100) : 100;
-  document.getElementById('examProgress').textContent = 'پاسخ‌داده ' + countAnswered() + ' از ' + state.questions.length;
-  document.getElementById('examProgressBar').style.width = (countAnswered() / Math.max(1, state.questions.length) * 100) + '%';
+  updateExamProgress();
   if (window.MathJax) MathJax.typesetPromise?.().catch(() => {});
 }
 
@@ -4619,13 +4644,10 @@ async function openStudentPanel() {
 }
 
 function downloadSheetKey() {
-  const att = state.exam && state.exam.attachment;
-  if (!att || !att.file) { // fallback: stored on last loaded result
-    const u = window.__currentSheetKey;
-    if (!u) return Swal.fire({ icon: 'info', title: 'پاسخنامه تشریحی موجود نیست', background: '#1e293b', color: '#fff' });
-    showFileSrcLightbox(u); return;
-  }
-  showFileSrcLightbox(att.file);
+  // ONLY the dedicated answer key (answer_key), never the question sheet
+  const u = window.__currentSheetKey;
+  if (!u) return Swal.fire({ icon: 'info', title: 'پاسخنامهٔ تشریحی موجود نیست', text: 'دبیر پاسخنامه‌ای آپلود نکرده است.', background: '#1e293b', color: '#fff' });
+  showFileSrcLightbox(u);
 }
 
 /* ===== Web report card (light, image-2 style) ===== */
@@ -4647,8 +4669,9 @@ function showWebReport(r) {
     const data = full.result || full;
     const qz = await api('/api/public/quiz-meta/' + (data.quiz_id || r.quiz_id || 0)).catch(() => null);
     const keyBtn = document.getElementById('wrKeyBtn');
-    if (qz && qz.attachment && qz.attachment.file) { keyBtn.classList.remove('hide'); window.__currentSheetKey = qz.attachment.file; }
-    else keyBtn.classList.add('hide');
+    const keyFile = qz && (qz.answer_key || (qz.attachment && qz.attachment.answer_key));
+    if (keyFile && keyFile.file) { keyBtn.classList.remove('hide'); window.__currentSheetKey = keyFile.file; }
+    else keyBtn.classList.add('hide'); // no answer key uploaded → no download button
     const questions = data.questions || [];
     let answers = {};
     try { answers = (typeof data.answers_json === 'string') ? JSON.parse(data.answers_json) : (data.answers_json || {}); } catch {}

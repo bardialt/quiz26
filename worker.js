@@ -751,7 +751,7 @@ export default {
         if (method === 'PUT') {
           const b = await request.json();
           const existing = quiz;
-          const newAttachment = b.attachment !== undefined ? (b.attachment ? JSON.stringify(b.attachment) : null) : undefined;
+          const newAttachment = b.attachment !== undefined ? (b.attachment ? JSON.stringify(b.answer_key ? { ...b.attachment, answer_key: b.answer_key } : b.attachment) : null) : undefined;
           await env.DB.prepare(`
             UPDATE quizzes SET
               title = COALESCE(?, title),
@@ -1003,7 +1003,10 @@ export default {
         // Note: option shuffling is done on the frontend to keep correct_json indices aligned
 
         let quizAttachment = null;
-        try { quizAttachment = quiz.attachment_json ? JSON.parse(quiz.attachment_json) : null; } catch {}
+        try {
+          const rawAtt = quiz.attachment_json ? JSON.parse(quiz.attachment_json) : null;
+          if (rawAtt) quizAttachment = rawAtt.file ? { file: rawAtt.file, fileName: rawAtt.fileName, type: rawAtt.type || '' } : null; // strip answer_key
+        } catch {}
         return json({
           success: true,
           quiz: {
@@ -1230,9 +1233,12 @@ export default {
         const q = await env.DB.prepare('SELECT id, attachment_json, report_after_end, end_at, show_result FROM quizzes WHERE id = ?').bind(qid).first();
         if (!q) return error('آزمون یافت نشد.', 404, origin);
         // Answer key is only downloadable after quiz end (or immediately if no end date)
-        let attachment = null;
-        try { attachment = q.attachment_json ? JSON.parse(q.attachment_json) : null; } catch {}
-        return json({ success: true, attachment, report_after_end: !!q.report_after_end, end_at: q.end_at, show_result: !!q.show_result }, 200, origin);
+        let attachment = null, answerKey = null;
+        try {
+          const raw = q.attachment_json ? JSON.parse(q.attachment_json) : null;
+          if (raw) { answerKey = raw.answer_key || null; attachment = raw.file ? raw : null; }
+        } catch {}
+        return json({ success: true, attachment, answer_key: answerKey, report_after_end: !!q.report_after_end, end_at: q.end_at, show_result: !!q.show_result }, 200, origin);
       }
 
       // ---------- Pre-check: has this phone already taken this quiz? ----------
