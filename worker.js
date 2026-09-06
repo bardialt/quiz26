@@ -937,6 +937,7 @@ export default {
               id: quiz.id, title: quiz.title, description: quiz.description,
               duration_min: quiz.duration_min, pass_score: quiz.pass_score,
               require_login: false, report_after_end: !!quiz.report_after_end,
+              fullscreen: !!quiz.fullscreen,
               question_count: 0, start_at: quiz.start_at, end_at: quiz.end_at,
             },
             questions: [],
@@ -960,7 +961,7 @@ export default {
               success: true,
               ended: true,
               student_report: sub || null,
-              quiz: { id: quiz.id, title: quiz.title, require_login: true, report_after_end: !!quiz.report_after_end },
+              quiz: { id: quiz.id, title: quiz.title, require_login: true, report_after_end: !!quiz.report_after_end, fullscreen: !!quiz.fullscreen },
               questions: [],
             }, 200, origin);
           }
@@ -1017,6 +1018,8 @@ export default {
             pass_score: quiz.pass_score,
             anti_copy: !!quiz.anti_copy,
             anti_tab: !!quiz.anti_tab,
+            fullscreen: !!quiz.fullscreen,
+            stacked_view: !!quiz.stacked_view,
             show_result: !!quiz.show_result,
             require_login: !!quiz.require_login,
             report_after_end: !!quiz.report_after_end,

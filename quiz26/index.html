@@ -236,7 +236,6 @@
     .exam-chip-ok{background:rgba(16,185,129,.25);border-color:rgba(16,185,129,.4)}
     .exam-chip-mark{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.4)}
     .exam-chip-empty{background:#1e293b;border-color:#334155}
-    .exam-light .exam-bg{background:#f1f5f9}
     .exam-light .exam-header{background:#ffffff;border-color:#e2e8f0;box-shadow:0 1px 3px rgba(15,23,42,.06)}
     .exam-light .exam-timer{color:#e11d48}
     .exam-light .exam-body-text{color:#0f172a}
@@ -301,6 +300,15 @@
     .exam-light .exam-opt .exam-text{color:#1e293b !important}
     .exam-light .exam-timer,.exam-light .exam-timer *{color:#e11d48 !important}
     .exam-light .fa-solid,.exam-light .fa-regular{color:inherit}
+    /* v2.14 — LIGHT MODE: total takeover */
+    .exam-light #view-exam-room, .exam-light #view-exam-room *{border-color:#e2e8f0}
+    .exam-light #view-exam-room .exam-q-card{background:#ffffff !important}
+    .exam-light #view-exam-room #examQuestionArea{color:#0f172a}
+    .exam-light #view-exam-room .imp-pick{background:#ffffff !important;border-color:#94a3b8 !important;color:#334155 !important}
+    .exam-light #view-exam-room .imp-pick.bg-blue-600{background:#2563eb !important;border-color:#3b82f6 !important;color:#fff !important}
+    .exam-light #view-exam-room .bg-gradient-to-r{background-image:linear-gradient(to right,#6366f1,#8b5cf6) !important}
+    .exam-light #view-exam-room ::-webkit-scrollbar{background:#f1f5f9}
+    .exam-light #view-exam-room ::-webkit-scrollbar-thumb{background:#cbd5e1}
     /* v2.13 — light sweep with !important on every rule (Tailwind CDN injects late) */
     .exam-light #view-exam-room{background:#f1f5f9 !important}
     .exam-light #view-exam-room *{border-color:#e2e8f0}
@@ -4073,6 +4081,21 @@ function __fsChange() {
   }
 }
 
+function examApplyInlineTheme(sec, light) {
+  // inline styles beat Tailwind CDN utilities injected at runtime
+  sec.style.background = light ? '#f1f5f9' : '';
+  sec.querySelectorAll('.glass, .stacked-q, .exam-side, .exam-header, .exam-subbar').forEach(el => {
+    el.style.background = light ? '#ffffff' : '';
+    el.style.borderColor = light ? '#e2e8f0' : '';
+    el.style.backdropFilter = light ? 'none' : '';
+  });
+  sec.querySelectorAll('.text-white, .exam-body-text, .exam-q-text').forEach(el => { el.style.color = light ? '#0f172a' : ''; });
+  sec.querySelectorAll('.text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .exam-muted').forEach(el => { el.style.color = light ? '#475569' : ''; });
+  sec.querySelectorAll('textarea, input[type="text"], input[type="tel"], input[type="number"]').forEach(el => {
+    el.style.background = light ? '#ffffff' : ''; el.style.color = light ? '#0f172a' : ''; el.style.borderColor = light ? '#cbd5e1' : '';
+  });
+}
+
 function examToggleTheme() {
   const sec = document.getElementById('view-exam-room');
   const light = !sec.classList.contains('exam-light');
@@ -4080,6 +4103,13 @@ function examToggleTheme() {
   localStorage.setItem('q26_exam_theme', light ? 'light' : 'dark');
   const ic = document.getElementById('examThemeIcon');
   if (ic) ic.className = 'fa-solid ' + (light ? 'fa-moon' : 'fa-sun');
+  examApplyInlineTheme(sec, light);
+  if (window.__examThemeObserver) { window.__examThemeObserver.disconnect(); window.__examThemeObserver = null; }
+  if (light) {
+    // re-apply inline theme whenever exam content re-renders (new question, palette, etc.)
+    window.__examThemeObserver = new MutationObserver(() => examApplyInlineTheme(sec, true));
+    window.__examThemeObserver.observe(sec, { childList: true, subtree: true });
+  }
 }
 
 function applyExamTheme() {
@@ -4091,6 +4121,12 @@ function applyExamTheme() {
   state.examLight = light;
   const ic = document.getElementById('examThemeIcon');
   if (ic) ic.className = 'fa-solid ' + (light ? 'fa-moon' : 'fa-sun');
+  examApplyInlineTheme(sec, light);
+  if (window.__examThemeObserver) { window.__examThemeObserver.disconnect(); window.__examThemeObserver = null; }
+  if (light) {
+    window.__examThemeObserver = new MutationObserver(() => examApplyInlineTheme(sec, true));
+    window.__examThemeObserver.observe(sec, { childList: true, subtree: true });
+  }
 }
 
 function toggleMark() { if (state.marked.has(state.currentQ)) state.marked.delete(state.currentQ); else state.marked.add(state.currentQ); renderPalette(); renderExamQuestion(); }
@@ -4369,11 +4405,12 @@ async function loadResult(id) {
       fillStudentReportCard({ title: r.quiz_title || 'کارنامه', student: (r.student_name || '') + ' ' + (r.student_family || ''), score: r.score, maxScore: r.max_score, percent: r.percent, passed: r.passed, extraHtml: extra, deferred: r.deferred });
     }
     if (!r.deferred && r.score !== undefined) {
+      // PDF report needs the SAME questions/answers the web report used (per_question / answers_json)
       __lastReportData = {
         quizTitle: r.quiz_title, student: ((r.student_name || '') + ' ' + (r.student_family || '')).trim(),
         school: r.school || '', cls: r.class_name || '', date: r.finished_at ? fmtDT(r.finished_at) : '',
         score: r.score, maxScore: r.max_score, percent: r.percent, passed: !!r.passed,
-        questions: [], answers: {},
+        questions: r.questions || [], answers: (() => { try { return (typeof r.answers_json === 'string') ? JSON.parse(r.answers_json) : (r.answers_json || {}); } catch { return {}; } })(),
       };
     }
   const keyBtn = document.getElementById('downloadSheetKeyBtn');
@@ -4699,6 +4736,11 @@ function downloadSheetKey() {
 /* ===== Web report card (light, image-2 style) ===== */
 function showWebReport(r) {
   showView('report-web');
+  window.__pendingWebReport = {
+    quizTitle: r.quiz_title || '', student: ((r.student_name || '') + ' ' + (r.student_family || '')).trim(),
+    school: r.school || '', cls: r.class_name || '', date: r.finished_at ? fmtDT(r.finished_at) : new Date().toLocaleString('fa-IR'),
+    score: r.score, maxScore: r.max_score, percent: r.percent, passed: !!r.passed,
+  };
   const fa = n => String(n).replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[x]);
   document.getElementById('wrTitle').textContent = r.quiz_title || 'کارنامه';
   document.getElementById('wrStudent').textContent = ((r.student_name || '') + ' ' + (r.student_family || '')).trim() || '—';
@@ -4762,6 +4804,10 @@ function showWebReport(r) {
     }
     document.getElementById('wrAnswers').innerHTML = rowsHtml.join('');
     document.getElementById('wrCompare').innerHTML = cmpCards.join('');
+    // keep for PDF download so it includes answers
+    if (window.__pendingWebReport) {
+      __lastReportData = { ...window.__pendingWebReport, questions, answers };
+    }
   }).catch(() => {});
 }
 
