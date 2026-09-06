@@ -2629,8 +2629,10 @@ async function saveImportedQuestions() {
     try {
       // In sheet mode each question references the attached sheet; students see the sheet on the left.
       const img = null; // sheet is attached at quiz level — no per-question file (keeps order & cleanliness)
+      const faOpts = ['گزینه ۱', 'گزینه ۲', 'گزینه ۳', 'گزینه ۴', 'گزینه ۵', 'گزینه ۶'];
+      const mcqOpts = (q.options || []).map((o, k) => String(o || '').trim() ? String(o).trim() : (faOpts[k] || ('گزینه ' + (k + 1))));
       const payload = q.type === 'mcq'
-        ? { type: 'mcq', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: (q.options || []).map(o => String(o || '').trim()).filter(Boolean), correct_json: q.correct, score: 1, image_url: img }
+        ? { type: 'mcq', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: mcqOpts, correct_json: q.correct, score: 1, image_url: img }
         : q.type === 'tf'
           ? { type: 'tf', content: q.content && q.content.trim() ? q.content.trim() : 'سوال ' + (qi + 1) + ' — در برگهٔ آزمون', options_json: null, correct_json: q.correct, score: 1, image_url: img }
           : q.type === 'essay'
@@ -3678,7 +3680,7 @@ function startExam(e) {
   renderPalette(); startTimer();
   if (state.exam.anti_copy) { document.addEventListener('contextmenu', blockCtx); document.addEventListener('copy', blockCopy); document.addEventListener('selectstart', blockSelect); }
   if (state.exam.anti_tab) document.addEventListener('visibilitychange', onTabSwitch);
-  try { document.documentElement.requestFullscreen?.(); } catch {}
+  // fullscreen is handled ONLY by examFullscreenEnabled() gate above — removed rogue call
   return false;
 }
 
